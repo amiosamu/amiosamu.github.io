@@ -242,20 +242,20 @@ a[target="_blank"] {
     width: 100%;
 }
 
-.top-buttons, .bottom-buttons {
+.top-row {
     display: flex;
     gap: 10px;
-    justify-content: flex-start;
+    align-items: center;
 }
 
-.bottom-buttons {
-    position: absolute;
-    left: 20px;
-    top: 100%;
+.status-buttons {
     display: flex;
     gap: 10px;
-    margin-top: 20px;
     align-items: center;
+}
+
+.problem-list {
+    margin-top: 20px;
 }
 
 .dark-mode-toggle {
@@ -362,8 +362,4 @@ a[target="_blank"] {
 /* Dark mode support for checkbox */
 .dark-mode .problem-checkbox {
     accent-color: #404040;
-}
-
-.problem-list {
-    margin-top: 60px;
 }
