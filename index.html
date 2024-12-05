@@ -3,9 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hello</title>
+    <title>All in one | LeetCode Tracker</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
+    <div class="header">
+        <h1>LeetCode Tracker</h1>
+    </div>
+
+    <div class="website-description">
+        <p>Here you can track your progress on LeetCode problems. The problem that this website is trying to solve is that there are several well-known topic lists and I've decided to merge them all into one. Here you will find problems from neetcode.io, grind169 list, leetcode-patterns, Striver SDE sheet, leetcode's  top interview 150</p>
+    </div>
+
+    <div class="controls-container">
+        <div class="main-content">
+            <div class="stats-section">
+                <img id="preview" src="https://leetcard.jacoblin.cool/yaebashu?theme=dark&amp;font=Baloo%202&amp;ext=heatmap">
+                <div class="action-buttons">
+                    <div class="top-buttons">
+                        <button class="button red">reset all</button>
+                        <button class="button">pick random</button>
+                        <select class="dropdown" id="difficulty-filter">
+                            <option value="">All Difficulties</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="bottom-buttons">
+                        <div class="status-buttons">
+                            <button class="status-btn active" data-status="">All</button>
+                            <button class="status-btn" data-status="todo">Todo</button>
+                            <button class="status-btn" data-status="review">Review</button>
+                            <button class="status-btn" data-status="mastered">Mastered</button>
+                        </div>
+                        <button class="button dark-mode-toggle">🌙 Dark Mode</button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="patterns-guide">
+                <h3>Problem Solving Patterns</h3>
+                <ul>
+                    <!-- Patterns will go here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="problem-list">
+        <div class="problem-item">
+            <input type="checkbox" class="problem-checkbox">
+            <div class="problem-info">
+                <a href="problems/two_sum.html" class="problem-name">Two Sum</a>
+                <a href="https://leetcode.com/problems/two-sum" class="button" target="_blank">leetcode link</a>
+            </div>
+            <button class="difficulty-btn easy">Easy</button>
+            <select class="status-select">
+                <option value="todo">Todo</option>
+                <option value="review">Review</option>
+                <option value="mastered">Mastered</option>
+            </select>
+        </div>
+        <div class="problem-item">
+            <input type="checkbox" class="problem-checkbox">
+            <div class="problem-info">
+                <div class="problem-name">Problem 2</div>
+                <a href="#" class="button blue">leetcode link</a>
+            </div>
+            <button class="difficulty-btn medium">Medium</button>
+            <select class="status-select">
+                <option value="todo">Todo</option>
+                <option value="review">Review</option>
+                <option value="mastered">Mastered</option>
+            </select>
+        </div>
+        <div class="problem-item">
+            <input type="checkbox" class="problem-checkbox">
+            <div class="problem-info">
+                <div class="problem-name">Problem 3</div>
+                <a href="#" class="button blue">leetcode link</a>
+            </div>
+            <button class="difficulty-btn hard">Hard</button>
+            <select class="status-select">
+                <option value="todo">Todo</option>
+                <option value="review">Review</option>
+                <option value="mastered">Mastered</option>
+            </select>
+        </div>
+    </div>
+    <script src="main.js"></script>
 </body>
 </html>

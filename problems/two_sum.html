@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Sum - LeetCode Tracker</title>
+    <link rel="stylesheet" href="../problems.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="../index.html" class="button">back</a>
+            <div class="problem-name">Two Sum</div>
+            <div class="problem-number">#1</div>
+        </div>
+
+        <div class="description">
+            <p>Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target...</p>
+        </div>
+
+        <div class="hints">
+            <ul>
+                <li>Hint 1</li>
+                <li>Hint 2</li>
+                <li>Hint 3</li>
+            </ul>
+        </div>
+
+        <div class="explanation">
+            <h2>Explanation</h2>
+            <p>Explanation of the problem and solution...</p>
+        </div>
+
+        <div class="approach">
+            <h2>Approach</h2>
+            <p>Solution approach...</p>
+        </div>
+
+        <div class="code-section">
+            <h2>Code</h2>
+            <div class="language-buttons">
+                <button class="button language-btn active" data-language="python">Python</button>
+                <button class="button language-btn" data-language="cpp">C++</button>
+                <button class="button language-btn" data-language="go">Go</button>
+            </div>
+            <div class="code-blocks">
+                <pre class="code-block python active"><code class="language-python">
+def twoSum(nums, target):
+    seen = {}
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+    return []</code></pre>
+
+                <pre class="code-block cpp"><code class="language-cpp">
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> um;
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            if (um.find(complement) != um.end()) {
+                return {um[complement], i};
+            }
+            um[nums[i]] = i;
+        }
+        return {};
+    }
+};</code></pre>
+
+                <pre class="code-block go"><code class="language-go">
+func twoSum(nums []int, target int) []int {
+    seen := make(map[int]int)
+    for i, num := range nums {
+        if j, exists := seen[target-num]; exists {
+            return []int{j, i}
+        }
+        seen[num] = i
+    }
+    return nil
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="../main.js"></script>
+</body>
+</html>
