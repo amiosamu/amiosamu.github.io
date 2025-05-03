@@ -1,24 +1,23 @@
 +++
-date = '2025-05-03T14:21:06+05:00'
+date = '2025-05-03T19:39:54+05:00'
 draft = false
+title = 'About'
 +++
 
+Hi! this is a simple blog about cs stuff.
 
-## About
+## My Background
 
-Hello. This is a simple blog about cs stuff.
-
-## Background
-
-empty...
+empty
 
 ## Interests
 
 - distributed systems
-- highload
-- Go
-- Algorithms & Data Structures
+- data structures & algorithms
+- go
 
 ## Contact
 
-mail - ...
+
+- Email:
+
