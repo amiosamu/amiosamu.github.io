@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Hello, world!</title>
+    <title>blog about cs stuff</title>
     <link>http://localhost:1313/</link>
-    <description>Recent content on Hello, world!</description>
+    <description>Recent content on blog about cs stuff</description>
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
@@ -14,7 +14,7 @@
       <link>http://localhost:1313/about/</link>
       <pubDate>Sat, 03 May 2025 14:21:06 +0500</pubDate>
       <guid>http://localhost:1313/about/</guid>
-      <description>&lt;h2 id=&#34;about&#34;&gt;About&lt;/h2&gt;&#xA;&lt;p&gt;Hello, I&amp;rsquo;m [Your Name]. I&amp;rsquo;m a computer science enthusiast with interests in [your specific interests].&lt;/p&gt;&#xA;&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;&#xA;&lt;p&gt;[Information about your education, work, or projects]&lt;/p&gt;&#xA;&lt;h2 id=&#34;skills&#34;&gt;Skills&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Skill 1&lt;/li&gt;&#xA;&lt;li&gt;Skill 2&lt;/li&gt;&#xA;&lt;li&gt;Skill 3&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;contact&#34;&gt;Contact&lt;/h2&gt;&#xA;&lt;p&gt;Feel free to reach out to me at [your contact information or social media].&lt;/p&gt;</description>
+      <description>&lt;h2 id=&#34;about&#34;&gt;About&lt;/h2&gt;&#xA;&lt;p&gt;Hello. This is a simple blog about cs stuff.&lt;/p&gt;&#xA;&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;&#xA;&lt;p&gt;empty&amp;hellip;&lt;/p&gt;&#xA;&lt;h2 id=&#34;interests&#34;&gt;Interests&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;distributed systems&lt;/li&gt;&#xA;&lt;li&gt;highload&lt;/li&gt;&#xA;&lt;li&gt;Go&lt;/li&gt;&#xA;&lt;li&gt;Algorithms &amp;amp; Data Structures&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;contact&#34;&gt;Contact&lt;/h2&gt;&#xA;&lt;p&gt;mail - &amp;hellip;&lt;/p&gt;</description>
     </item>
     <item>
       <title>Sliding Window</title>

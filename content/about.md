@@ -4,21 +4,21 @@ draft = false
 +++
 
 
-
 ## About
 
-Hello, I'm [Your Name]. I'm a computer science enthusiast with interests in [your specific interests].
+Hello. This is a simple blog about cs stuff.
 
 ## Background
 
-[Information about your education, work, or projects]
+empty...
 
-## Skills
+## Interests
 
-- Skill 1
-- Skill 2
-- Skill 3
+- distributed systems
+- highload
+- Go
+- Algorithms & Data Structures
 
 ## Contact
 
-Feel free to reach out to me at [your contact information or social media].
+mail - ...
