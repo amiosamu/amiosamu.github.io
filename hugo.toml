@@ -1,0 +1,98 @@
+baseURL = 'https://amiosamu.github.io/'
+languageCode = 'en-us'
+title = 'Hello, world!'
+
+[params]
+  dateform = "Jan 2, 2006"
+  dateformShort = "Jan 2"
+  dateformNum = "2006-01-02"
+  dateformNumTime = "2006-01-02 15:04"
+  
+  # Set dark mode as default
+  defaultTheme = "dark" # options: "light", "dark", "auto"
+  
+  # Enable theme toggle (switch between light and dark)
+  enableThemeToggle = true
+  
+  # Theme toggle icon position
+  themeTogglePosition = "bottom" # options: "left", "bottom"
+  
+  # Subtitle for home
+  homeSubtitle = "blog about cs stuff"
+  
+  # Set disableReadOtherPosts to true in order to hide the links to other posts.
+  disableReadOtherPosts = false
+  
+  # Enable sharing buttons, if you like
+  enableSharingButtons = true
+  
+  # Show a global language switcher in the navigation bar
+  enableGlobalLanguageMenu = true
+  
+  # Metadata mostly used in document's head
+  description = "My new homepage or blog"
+  keywords = "homepage, blog"
+  images = [""]
+
+# Taxonomies for categories and tags
+[taxonomies]
+  category = "blog"
+  tag = "tags"
+  series = "series"
+
+[languages]
+  [languages.en]
+    title = "Hello, world!"
+    keywords = ""
+    copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>'
+    readOtherPosts = "Read other posts"
+    
+    [languages.en.params]
+      subtitle = "A simple theme for Hugo"
+      
+      [languages.en.params.logo]
+        logoText = "cs blog"
+        logoHomeLink = "/"
+        # or
+        #
+        # path = "/img/your-example-logo.svg"
+        # alt = "Your example logo alt text"
+
+# Main menu
+[[menu.main]]
+  identifier = "posts"
+  name = "Posts"
+  url = "/posts"
+  weight = 10
+  
+[[menu.main]]
+  identifier = "about"
+  name = "About"
+  url = "/about"
+  weight = 20
+  
+# Added Tags menu item
+[[menu.main]]
+  identifier = "tags"
+  name = "Tags"
+  url = "/tags"
+  weight = 30
+
+# Social media links
+[[params.social]]
+  name = "twitter"
+  url = "https://twitter.com/yourusername"
+
+# Added GitHub
+[[params.social]]
+  name = "github"
+  url = "https://github.com/amiosamu"
+
+# For syntax highlighting
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = false
+    lineNos = true
+    lineNumbersInTable = true
+    style = "monokai"
