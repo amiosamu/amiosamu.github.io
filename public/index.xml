@@ -2,26 +2,26 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>blog about cs stuff</title>
-    <link>https://amiosamu.github.io/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on blog about cs stuff</description>
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
     <lastBuildDate>Sat, 03 May 2025 19:39:54 +0500</lastBuildDate>
-    <atom:link href="https://amiosamu.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>About</title>
-      <link>https://amiosamu.github.io/about/</link>
+      <link>http://localhost:1313/about/</link>
       <pubDate>Sat, 03 May 2025 19:39:54 +0500</pubDate>
-      <guid>https://amiosamu.github.io/about/</guid>
+      <guid>http://localhost:1313/about/</guid>
       <description>&lt;p&gt;Hi! this is a simple blog about cs stuff.&lt;/p&gt;&#xA;&lt;h2 id=&#34;my-background&#34;&gt;My Background&lt;/h2&gt;&#xA;&lt;p&gt;empty&lt;/p&gt;&#xA;&lt;h2 id=&#34;interests&#34;&gt;Interests&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;distributed systems&lt;/li&gt;&#xA;&lt;li&gt;data structures &amp;amp; algorithms&lt;/li&gt;&#xA;&lt;li&gt;go&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;contact&#34;&gt;Contact&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Email:&lt;/li&gt;&#xA;&lt;/ul&gt;</description>
     </item>
     <item>
-      <title>Sliding Window</title>
-      <link>https://amiosamu.github.io/posts/sliding-window/</link>
+      <title>Sliding Window Technique</title>
+      <link>http://localhost:1313/posts/sliding-window/</link>
       <pubDate>Sat, 03 May 2025 14:14:04 +0500</pubDate>
-      <guid>https://amiosamu.github.io/posts/sliding-window/</guid>
-      <description></description>
+      <guid>http://localhost:1313/posts/sliding-window/</guid>
+      <description>&lt;h2 id=&#34;table-of-contents&#34;&gt;Table of contents&lt;/h2&gt;</description>
     </item>
   </channel>
 </rss>

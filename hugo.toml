@@ -14,7 +14,6 @@ enableThemeToggle = true
 # Theme toggle icon position
 themeTogglePosition = "bottom" # options: "left", "bottom"
 # Subtitle for home
-homeSubtitle = "blog about cs stuff"
 # Set disableReadOtherPosts to true in order to hide the links to other posts.
 disableReadOtherPosts = false
 # Enable sharing buttons, if you like
@@ -67,15 +66,7 @@ name = "Tags"
 url = "/tags"
 weight = 30
 
-# Social media links
-[[params.social]]
-name = "twitter"
-url = "https://twitter.com/yourusername"
 
-# Added GitHub
-[[params.social]]
-name = "github"
-url = "https://github.com/amiosamu"
 
 # For syntax highlighting
 [markup]
