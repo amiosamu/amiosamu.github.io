@@ -4,8 +4,8 @@ draft = false
 title = 'Concurrency Patterns in Go'
 +++
 
-123123
-```
+
+``` GO
     package main
 
     import "fmt"
