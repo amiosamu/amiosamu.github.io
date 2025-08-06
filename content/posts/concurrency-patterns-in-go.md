@@ -4,3 +4,13 @@ draft = false
 title = 'Concurrency Patterns in Go'
 +++
 
+123123
+```
+    package main
+
+    import "fmt"
+
+    func main() {
+        fmt.Println("Hello, World!")
+    }
+```

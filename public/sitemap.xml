@@ -2,32 +2,32 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://amiosamu.github.io/</loc>
+    <loc>http://localhost:1313/</loc>
+    <lastmod>2025-05-08T11:26:35+05:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/</loc>
+    <lastmod>2025-05-08T11:26:35+05:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/concurrency-patterns-in-go/</loc>
     <lastmod>2025-05-08T11:10:40+05:00</lastmod>
   </url><url>
-    <loc>https://amiosamu.github.io/posts/concurrency-patterns-in-go/</loc>
-    <lastmod>2025-05-08T11:10:40+05:00</lastmod>
-  </url><url>
-    <loc>https://amiosamu.github.io/posts/</loc>
-    <lastmod>2025-05-08T11:10:40+05:00</lastmod>
-  </url><url>
-    <loc>https://amiosamu.github.io/about/</loc>
+    <loc>http://localhost:1313/about/</loc>
     <lastmod>2025-05-03T19:39:54+05:00</lastmod>
   </url><url>
-    <loc>https://amiosamu.github.io/tags/dsa/</loc>
+    <loc>http://localhost:1313/tags/dsa/</loc>
     <lastmod>2025-05-03T14:14:04+05:00</lastmod>
   </url><url>
-    <loc>https://amiosamu.github.io/posts/sliding-window/</loc>
+    <loc>http://localhost:1313/posts/sliding-window/</loc>
     <lastmod>2025-05-03T14:14:04+05:00</lastmod>
   </url><url>
-    <loc>https://amiosamu.github.io/tags/sliding-window/</loc>
+    <loc>http://localhost:1313/tags/sliding-window/</loc>
     <lastmod>2025-05-03T14:14:04+05:00</lastmod>
   </url><url>
-    <loc>https://amiosamu.github.io/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
     <lastmod>2025-05-03T14:14:04+05:00</lastmod>
   </url><url>
-    <loc>https://amiosamu.github.io/blog/</loc>
+    <loc>http://localhost:1313/blog/</loc>
   </url><url>
-    <loc>https://amiosamu.github.io/series/</loc>
+    <loc>http://localhost:1313/series/</loc>
   </url>
 </urlset>
