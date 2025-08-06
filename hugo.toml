@@ -75,4 +75,4 @@ codeFences = true
 guessSyntax = false
 lineNos = true
 lineNumbersInTable = true
-style = "monokai"
+style = "github-dark"
