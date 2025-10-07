@@ -1,0 +1,10 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="400" fill="#6366f1"/>
+  <text x="400" y="200" font-family="Arial, sans-serif" font-size="32" fill="white" text-anchor="middle" dominant-baseline="middle">
+    Example Blog Image
+  </text>
+  <text x="400" y="240" font-family="Arial, sans-serif" font-size="18" fill="#e0e7ff" text-anchor="middle" dominant-baseline="middle">
+    Replace this with your own images in public/images/
+  </text>
+</svg>
+
