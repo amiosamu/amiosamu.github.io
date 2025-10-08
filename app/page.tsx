@@ -1,4 +1,5 @@
 import { Github, Linkedin, Mail, Twitter } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -17,6 +18,16 @@ export default function Home() {
             <li>go</li>
             <li>distributed systems</li>
           </ul>
+        </div>
+
+        <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border border-border">
+          <Image
+            src="/images/Richard_Feynman-1920w.png"
+            alt="Richard Feynman quote: What I cannot create, I do not understand"
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
 
         <div className="pt-4">
