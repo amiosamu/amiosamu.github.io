@@ -1,1 +1,1 @@
-# amiosamu.github.io
+# amiosamu

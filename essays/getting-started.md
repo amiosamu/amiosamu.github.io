@@ -2,6 +2,7 @@
 title: "Getting Started with My Blog"
 date: "2024-10-06"
 description: "Learn how to add new essays to this blog."
+tags: ["tutorial", "getting-started"]
 ---
 
 # Getting Started

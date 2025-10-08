@@ -1,8 +1,9 @@
-import { getAllEssays } from '@/lib/essays'
+import { getAllEssaysMetadata } from '@/lib/essays'
 import Link from 'next/link'
+import { TagBadge } from '@/components/tag-badge'
 
 export default function EssaysPage() {
-  const essays = getAllEssays()
+  const essays = getAllEssaysMetadata()
 
   return (
     <div className="container mx-auto px-4 py-16 max-w-2xl">
@@ -17,6 +18,7 @@ export default function EssaysPage() {
               <Link 
                 href={`/essays/${essay.slug}/`}
                 className="group"
+                prefetch={true}
               >
                 <h2 className="text-xl font-semibold group-hover:underline">
                   {essay.title}
@@ -33,6 +35,13 @@ export default function EssaysPage() {
               )}
               {essay.description && (
                 <p className="text-muted-foreground">{essay.description}</p>
+              )}
+              {essay.tags && essay.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {essay.tags.map((tag) => (
+                    <TagBadge key={tag} tag={tag} />
+                  ))}
+                </div>
               )}
             </article>
           ))}

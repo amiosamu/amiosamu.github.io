@@ -6,7 +6,7 @@ export default function Home() {
       <div className="space-y-6">
         <div className="prose dark:prose-invert max-w-none">
           <p className="text-lg leading-relaxed">
-            Hi, I'm <strong>amiosamu</strong>. cs student.
+            Hi, I'm <strong>amiosamu</strong>.
           </p>
           <p className="text-lg leading-relaxed">
             Topic of interest:
@@ -15,6 +15,7 @@ export default function Home() {
             <li>computer science</li>
             <li>software engineering</li>
             <li>go</li>
+            <li>distributed systems</li>
           </ul>
         </div>
 

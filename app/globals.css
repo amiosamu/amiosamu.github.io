@@ -55,28 +55,39 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 /* MDX Styles */
 .prose {
   @apply text-foreground;
+  font-family: inherit;
 }
 
 .prose h1 {
   @apply text-3xl font-bold mb-4 mt-8;
+  font-family: inherit;
+  letter-spacing: -0.025em;
 }
 
 .prose h2 {
-  @apply text-2xl font-bold mb-3 mt-6;
+  @apply text-2xl font-bold mb-3 mt-6 scroll-mt-20;
+  font-family: inherit;
+  letter-spacing: -0.025em;
 }
 
 .prose h3 {
-  @apply text-xl font-bold mb-2 mt-4;
+  @apply text-xl font-bold mb-2 mt-4 scroll-mt-20;
+  font-family: inherit;
+  letter-spacing: -0.02em;
 }
 
 .prose p {
   @apply mb-4 leading-7;
+  font-family: inherit;
 }
 
 .prose a {
@@ -97,6 +108,7 @@
 
 .prose code {
   @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
 }
 
 .prose pre {

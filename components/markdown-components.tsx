@@ -15,6 +15,24 @@ export function MarkdownComponents() {
   }, [])
 
   return {
+    h2({ node, children, ...props }: any) {
+      const text = String(children)
+      const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
+      return (
+        <h2 id={id} {...props}>
+          {children}
+        </h2>
+      )
+    },
+    h3({ node, children, ...props }: any) {
+      const text = String(children)
+      const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
+      return (
+        <h3 id={id} {...props}>
+          {children}
+        </h3>
+      )
+    },
     code({ node, inline, className, children, ...props }: any) {
       const match = /language-(\w+)/.exec(className || '')
       const language = match ? match[1] : ''

@@ -1,17 +1,25 @@
 "use client"
 
+import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { MarkdownComponents } from '@/components/markdown-components'
+import { TableOfContents } from '@/components/table-of-contents'
 
-export default function EssayContent({ content }: { content: string }) {
+function EssayContentComponent({ content }: { content: string }) {
   const components = MarkdownComponents()
   
   return (
-    <div className="prose dark:prose-invert max-w-none">
-      <ReactMarkdown components={components}>
-        {content}
-      </ReactMarkdown>
-    </div>
+    <>
+      <TableOfContents content={content} />
+      <div className="prose dark:prose-invert max-w-none">
+        <ReactMarkdown components={components}>
+          {content}
+        </ReactMarkdown>
+      </div>
+    </>
   )
 }
+
+// Memoize to prevent unnecessary re-renders
+export default memo(EssayContentComponent)
 

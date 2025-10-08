@@ -2,6 +2,7 @@
 title: "My First Essay"
 date: "2024-10-07"
 description: "This is an example essay to demonstrate the markdown support."
+tags: ["tutorial", "markdown", "example"]
 ---
 
 # Welcome to My Blog

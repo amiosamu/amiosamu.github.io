@@ -9,6 +9,12 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   basePath: '',
   trailingSlash: true,
+  // Performance optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  swcMinify: true,
+  reactStrictMode: true,
 }
 
 const withMDX = createMDX({

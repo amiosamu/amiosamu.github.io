@@ -4,7 +4,11 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: "amiosamu - blog about cs stuff",
@@ -17,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -35,6 +39,10 @@ export default function RootLayout({
                   {" / "}
                   <a href="/essays/" className="hover:underline">
                     essays
+                  </a>
+                  {" / "}
+                  <a href="/tags/" className="hover:underline">
+                    tags
                   </a>
                 </div>
                 <ThemeToggle />
