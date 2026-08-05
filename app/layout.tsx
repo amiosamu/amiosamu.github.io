@@ -48,6 +48,10 @@ export default function RootLayout({
                   <a href="/portfolio/" className="hover:underline">
                     portfolio
                   </a>
+                  {" / "}
+                  <a href="/dsa/" className="hover:underline">
+                    dsa
+                  </a>
                 </div>
                 <ThemeToggle />
               </div>

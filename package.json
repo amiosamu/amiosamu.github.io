@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build"
+    "export": "next build",
+    "scaffold": "node scripts/scaffold-solutions.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.1",

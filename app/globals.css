@@ -119,6 +119,37 @@
   @apply rounded-lg overflow-x-auto;
 }
 
+.prose h4 {
+  @apply text-lg font-semibold mb-2 mt-4 scroll-mt-20;
+  font-family: inherit;
+}
+
+/* GFM tables — react-markdown emits bare table markup with no styling of its own. */
+.prose table {
+  @apply w-full text-sm border-collapse;
+}
+
+.prose thead {
+  @apply border-b border-border;
+}
+
+.prose th {
+  @apply text-left font-semibold py-2 pr-4 align-top;
+}
+
+.prose td {
+  @apply py-2 pr-4 border-b border-border/50 align-top;
+}
+
+.prose table code {
+  @apply text-xs;
+}
+
+/* Task lists from GFM checkboxes. */
+.prose li input[type='checkbox'] {
+  @apply mr-2 align-middle;
+}
+
 .prose blockquote {
   @apply border-l-4 border-primary pl-4 italic my-4;
 }
