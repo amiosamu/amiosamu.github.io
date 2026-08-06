@@ -11,7 +11,10 @@ const nextConfig = {
   trailingSlash: true,
   // Performance optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // Strips console.log noise from the client bundle, but keeps warn/error:
+    // the build-time content checks in lib/problems.ts report through them.
+    removeConsole:
+      process.env.NODE_ENV === 'production' ? { exclude: ['warn', 'error'] } : false,
   },
   swcMinify: true,
   reactStrictMode: true,

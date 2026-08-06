@@ -8,7 +8,15 @@ import { DifficultyBadge } from '@/components/difficulty-badge'
 import { cn } from '@/lib/utils'
 
 const DIFFICULTIES: Difficulty[] = ['Easy', 'Medium', 'Hard']
-type StatusFilter = 'all' | 'solved' | 'unsolved'
+type StatusFilter = 'all' | 'solved' | 'unsolved' | 'due'
+
+// Local calendar date, not UTC — "due today" should mean the user's today.
+function localToday(): string {
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${now.getFullYear()}-${month}-${day}`
+}
 
 interface ProblemBrowserProps {
   problems: Problem[]
@@ -20,9 +28,29 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
   const [difficulties, setDifficulties] = useState<Set<Difficulty>>(new Set())
   const [status, setStatus] = useState<StatusFilter>('all')
   const [activeCategory, setActiveCategory] = useState<string>('')
+  // Resolved after mount: the page is statically exported, so a build-time
+  // "today" would go stale. Empty until then, which keeps hydration consistent.
+  const [today, setToday] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    setToday(localToday())
+  }, [])
+
   const solvedCount = useMemo(() => problems.filter((p) => p.solved).length, [problems])
+
+  const dueSlugs = useMemo(() => {
+    if (!today) return new Set<string>()
+    return new Set(
+      problems
+        .filter(
+          (problem) =>
+            problem.solved &&
+            (problem.revisit || (problem.nextReview !== undefined && problem.nextReview <= today))
+        )
+        .map((problem) => problem.slug)
+    )
+  }, [problems, today])
 
   const difficultyCounts = useMemo(() => {
     const counts = { Easy: 0, Medium: 0, Hard: 0 } as Record<Difficulty, number>
@@ -38,6 +66,7 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
       if (difficulties.size > 0 && !difficulties.has(problem.difficulty)) return false
       if (status === 'solved' && !problem.solved) return false
       if (status === 'unsolved' && problem.solved) return false
+      if (status === 'due' && !dueSlugs.has(problem.slug)) return false
       if (!needle) return true
       return (
         problem.name.toLowerCase().includes(needle) ||
@@ -46,7 +75,7 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
         (problem.pattern?.toLowerCase().includes(needle) ?? false)
       )
     })
-  }, [problems, query, difficulties, status])
+  }, [problems, query, difficulties, status, dueSlugs])
 
   // Keep catalog order inside each category, and drop categories with no matches.
   const grouped = useMemo(() => {
@@ -180,7 +209,7 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
 
           <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
 
-          {(['all', 'solved', 'unsolved'] as StatusFilter[]).map((value) => (
+          {(['all', 'solved', 'unsolved', 'due'] as StatusFilter[]).map((value) => (
             <button
               key={value}
               type="button"
@@ -194,6 +223,9 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
               )}
             >
               {value}
+              {value === 'due' && dueSlugs.size > 0 && (
+                <span className="ml-1.5 opacity-60">{dueSlugs.size}</span>
+              )}
             </button>
           ))}
 
@@ -202,6 +234,20 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
           </span>
         </div>
       </div>
+
+      {dueSlugs.size > 0 && status !== 'due' && (
+        <button
+          type="button"
+          onClick={() => setStatus('due')}
+          className="w-full mb-8 flex items-center justify-between gap-4 rounded-lg border border-border hover:border-foreground transition-colors px-4 py-3 text-left"
+        >
+          <span className="text-sm">
+            <span className="font-medium">{dueSlugs.size}</span>{' '}
+            {dueSlugs.size === 1 ? 'problem is' : 'problems are'} due for a re-solve
+          </span>
+          <span className="text-xs text-muted-foreground shrink-0">Show</span>
+        </button>
+      )}
 
       <div className="lg:grid lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-10">
         <nav className="hidden lg:block" aria-label="Categories">
@@ -246,7 +292,11 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
                   </div>
                   <ul>
                     {items.map((problem) => (
-                      <ProblemRow key={problem.slug} problem={problem} />
+                      <ProblemRow
+                        key={problem.slug}
+                        problem={problem}
+                        due={dueSlugs.has(problem.slug)}
+                      />
                     ))}
                   </ul>
                 </section>
@@ -259,7 +309,7 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
   )
 }
 
-function ProblemRow({ problem }: { problem: Problem }) {
+function ProblemRow({ problem, due }: { problem: Problem; due: boolean }) {
   return (
     <li className="flex items-baseline gap-3 py-2 border-b border-border/50 group">
       <DifficultyBadge difficulty={problem.difficulty} className="w-14 shrink-0" />
@@ -280,20 +330,16 @@ function ProblemRow({ problem }: { problem: Problem }) {
             draft
           </span>
         )}
+        {due && (
+          <span className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-400 border border-current/40 rounded px-1">
+            due
+          </span>
+        )}
         {problem.pattern && (
           <span className="text-sm text-muted-foreground truncate">— {problem.pattern}</span>
         )}
       </div>
 
-      <a
-        href={problem.leetcodeUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        title={`${problem.name} on LeetCode`}
-      >
-        LC
-      </a>
       <a
         href={problem.neetcodeUrl}
         target="_blank"

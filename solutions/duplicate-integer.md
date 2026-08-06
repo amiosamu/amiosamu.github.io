@@ -3,6 +3,9 @@ pattern: "Set membership"
 time: "O(n)"
 space: "O(n)"
 date: "2026-08-05"
+# Append today's date each time you re-solve this from a blank file.
+# Failed the re-solve? Empty the list — the schedule restarts.
+reviews: []
 ---
 
 ## Intuition
