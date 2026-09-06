@@ -7,6 +7,23 @@ time: "O(n * sqrt(M))"
 space: "O(n log M)"
 ---
 
+## Description
+
+Given an array `nums`, determine whether it is possible to traverse between every pair of
+indices, where a direct move between index `i` and index `j` is allowed exactly when
+`gcd(nums[i], nums[j]) > 1`. Return `True` if every pair of indices is connected by some
+sequence of such moves, `False` otherwise.
+
+**Example**
+
+```
+Input: nums = [2,3,6]
+Output: true
+```
+
+Explanation: `gcd(2, 6) = 2 > 1` and `gcd(3, 6) = 3 > 1`, so both index 0 and index 1 are
+directly connected to index 2, which links all three indices into a single component.
+
 ## Intuition
 
 The question is whether the graph "connect `i` and `j` when `gcd(nums[i], nums[j]) > 1`" is a single connected component. Building it directly needs all O(n²) pairs. The insight is that `gcd > 1` means the two numbers share a prime, so instead of linking numbers to numbers I link each number to the *primes* it contains: two numbers sharing prime `p` end up in the same component through `p`, transitively and for free. In practice I don't even need node ids for primes — I just remember the first index that used each prime and union the current index with it. Everything then reduces to one union-find over `n` indices.

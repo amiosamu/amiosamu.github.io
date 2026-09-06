@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a non-empty array `nums` where every integer appears exactly twice except for one,
+which appears exactly once, find and return that single integer. The intended solution runs
+in linear time using only constant extra space, ruling out a hash-set/counting approach.
+
+**Example**
+
+```
+Input: nums = [2,2,1]
+Output: 1
+```
+
+Explanation: 2 appears twice and cancels itself out under XOR, leaving 1 as the only value
+that survives.
+
 ## Intuition
 
 The obvious solve is a counter dict, but that costs O(n) memory and the problem asks for

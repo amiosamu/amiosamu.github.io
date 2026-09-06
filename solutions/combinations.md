@@ -7,6 +7,19 @@ time: "O(k * C(n, k))"
 space: "O(k)"
 ---
 
+## Description
+
+Given two integers `n` and `k`, return all possible combinations of `k` distinct numbers chosen from the range `[1, n]`. The order of numbers within a combination does not matter, and no combination should be repeated.
+
+**Example**
+
+```
+Input: n = 4, k = 2
+Output: [[2,4],[3,4],[2,3],[1,2],[1,3],[1,4]]
+```
+
+Explanation: Every pair of distinct numbers between 1 and 4 is listed exactly once, such as `[2,4]` and `[1,3]`, with no pair repeated or reversed.
+
 ## Intuition
 
 This is Subsets with a size filter, so the skeleton is identical: pick the next number only from values at or after `start`, which forces every combination into increasing order and therefore generates it once. The one addition worth making is the pruning bound. If `path` already has `len(path)` numbers, I still need `k - len(path)` more, and they must all come from `i..n` — so any `i` with fewer than that many numbers left behind it is a dead branch. Cutting the loop there rather than recursing and failing at the base case is the difference between exploring C(n, k) nodes and exploring 2^n of them.

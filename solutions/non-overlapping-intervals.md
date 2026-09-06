@@ -7,6 +7,22 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list `intervals` where `intervals[i] = [starti, endi]`, return the minimum number of
+intervals that must be removed so that the remaining intervals are pairwise non-overlapping (two
+intervals that only touch at an endpoint are not considered overlapping).
+
+**Example**
+
+```
+Input: intervals = [[1,2],[2,3],[3,4],[1,3]]
+Output: 1
+```
+
+Explanation: `[1,3]` overlaps both `[1,2]` and `[2,3]`; removing `[1,3]` leaves `[1,2],[2,3],[3,4]`,
+which only touch at endpoints, so one removal suffices.
+
 ## Intuition
 
 Removing the fewest intervals is the same problem as keeping the most, which is classic activity

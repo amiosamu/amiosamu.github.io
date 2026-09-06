@@ -7,6 +7,21 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given two strings `word1` and `word2`, returns the minimum number of single-character insert,
+delete, or replace operations needed to turn `word1` into `word2`.
+
+**Example**
+
+```
+Input: word1 = "horse", word2 = "ros"
+Output: 3
+```
+
+Explanation: `horse` -> `rorse` (replace `h` with `r`) -> `rose` (delete `r`) -> `ros`
+(delete `e`), three operations in total.
+
 ## Intuition
 
 The minimum number of operations to turn `word1[:i]` into `word2[:j]` only depends on three smaller prefix pairs, because whatever the *last* operation applied was — insert, delete, or replace/match — it reduces the problem to one of those three. That turns a search over edit sequences into a grid DP.

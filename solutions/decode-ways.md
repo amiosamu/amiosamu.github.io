@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string of digits that was produced by encoding letters `'A'..'Z'` as `1..26` and
+concatenating them with no delimiter, count how many distinct letter sequences could have
+produced it. A leading zero in any one- or two-digit group makes that grouping invalid.
+
+**Example**
+
+```
+Input: s = "12"
+Output: 2
+```
+
+Explanation: `"12"` can be split as `"1", "2"` (decoding to `"AB"`) or as `"12"` (decoding to
+`"L"`), so there are 2 valid decodings.
+
 ## Intuition
 
 A decoding is a sequence of cuts, and the branching is only ever two-way: the next letter eats

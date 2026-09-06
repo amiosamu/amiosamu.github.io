@@ -7,6 +7,25 @@ time: "O(V^2 + E) with V = k"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given an integer `k` and two lists of ordering constraints, `rowConditions` (`[a, b]` means
+`a` must appear in a row strictly above `b`) and `colConditions` (`[a, b]` means `a` must
+appear in a column strictly left of `b`), build a `k x k` matrix containing each of the
+numbers `1` to `k` exactly once so that every constraint holds, filling unused cells with
+`0`. Return an empty matrix if no such arrangement exists.
+
+**Example**
+
+```
+Input: k = 3, rowConditions = [[1,2],[3,2]], colConditions = [[2,1]]
+Output: [[0,0,1],[0,3,0],[2,0,0]]
+```
+
+Explanation: A row order of `1, 3, 2` satisfies both row constraints (1 above 2, 3 above 2)
+and a column order of `2, 3, 1` satisfies the column constraint (2 left of 1); placing each
+number at its row and column position gives this matrix.
+
 ## Intuition
 
 The rows and the columns never interact. `rowConditions` only constrains which row each

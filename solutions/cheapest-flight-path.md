@@ -7,6 +7,23 @@ time: "O(k * E)"
 space: "O(V)"
 ---
 
+## Description
+
+Given `n` cities, a list of `flights` as `[from, to, price]`, a source `src`, a destination
+`dst`, and an integer `k`, return the cheapest price to travel from `src` to `dst` using at
+most `k` stops (i.e. at most `k + 1` flights), or `-1` if no such route exists.
+
+**Example**
+
+```
+Input: n = 4, flights = [[0,1,100],[1,2,100],[2,0,100],[1,3,600],[2,3,200]], src = 0, dst = 3, k = 1
+Output: 700
+```
+
+Explanation: With at most 1 stop, the route `0 -> 1 -> 3` costs `100 + 600 = 700`; the
+cheaper-looking route `0 -> 1 -> 2 -> 3` costs less but uses 2 stops, which exceeds the
+budget `k = 1`, so it is not allowed.
+
 ## Intuition
 
 The stop limit breaks Dijkstra. Dijkstra finalizes a node the moment it is popped, but

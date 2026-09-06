@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given an `m x n` integer matrix, determines the length of the longest strictly increasing
+path, where each step moves to a horizontally or vertically adjacent cell whose value is
+greater than the current one.
+
+**Example**
+
+```
+Input: matrix = [[9,9,4],[6,6,8],[2,1,1]]
+Output: 4
+```
+
+Explanation: the path `1 -> 2 -> 6 -> 9` moves between adjacent cells with strictly
+increasing values and has length 4, the longest such path in the matrix.
+
 ## Intuition
 
 Every step of a valid path strictly increases in value, so the "can move to" relation between cells has no cycles — a path can never lead back to a cell it already visited. That means the longest increasing path starting at a given cell is a fixed number independent of how you got there, so a DFS from each cell can be memoized safely instead of re-explored.

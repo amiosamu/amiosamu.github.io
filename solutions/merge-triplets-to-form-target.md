@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a 2D array `triplets` of integer triplets and a triplet `target`, determine whether `target`
+can be formed by repeatedly picking two triplets already obtained (starting from the given ones)
+and replacing them with their elementwise maximum. Return whether some sequence of such merges
+produces exactly `target`.
+
+**Example**
+
+```
+Input: triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]
+Output: true
+```
+
+Explanation: Merging `triplets[0] = [2,5,3]` with `triplets[2] = [1,7,5]` gives
+`[max(2,1), max(5,7), max(3,5)] = [2,7,5]`, which equals `target`.
+
 ## Intuition
 
 Merging takes an elementwise max, which is monotonic — once a coordinate exceeds the target it

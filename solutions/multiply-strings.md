@@ -7,6 +7,21 @@ time: "O(n * m)"
 space: "O(n + m)"
 ---
 
+## Description
+
+Given two non-negative integers `num1` and `num2` represented as strings, return their
+product, also as a string, without converting the inputs directly to native integers.
+
+**Example**
+
+```
+Input: num1 = "123", num2 = "456"
+Output: "56088"
+```
+
+Explanation: 123 multiplied by 456 equals 56088, computed here digit by digit rather than
+via a built-in integer conversion.
+
 ## Intuition
 
 Converting both strings to ints and multiplying dodges the point of the problem (and would

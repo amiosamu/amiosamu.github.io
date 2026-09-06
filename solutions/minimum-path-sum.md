@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an `m x n` grid of non-negative integers, find a path from the top-left corner to the
+bottom-right corner, moving only down or right at each step, that minimizes the sum of the
+numbers along the path, and return that minimum sum.
+
+**Example**
+
+```
+Input: grid = [[1,3,1],[1,5,1],[4,2,1]]
+Output: 7
+```
+
+Explanation: the path `1 -> 3 -> 1 -> 1 -> 1` (right, right, down, down) sums to 7, which is
+lower than any other down/right path through this grid.
+
 ## Intuition
 
 Greedily stepping toward the smaller neighbour fails — a cheap first step can dump you into an

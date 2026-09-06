@@ -7,6 +7,19 @@ time: "O(n!)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer `n`, return the number of distinct ways to place `n` queens on an `n x n` chessboard so that no two queens share a row, column, or diagonal.
+
+**Example**
+
+```
+Input: n = 4
+Output: 2
+```
+
+Explanation: There are exactly two non-attacking arrangements of 4 queens on a 4x4 board, so the count returned is 2.
+
 ## Intuition
 
 Same problem as N Queens, minus the requirement to reconstruct the boards — I only need how many valid placements exist, so there's no reason to build or store an `n x n` grid. Same row-by-row column search, same three conflict sets for column and both diagonals, but each successful leaf just contributes `1` to a running count instead of a formatted board.

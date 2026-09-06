@@ -7,6 +7,23 @@ time: "O(n * m^2)"
 space: "O(n * m^2)"
 ---
 
+## Description
+
+Given `beginWord`, `endWord`, and a `wordList`, return the number of words in the shortest
+transformation sequence from `beginWord` to `endWord`, changing exactly one letter at a
+time, where every intermediate word must appear in `wordList`. Return `0` if no such
+sequence exists.
+
+**Example**
+
+```
+Input: beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]
+Output: 5
+```
+
+Explanation: The sequence "hit" -> "hot" -> "dot" -> "dog" -> "cog" has 5 words and is the
+shortest one that reaches "cog" one letter change at a time through words in `wordList`.
+
 ## Intuition
 
 The graph is implicit: nodes are the words in `wordList` plus `beginWord`, and two words

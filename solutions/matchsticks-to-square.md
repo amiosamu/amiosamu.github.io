@@ -7,6 +7,19 @@ time: "O(4^n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `matchsticks` of stick lengths, determine whether all of the sticks can be used exactly once, without cutting any, to form a square.
+
+**Example**
+
+```
+Input: matchsticks = [1,1,2,2,2]
+Output: true
+```
+
+Explanation: The sticks sum to 8, so each side of the square must total 2; grouping them as {2}, {2}, {2}, {1,1} gives four sides of length 2.
+
 ## Intuition
 
 A square needs 4 equal sides, so all that matters is splitting the sticks into 4 groups that each sum to `total / 4` — order within a side is irrelevant. Placing the longest sticks first fails fast, since a long stick has fewer buckets it can still fit into. The other thing that matters: if a stick doesn't fit in one empty bucket, it won't fit in any other empty bucket either, so trying more than one empty bucket per stick is pure wasted work.

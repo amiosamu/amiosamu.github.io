@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` where `nums[i]` is the amount of money stored in house `i`, all
+houses arranged in a line, return the maximum total amount that can be robbed without
+robbing two directly adjacent houses (adjacent houses trigger a connected alarm).
+
+**Example**
+
+```
+Input: nums = [1,2,3,1]
+Output: 4
+```
+
+Explanation: Robbing house 0 and house 2 gives `1 + 3 = 4`; robbing houses 1 and 3 instead
+gives only `2 + 1 = 3`, so skipping to houses 0 and 2 is better.
+
 ## Intuition
 
 The greedy "always take the bigger neighbour" idea dies on `[2, 1, 1, 2]` — you must skip two

@@ -7,6 +7,21 @@ time: "O(1)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a signed 32-bit integer `x`, return `x` with its digits reversed. If reversing
+overflows the signed 32-bit range `[-2^31, 2^31 - 1]`, return `0` instead.
+
+**Example**
+
+```
+Input: x = 123
+Output: 321
+```
+
+Explanation: Reversing the digits of 123 gives 321, which fits comfortably within the 32-bit
+signed range.
+
 ## Intuition
 
 Reversing the digits is a pop-push loop: `x % 10` peels the last digit off, `res * 10 + digit`

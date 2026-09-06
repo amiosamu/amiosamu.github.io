@@ -7,6 +7,24 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two integer arrays `gas` and `cost` describing a circular route of stations, where
+`gas[i]` is the fuel available at station `i` and `cost[i]` is the fuel needed to drive from
+station `i` to station `i+1`, returns the index of the station to start from (with an
+initially empty tank) so a car can complete the entire circuit, or `-1` if no such start
+exists.
+
+**Example**
+
+```
+Input: gas = [1,2,3,4,5], cost = [3,4,5,1,2]
+Output: 3
+```
+
+Explanation: starting at station 3, the running tank never goes negative — `4-1=3`,
+`3+5-2=6`, `6+1-3=4`, `4+2-4=2`, `2+3-5=0` — completing the loop back to station 3.
+
 ## Intuition
 
 Two separate facts do all the work. First, feasibility is global: the trip is possible at all iff

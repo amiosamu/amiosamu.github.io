@@ -7,6 +7,21 @@ time: "O(m * n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a 2D integer array `matrix` of size `m x n`, return its transpose: the `n x m` array whose
+row `j`, column `i` entry equals `matrix[i][j]`, i.e. the matrix flipped over its main diagonal.
+
+**Example**
+
+```
+Input: matrix = [[1,2,3],[4,5,6],[7,8,9]]
+Output: [[1,4,7],[2,5,8],[3,6,9]]
+```
+
+Explanation: The entry at row 0, column 1 (`matrix[0][1] == 2`) moves to row 1, column 0 of the
+output, and every other entry swaps position the same way across the main diagonal.
+
 ## Intuition
 
 The transpose flips over the main diagonal: the element at row `i`, column `j` ends up at row `j`,

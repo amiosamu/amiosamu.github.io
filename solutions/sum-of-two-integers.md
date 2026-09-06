@@ -7,6 +7,21 @@ time: "O(1)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two integers `a` and `b`, return their sum, computed without using the `+` or `-`
+operators.
+
+**Example**
+
+```
+Input: a = 2, b = 3
+Output: 5
+```
+
+Explanation: a ^ b = 1 gives the sum ignoring carries, and (a & b) << 1 = 4 is the carry;
+folding the carry back in one more round produces 5.
+
 ## Intuition
 
 Addition splits into two independent pieces: `a ^ b` is the sum of every column ignoring carries,

@@ -7,6 +7,23 @@ time: "O(n * α(n))"
 space: "O(n)"
 ---
 
+## Description
+
+Given a tree of `n` nodes labeled `1` to `n` that gained one extra edge, described as a
+list of `n` undirected `edges`, return the extra edge that, if removed, restores a valid
+tree; if more than one edge could be removed, return the one that appears last in the input.
+
+**Example**
+
+```
+Input: edges = [[1,2],[1,3],[2,3]]
+Output: [2,3]
+```
+
+Explanation: edges `[1,2]` and `[1,3]` already connect all three nodes into a tree, so the
+later edge `[2,3]` closes a cycle and is the redundant one.
+
+
 ## Intuition
 
 The graph is a tree on `n` nodes with one extra undirected edge added, so it has `n` nodes

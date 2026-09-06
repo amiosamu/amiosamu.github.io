@@ -7,6 +7,24 @@ time: "O(V + E + q * (V + E))"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given a list of equations `a / b = val` as pairs of variable names with corresponding
+`values`, and a list of `queries` each asking for `a / b`, evaluate each query by chaining
+the known ratios through shared variables, returning `-1.0` for any query involving an
+unknown variable or an unreachable pair.
+
+**Example**
+
+```
+Input: equations = [["a","b"],["b","c"]], values = [2.0,3.0], queries = [["a","c"],["b","a"],["a","e"],["a","a"],["x","x"]]
+Output: [6.0,0.5,-1.0,1.0,-1.0]
+```
+
+Explanation: `a / b = 2.0` and `b / c = 3.0` chain to `a / c = 2.0 * 3.0 = 6.0`, while `"e"`
+and `"x"` never appear in the equations, so those queries return `-1.0`.
+
+
 ## Intuition
 
 Each equation `a / b = k` is a weighted edge in disguise: nodes are the variable *names*,

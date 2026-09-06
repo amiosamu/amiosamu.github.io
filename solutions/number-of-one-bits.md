@@ -7,6 +7,20 @@ time: "O(1)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an unsigned 32-bit integer `n`, return the number of `1` bits in its binary
+representation (its Hamming weight).
+
+**Example**
+
+```
+Input: n = 11
+Output: 3
+```
+
+Explanation: 11 in binary is 1011, which has three 1 bits.
+
 ## Intuition
 
 The naive loop tests all 32 positions with `n & 1` and shifts, doing 32 iterations regardless

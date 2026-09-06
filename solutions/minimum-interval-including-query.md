@@ -7,6 +7,24 @@ time: "O(n log n + m log m)"
 space: "O(n + m)"
 ---
 
+## Description
+
+Given a list `intervals` where `intervals[i] = [lefti, righti]` and an array `queries`, for each
+`queries[j]` find the size of the smallest interval that contains it (`righti - lefti + 1`), or
+`-1` if no interval contains it. Return an array of answers, one per query, in the original query
+order.
+
+**Example**
+
+```
+Input: intervals = [[1,4],[2,4],[3,6],[4,4]], queries = [2,3,4,5]
+Output: [3,3,1,4]
+```
+
+Explanation: Query `2` is contained only by `[1,4]` and `[2,4]`, and the smaller has size 3; query
+`4` is contained by all four intervals, and `[4,4]` is smallest with size 1; query `5` is contained
+only by `[3,6]`, size 4.
+
 ## Intuition
 
 Answering each query independently is O(n) per query and too slow. The trick is to answer the

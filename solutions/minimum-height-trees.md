@@ -7,6 +7,24 @@ time: "O(V + E)"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given a tree of `n` nodes labeled `0` to `n - 1` connected by `n - 1` undirected edges,
+return the label(s) of the node(s) that, when used as the root, produce a minimum height
+tree — the height being the number of edges on the longest downward path from that root.
+There can be at most two such roots, and they may be returned in any order.
+
+**Example**
+
+```
+Input: n = 4, edges = [[1,0],[1,2],[1,3]]
+Output: [1]
+```
+
+Explanation: Rooting the tree at node 1 gives every other node as a direct child, for a
+height of 1 — rooting at any leaf (0, 2, or 3) instead gives a strictly taller tree, so 1
+is the only minimum height tree root.
+
 ## Intuition
 
 The graph is an undirected tree: `n` nodes, `n - 1` edges, connected. Rooting it at every

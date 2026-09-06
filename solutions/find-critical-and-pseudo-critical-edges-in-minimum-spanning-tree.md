@@ -7,6 +7,25 @@ time: "O(E^2 * a(V))"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given `n` nodes and a list of weighted `edges`, find every edge that is critical — its
+removal increases the minimum spanning tree (MST) weight or disconnects the graph, meaning
+no MST can avoid it — and every edge that is pseudo-critical — some but not all MSTs use it.
+Return `[critical, pseudo]`, each a list of the edges' original indices into `edges`.
+
+**Example**
+
+```
+Input: n = 5, edges = [[0,1,1],[1,2,1],[2,3,2],[0,3,2],[0,4,3],[3,4,3],[1,4,6]]
+Output: [[0,1],[2,3,4,5]]
+```
+
+Explanation: The MST weight is 7, built from edges 0 and 1 (weight 1 each) plus two of the
+weight-2/weight-3 edges; edges 0 and 1 are unavoidable low-weight connectors so removing
+either raises the total, making them critical, while edges 2, 3, 4, and 5 can each be
+swapped into some MST without changing the total of 7.
+
 ## Intuition
 
 Both labels are definitions about the MST *weight*, so I never need to enumerate spanning trees — I just need to rerun Kruskal twice per edge and compare against the baseline weight. An edge is critical if deleting it makes the best achievable weight worse (or disconnects the graph): no MST can avoid it. Otherwise it is pseudo-critical if forcing it in still achieves the baseline weight: some MST uses it. Everything else appears in no MST at all. The one bookkeeping trap is that Kruskal needs the edges sorted by weight while the answer wants original indices, so each edge carries its original position along with it.

@@ -7,6 +7,20 @@ time: "O(max(n, m))"
 space: "O(max(n, m))"
 ---
 
+## Description
+
+Given two binary strings `a` and `b`, return their sum as a binary string, computed digit
+by digit rather than by converting through base-10 integers.
+
+**Example**
+
+```
+Input: a = "1010", b = "1011"
+Output: "10101"
+```
+
+Explanation: 1010 is 10 and 1011 is 11 in decimal; 10 + 11 = 21, which is 10101 in binary.
+
 ## Intuition
 
 `int(a, 2) + int(b, 2)` and `bin(...)` would pass in Python because ints are arbitrary

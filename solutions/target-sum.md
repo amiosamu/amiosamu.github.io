@@ -7,6 +7,22 @@ time: "O(n * S)"
 space: "O(S)"
 ---
 
+## Description
+
+Given an array of integers `nums` and an integer `target`, describes assigning a `+` or `-`
+sign to each number in `nums` and summing the results; returns the number of distinct sign
+assignments that make the sum equal exactly `target`.
+
+**Example**
+
+```
+Input: nums = [1,1,1,1,1], target = 3
+Output: 5
+```
+
+Explanation: to reach a sum of 3 from five 1s, four must be `+1` and one must be `-1`
+(4 - 1 = 3); there are 5 ways to choose which single 1 gets the minus sign.
+
 ## Intuition
 
 There are `2^n` sign assignments, but many of them agree on the one thing that matters: the

@@ -7,6 +7,22 @@ time: "O(log n + log x)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two integers `n` and `x`, construct a strictly increasing array of `n` positive
+integers whose bitwise AND equals `x`, and return the minimum possible value of the array's
+last element.
+
+**Example**
+
+```
+Input: n = 3, x = 4
+Output: 6
+```
+
+Explanation: The cheapest strictly increasing array with AND equal to 4 is [4,5,6];
+4 & 5 & 6 = 4, and 6 is its last element.
+
 ## Intuition
 
 Every element has to AND down to `x`, so every element must be a superset of `x`'s set bits —

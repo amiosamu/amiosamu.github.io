@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `nums`, returns the largest possible sum of a contiguous subarray that
+contains at least one number.
+
+**Example**
+
+```
+Input: nums = [-2,1,-3,4,-1,2,1,-5,4]
+Output: 6
+```
+
+Explanation: the subarray `[4,-1,2,1]` sums to 6, which is the largest sum among all
+contiguous subarrays of `nums`.
+
 ## Intuition
 
 The brute force checks all O(n²) subarrays. The insight that kills it: if the running sum of the

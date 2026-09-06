@@ -7,6 +7,19 @@ time: "O(n * L^2 + n * S)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string `s` and a dictionary of strings `wordDict`, add spaces to `s` to build every sentence where each resulting word appears in `wordDict`, and return all such sentences in any order.
+
+**Example**
+
+```
+Input: s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]
+Output: ["cats and dog","cat sand dog"]
+```
+
+Explanation: "catsanddog" can be split as "cats" + "and" + "dog" or as "cat" + "sand" + "dog", and both splits use only words found in `wordDict`.
+
 ## Intuition
 
 Enumerating sentences is plain prefix-cut backtracking — the same shape as Palindrome Partitioning, with "is this piece in the dictionary" replacing "is this piece a palindrome". The reason naive backtracking blows up is the adversarial case `"aaaa...aaab"` with words `["a","aa","aaa",...]`: there are no valid sentences at all, yet the search rebuilds an exponential number of prefixes before discovering the trailing `b` is unusable every single time. The fix is to answer "can `s[i:]` be segmented at all?" once for each `i` in a linear DP pass, then use that table as a prune. With it, every branch the DFS enters is guaranteed to reach a real sentence, so the work becomes proportional to the output.

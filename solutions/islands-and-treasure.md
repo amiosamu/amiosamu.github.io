@@ -7,6 +7,25 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given an `m x n` grid of rooms where `-1` is a wall, `0` is a gate, and `2147483647` is an
+empty room, fill each empty room in place with the distance to its nearest gate, reachable
+only by moving up/down/left/right through empty rooms; rooms no gate can reach keep the
+sentinel value.
+
+**Example**
+
+```
+Input: rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-1],[2147483647,-1,2147483647,-1],[0,-1,2147483647,2147483647]]
+Output: [[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]
+```
+
+Explanation: the gate at `(0, 2)` reaches `(1, 2)` in 1 step, `(2, 2)` in 2, `(3, 2)` in 3,
+and `(3, 3)` in 4 steps, matching the filled values down that column; the walls (`-1`) are
+never overwritten.
+
+
 ## Intuition
 
 Nodes are the non-wall cells, edges join cells sharing a side, and every edge costs one step —

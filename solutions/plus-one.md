@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `digits` representing a non-negative integer, where each element is one
+digit and the most significant digit comes first, increment the represented integer by one
+and return the resulting digits as an array. The array may need to grow by one digit, as in
+the all-9s case.
+
+**Example**
+
+```
+Input: digits = [1,2,3]
+Output: [1,2,4]
+```
+
+Explanation: The digits represent 123, and 123 + 1 = 124, which is [1,2,4].
+
 ## Intuition
 
 Adding one only ever cascades a carry through a trailing run of 9's - every digit before that

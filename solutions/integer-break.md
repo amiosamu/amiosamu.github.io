@@ -7,6 +7,21 @@ time: "O(n^2)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer `n` of at least 2, split it into a sum of two or more positive integers and
+return the maximum possible product of those integers.
+
+**Example**
+
+```
+Input: n = 10
+Output: 36
+```
+
+Explanation: splitting `10` as `3 + 3 + 4` gives a product of `3 * 3 * 4 == 36`, the best
+achievable over every way of breaking 10 into two or more positive integers.
+
 ## Intuition
 
 Fix the first piece `j`. What is left is `i - j`, and I have a choice: stop there and keep

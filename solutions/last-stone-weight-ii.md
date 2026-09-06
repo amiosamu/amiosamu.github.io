@@ -7,6 +7,24 @@ time: "O(n * S)"
 space: "O(S)"
 ---
 
+## Description
+
+Given an array of stone weights, repeatedly pick any two stones and smash them together: if
+their weights are equal both are destroyed, otherwise the lighter one is destroyed and the
+heavier one's weight is reduced by the lighter one's weight. Return the smallest possible
+weight of the last remaining stone (0 if none remains).
+
+**Example**
+
+```
+Input: stones = [2,7,4,1,8,1]
+Output: 1
+```
+
+Explanation: combining `2` and `4` gives `2`, combining that `2` with `1` and `1` gives `0`,
+combining `7` and `8` gives `1`, and finally smashing the two remaining stones `0` and `1`
+leaves a stone of weight `1`.
+
 ## Intuition
 
 Smashing `x` and `y` leaves `|x - y|`, which is the same as putting one on the plus side and

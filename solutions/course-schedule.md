@@ -7,6 +7,23 @@ time: "O(V + E)"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given `numCourses` courses labeled `0` to `numCourses - 1` and a list of prerequisite pairs
+`[course, pre]` meaning `pre` must be taken before `course`, determine whether it is
+possible to finish all courses, i.e. the prerequisite graph contains no cycle.
+
+**Example**
+
+```
+Input: numCourses = 2, prerequisites = [[1,0]]
+Output: true
+```
+
+Explanation: course 1 requires course 0 first, and there is no edge back from 0 to 1, so
+taking course 0 then course 1 finishes both with no cycle.
+
+
 ## Intuition
 
 The graph is hiding in plain sight: the nodes are the `numCourses` course ids, and each

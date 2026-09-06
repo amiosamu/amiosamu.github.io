@@ -7,6 +7,19 @@ time: "O(k^n)"
 space: "O(n + k)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `k`, determine whether the array can be divided into `k` non-empty subsets with equal sums, using every element exactly once.
+
+**Example**
+
+```
+Input: nums = [4,3,2,3,5,2,1], k = 4
+Output: true
+```
+
+Explanation: The elements sum to 20, so each subset must total 5; one valid split is {5}, {1,4}, {2,3}, {2,3}, four subsets each summing to 5.
+
 ## Intuition
 
 This generalizes Matchsticks to Square from 4 fixed buckets to `k`: I need `k` groups each summing to `total / k`, and only the multiset of values in a bucket matters, not their order. Sorting descending lets the largest numbers commit or fail first, and treating all-empty buckets as interchangeable kills the redundant branches where a number gets tried against several buckets that are all still at 0.

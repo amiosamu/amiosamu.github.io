@@ -7,6 +7,22 @@ time: "O(n * amount)"
 space: "O(amount)"
 ---
 
+## Description
+
+Given a target amount and an array of coin denominations with an unlimited supply of each,
+count the number of distinct combinations of coins that sum to exactly the target amount.
+Combinations are unordered — using coin `1` then coin `2` is the same combination as coin `2`
+then coin `1`.
+
+**Example**
+
+```
+Input: amount = 5, coins = [1,2,5]
+Output: 4
+```
+
+Explanation: the 4 combinations summing to 5 are `5`, `2+2+1`, `2+1+1+1`, and `1+1+1+1+1`.
+
 ## Intuition
 
 The trap is counting *permutations* instead of *combinations*: a naive `dp[a] += dp[a - c]`

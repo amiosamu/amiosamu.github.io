@@ -7,6 +7,23 @@ time: "O(m * n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an `m x n` 2D integer array `matrix`, return all of its elements in spiral order: starting
+at the top-left, walking right across the top row, down the right column, left across the bottom
+row, and up the left column, shrinking inward until every element has been visited once.
+
+**Example**
+
+```
+Input: matrix = [[1,2,3],[4,5,6],[7,8,9]]
+Output: [1,2,3,6,9,8,7,4,5]
+```
+
+Explanation: The top row gives `1,2,3`; the right column (excluding the corner already taken)
+gives `6,9`; the bottom row walked right-to-left gives `8,7`; the left column walked bottom-to-top
+gives `4`; only the center, `5`, remains and closes the spiral.
+
 ## Intuition
 
 Track four boundaries — `top`, `bottom`, `left`, `right` — that fence in the un-visited rectangle,

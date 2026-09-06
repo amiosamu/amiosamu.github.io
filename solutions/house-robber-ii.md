@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Same rule as House Robber — an array `nums` of money per house, no two adjacent houses may
+both be robbed — except the houses are arranged in a circle, so the first and last houses
+are also considered adjacent. Return the maximum total amount that can be robbed.
+
+**Example**
+
+```
+Input: nums = [2,3,2]
+Output: 3
+```
+
+Explanation: Houses 0 and 2 are adjacent because the houses form a circle, so they cannot
+both be robbed; the best legal choice is robbing only house 1, which yields 3 — more than
+robbing either endpoint alone.
+
 ## Intuition
 
 The circle only adds one constraint over House Robber: houses `0` and `n - 1` are now adjacent,

@@ -7,6 +7,20 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer `n`, return an array `ans` of length `n + 1` where `ans[i]` is the number
+of `1` bits in the binary representation of `i`, for every `i` from `0` to `n`.
+
+**Example**
+
+```
+Input: n = 5
+Output: [0,1,1,2,1,2]
+```
+
+Explanation: In binary, 0..5 are 0,1,10,11,100,101, whose 1-bit counts are 0,1,1,2,1,2.
+
 ## Intuition
 
 Calling popcount on each of the `n + 1` values costs O(n log n). The insight is that `i` in

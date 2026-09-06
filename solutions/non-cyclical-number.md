@@ -7,6 +7,23 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a positive integer `n`, determine whether it is a happy number: repeatedly replace
+`n` with the sum of the squares of its decimal digits, and `n` is happy if this process
+eventually reaches 1. If the process instead loops forever in a cycle that never includes 1,
+`n` is not happy.
+
+**Example**
+
+```
+Input: n = 19
+Output: true
+```
+
+Explanation: 19 -> 1^2+9^2=82 -> 8^2+2^2=68 -> 6^2+8^2=100 -> 1^2+0^2+0^2=1, so the chain
+reaches 1 and 19 is happy.
+
 ## Intuition
 
 The brute force keeps a hash set of every value seen while repeatedly replacing `n` with the

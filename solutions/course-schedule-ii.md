@@ -7,6 +7,23 @@ time: "O(V + E)"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given `numCourses` courses and a list of prerequisite pairs `[course, pre]` meaning `pre`
+must be taken before `course`, return a valid order in which to take all courses, or an
+empty array if no valid order exists because the prerequisite graph has a cycle.
+
+**Example**
+
+```
+Input: numCourses = 4, prerequisites = [[1,0],[2,0],[3,1],[3,2]]
+Output: [0,1,2,3]
+```
+
+Explanation: course 0 has no prerequisite so it comes first, courses 1 and 2 each only need
+0, and course 3 needs both 1 and 2, so `[0,1,2,3]` respects every dependency.
+
+
 ## Intuition
 
 Same graph as Course Schedule — nodes are course ids, `[course, pre]` is a precedence

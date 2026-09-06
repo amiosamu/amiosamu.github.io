@@ -7,6 +7,24 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `ratings` where `ratings[i]` is the rating of the `i`-th child standing in a line,
+distribute candies to the children so that each gets at least one and any child with a strictly
+higher rating than an adjacent child receives strictly more candy than that neighbor. Return the
+minimum total number of candies needed.
+
+**Example**
+
+```
+Input: ratings = [1,0,2]
+Output: 5
+```
+
+Explanation: One valid distribution is `candies = [2,1,2]`: the middle child has the lowest rating
+and gets the floor of 1, while both neighbors rate higher and must exceed it, giving a total of
+`2 + 1 + 2 = 5`.
+
 ## Intuition
 
 The only constraint linking two children is local: whichever of a pair has the higher rating

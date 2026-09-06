@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array of stone values, Alice and Bob alternate turns (Alice first) each taking 1, 2,
+or 3 stones from the front of the remaining row and adding their values to their own score.
+Both play optimally to maximize their own final score. Return `"Alice"`, `"Bob"`, or `"Tie"`
+depending on who ends with the higher score.
+
+**Example**
+
+```
+Input: stoneValue = [1,2,3,7]
+Output: "Bob"
+```
+
+Explanation: Alice's best move is to take the first three stones (score 6), leaving Bob the
+last stone worth 7; Bob's final score of 7 beats Alice's 6, so Bob wins.
+
 ## Intuition
 
 Tracking both players' absolute scores would need a two-dimensional state, and there is no need:

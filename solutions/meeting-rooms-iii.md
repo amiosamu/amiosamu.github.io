@@ -7,6 +7,25 @@ time: "O(m log m + m log n)"
 space: "O(n + m)"
 ---
 
+## Description
+
+Given an integer `n` of rooms numbered `0` to `n - 1` and a list `meetings` where
+`meetings[i] = [starti, endi]`, assign each meeting, in start-time order, to the lowest-numbered
+free room, or — if no room is free — delay it until the room that frees up soonest becomes
+available, keeping the meeting's original duration; on a tie, use the lowest-numbered room. Return
+the number of the room that holds the most meetings by the end.
+
+**Example**
+
+```
+Input: n = 2, meetings = [[0,10],[1,5],[2,7],[3,4]]
+Output: 0
+```
+
+Explanation: Rooms 0 and 1 start the first two meetings at times 0 and 1; the third and fourth
+meetings arrive while both rooms are busy and get delayed until rooms 1 and then 0 free up. Rooms
+0 and 1 each end up hosting 2 meetings, and the lowest-numbered room on that tie is room 0.
+
 ## Intuition
 
 The allocation rule names two "minimums" I have to answer fast, so each gets its own heap: the

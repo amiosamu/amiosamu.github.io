@@ -7,6 +7,20 @@ time: "O(n * S)"
 space: "O(S)"
 ---
 
+## Description
+
+Given an array of positive integers, determine whether it can be split into two subsets whose
+elements sum to the same value. Every element must be used in exactly one of the two subsets.
+
+**Example**
+
+```
+Input: nums = [1,5,11,5]
+Output: true
+```
+
+Explanation: the subsets `[1,5,5]` and `[11]` both sum to 11, so an equal split exists.
+
 ## Intuition
 
 Two subsets that split evenly means each one sums to `total / 2`, so the second subset is just

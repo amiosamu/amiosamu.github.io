@@ -7,6 +7,23 @@ time: "O(log n)"
 space: "O(log n)"
 ---
 
+## Description
+
+Given an integer `columnNumber` as it would appear as a column title in an Excel sheet (where
+`A, B, ..., Z, AA, AB, ...` are `1, 2, ..., 26, 27, 28, ...`), return the corresponding column
+title as a string.
+
+**Example**
+
+```
+Input: columnNumber = 701
+Output: "ZY"
+```
+
+Explanation: `701` decrements to `700`; `700 % 26 == 24` gives `'Y'` and `700 // 26 == 26`;
+decrementing `26` to `25` gives `25 % 26 == 25`, `'Z'`, with quotient 0. Reading the digits in the
+order they were produced, last to first, gives `"ZY"`.
+
 ## Intuition
 
 This is base 26, except there is no zero digit: the alphabet spells out 1..26, not 0..25, so

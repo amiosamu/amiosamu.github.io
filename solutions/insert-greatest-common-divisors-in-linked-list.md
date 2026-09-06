@@ -7,6 +7,22 @@ time: "O(n log M)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the `head` of a linked list of positive integers, insert a new node holding the greatest
+common divisor between each pair of adjacent original nodes, then return the (possibly
+unchanged-head) modified list.
+
+**Example**
+
+```
+Input: head = [18,6,10,3]
+Output: [18,6,6,2,10,1,3]
+```
+
+Explanation: `gcd(18,6) = 6` is inserted between the first pair, `gcd(6,10) = 2` between the
+second, and `gcd(10,3) = 1` between the third, giving `[18,6,6,2,10,1,3]`.
+
 ## Intuition
 
 There is no algorithmic insight to find here — the whole problem is doing a pairwise walk without

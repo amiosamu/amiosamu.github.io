@@ -7,6 +7,24 @@ time: "O(V log V) with V = m * n"
 space: "O(V) with V = m * n"
 ---
 
+## Description
+
+Given a grid of cell heights, find a path from the top-left cell to the bottom-right cell
+(moving up/down/left/right) that minimizes the effort of the path, where the effort of a
+path is the maximum absolute height difference between two consecutive cells on it — not
+the sum of the differences.
+
+**Example**
+
+```
+Input: heights = [[1,2,2],[3,8,2],[5,3,5]]
+Output: 2
+```
+
+Explanation: The route (0,0) -> (0,1) -> (0,2) -> (1,2) -> (2,2) has consecutive height
+differences 1, 0, 1, 2, so its effort is the largest of those, 2, and no route to the
+corner achieves a smaller maximum difference.
+
 ## Intuition
 
 The cost of a path is not the sum of its steps, it is the single worst step — the

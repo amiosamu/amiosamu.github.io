@@ -7,6 +7,21 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list `intervals` where `intervals[i] = [starti, endi]`, merge all overlapping intervals and
+return a list of the non-overlapping intervals that cover every interval in the input.
+
+**Example**
+
+```
+Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
+Output: [[1,6],[8,10],[15,18]]
+```
+
+Explanation: `[1,3]` and `[2,6]` overlap because `2 <= 3`, so they merge into `[1,6]`; `[8,10]` and
+`[15,18]` don't touch anything else and pass through unchanged.
+
 ## Intuition
 
 Comparing every pair is O(n^2) and also awkward, because merging two intervals can create a new one

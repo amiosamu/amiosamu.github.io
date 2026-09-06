@@ -7,6 +7,19 @@ time: "O(n * 2^n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string `s`, split it into substrings such that every substring is a palindrome, and return all possible ways to partition it.
+
+**Example**
+
+```
+Input: s = "aab"
+Output: [["a","a","b"],["aa","b"]]
+```
+
+Explanation: Both partitions use only palindromic substrings ("a", "a", "b" and "aa", "b"), covering the two ways to cut "aab" so every piece reads the same forwards and backwards.
+
 ## Intuition
 
 A partition of `s` is just a set of cut positions, so there are 2^(n-1) candidates and the brute force is to test each one. The insight that makes backtracking better than generate-and-filter is that palindromicity is checkable *prefix by prefix*: if `s[start:end+1]` isn't a palindrome, no partition that starts with that piece can ever be valid, so the whole subtree dies immediately instead of being built and rejected at the end. That turns the check into a prune, and it is why this runs comfortably for n = 16.

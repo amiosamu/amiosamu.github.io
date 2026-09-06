@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array of integers that may include negative numbers and zeros, find the contiguous
+subarray with the largest product and return that product.
+
+**Example**
+
+```
+Input: nums = [2,3,-2,4]
+Output: 6
+```
+
+Explanation: the subarray `[2,3]` has product `2 * 3 == 6`, and no contiguous subarray
+(including ones that reach the negative `-2` or the trailing `4`) beats it.
+
 ## Intuition
 
 The sum version of this (Kadane) works because a running total only ever gets worse by keeping

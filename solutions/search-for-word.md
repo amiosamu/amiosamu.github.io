@@ -7,6 +7,19 @@ time: "O(m * n * 4^L)"
 space: "O(L)"
 ---
 
+## Description
+
+Given an `m x n` grid of characters `board` and a string `word`, determine whether `word` can be traced out by moving to horizontally or vertically adjacent cells, using each cell at most once.
+
+**Example**
+
+```
+Input: board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"
+Output: true
+```
+
+Explanation: Starting at `board[0][0]` ('A'), the path A -> B -> C -> C -> E -> D moves through adjacent cells without reusing any cell, spelling out "ABCCED".
+
 ## Intuition
 
 The path is a walk through the grid rather than a list of chosen items, but the shape is identical to every other backtracking problem: one decision per step (which of the four neighbours to move to), a base case that records success, and an undo on the way back up. The only wrinkle is "the same cell may not be used more than once" — which needs a visited marker that is local to the *current* path, not global. Overwriting `board[r][c]` with a sentinel and restoring it on the way out gives exactly that, with no extra visited set: a cell is off-limits only while it sits on the path being explored.

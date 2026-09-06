@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given two strings `s` and `t`, returns the number of distinct ways `t` can be produced by
+deleting some (possibly zero) characters from `s`, without reordering the characters that
+remain.
+
+**Example**
+
+```
+Input: s = "rabbbit", t = "rabbit"
+Output: 3
+```
+
+Explanation: `s` has three `b`s in a row while `t` needs only two, so there are 3 ways to
+choose which single `b` to delete, each leaving `rabbit`.
+
 ## Intuition
 
 Brute force would enumerate every subset of positions in `s` and check if it spells `t` — exponential. Instead, count for each prefix of `s` and prefix of `t` how many ways the `s`-prefix can produce the `t`-prefix as a subsequence: each character of `s` either gets skipped entirely, or — if it matches the current character of `t` — gets used to extend a match built from one-shorter prefixes of both strings.

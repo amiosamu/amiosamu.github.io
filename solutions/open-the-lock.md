@@ -7,6 +7,24 @@ time: "O(10^4 * 4 + d)"
 space: "O(10^4 + d)"
 ---
 
+## Description
+
+Given a 4-wheel combination lock starting at `"0000"`, where each wheel can be turned one
+step up or down (wrapping between `9` and `0`), a list of `deadends` states that lock the
+wheel permanently if reached, and a `target` combination, return the minimum number of turns
+needed to reach `target` without ever passing through a deadend, or `-1` if it's impossible.
+
+**Example**
+
+```
+Input: deadends = ["0201","0101","0102","1212","2002"], target = "0202"
+Output: 6
+```
+
+Explanation: the shortest sequence of single-wheel turns from `"0000"` to `"0202"` that
+avoids every listed deadend takes 6 moves.
+
+
 ## Intuition
 
 The graph is not given — I have to see it. A node is one of the `10^4` four-character states

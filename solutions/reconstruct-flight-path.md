@@ -7,6 +7,24 @@ time: "O(E log E)"
 space: "O(E)"
 ---
 
+## Description
+
+Given a list of airline `tickets`, each `[from, to]`, reconstruct and return the
+itinerary that starts at `"JFK"` and uses every ticket exactly once. If multiple valid
+itineraries exist, return the one that is lexicographically smallest when read as a
+sequence of airport codes.
+
+**Example**
+
+```
+Input: tickets = [["MUC","LHR"],["JFK","MUC"],["SFO","SJC"],["LHR","SFO"]]
+Output: ["JFK","MUC","LHR","SFO","SJC"]
+```
+
+Explanation: Starting at "JFK" and using each ticket exactly once, this chain of flights
+is the only itinerary that uses every ticket, so it is trivially also the lexicographically
+smallest one.
+
 ## Intuition
 
 Every ticket must be used exactly once, so this is an Eulerian path over the tickets —

@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` containing `n` distinct numbers drawn from the range `[0, n]`, return
+the one number in that range that is missing from `nums`.
+
+**Example**
+
+```
+Input: nums = [3,0,1]
+Output: 2
+```
+
+Explanation: nums has 3 elements drawn from [0,3]; 0, 1, and 3 are present, so 2 is the
+missing value.
+
 ## Intuition
 
 The array holds `n` distinct values drawn from `0..n`, so exactly one of those `n + 1` labels is

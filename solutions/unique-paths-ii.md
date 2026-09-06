@@ -7,6 +7,24 @@ time: "O(m * n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an `m x n` grid where each cell is either open (`0`) or blocked by an obstacle (`1`), a
+robot starts at the top-left corner and can move only down or right, and may never step onto
+an obstacle. Return the number of distinct paths from the top-left corner to the bottom-right
+corner.
+
+**Example**
+
+```
+Input: obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
+Output: 2
+```
+
+Explanation: the obstacle sits in the middle cell, so only two down/right paths avoid it: go
+right along the top then down the right column, or down the left column then right along the
+bottom.
+
 ## Intuition
 
 Same additive count as Unique Paths — a cell's route count is the sum of the cell above and the

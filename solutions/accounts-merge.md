@@ -7,6 +7,25 @@ time: "O(N log N)"
 space: "O(N)"
 ---
 
+## Description
+
+Given a list of `accounts`, each `[name, email1, email2, ...]`, where the same person may
+appear more than once under the same name with some emails in common, merge the accounts
+belonging to the same person (two accounts are the same person if they share at least one
+email) and return each merged account as `[name, sorted emails...]`, in any order.
+
+**Example**
+
+```
+Input: accounts = [["John","johnsmith@mail.com","john_newyork@mail.com"],["John","johnsmith@mail.com","john00@mail.com"],["Mary","mary@mail.com"],["John","johnnybravo@mail.com"]]
+Output: [["John","john00@mail.com","john_newyork@mail.com","johnsmith@mail.com"],["Mary","mary@mail.com"],["John","johnnybravo@mail.com"]]
+```
+
+Explanation: the first two "John" accounts share `johnsmith@mail.com`, so they merge into
+one account holding all three emails sorted, while the third "John" account shares no email
+with the others and stays separate.
+
+
 ## Intuition
 
 There is no edge list here — I have to invent one. The nodes are the account *indices*

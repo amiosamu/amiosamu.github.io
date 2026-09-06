@@ -7,6 +7,22 @@ time: "O(n * m * k)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string and a dictionary of words, determine whether the string can be segmented into
+a sequence of one or more dictionary words placed back to back with no gaps or overlaps. A
+dictionary word may be reused any number of times.
+
+**Example**
+
+```
+Input: s = "leetcode", wordDict = ["leet","code"]
+Output: true
+```
+
+Explanation: `"leetcode"` splits cleanly into `"leet"` followed by `"code"`, both of which are
+in the dictionary.
+
 ## Intuition
 
 Greedily matching the longest word fails — `"aaaaaab"` with `["aaaa", "aaa", "b"]` needs

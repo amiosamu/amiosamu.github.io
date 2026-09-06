@@ -7,6 +7,24 @@ time: "O(V + E)"
 space: "O(V)"
 ---
 
+## Description
+
+Given a reference `node` in a connected undirected graph, where each `Node` stores a value
+and a list of neighbor references, return a deep copy of the entire graph reachable from
+`node`.
+
+**Example**
+
+```
+Input: adjList = [[2,4],[1,3],[2,4],[1,3]]
+Output: [[2,4],[1,3],[2,4],[1,3]]
+```
+
+Explanation: `adjList[i]` lists the neighbors of node `i + 1`, e.g. node 1 is connected to
+2 and 4; the cloned graph has the same four nodes and connections, but every node is a newly
+allocated copy rather than the original object.
+
+
 ## Intuition
 
 Here the graph is explicit — `Node` objects with a `neighbors` list, undirected and connected

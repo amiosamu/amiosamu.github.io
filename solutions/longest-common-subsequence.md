@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given two strings, find the length of their longest common subsequence — a sequence of
+characters that appears in both strings in the same relative order, though not necessarily
+contiguously. Return 0 if the two strings share no characters in common order.
+
+**Example**
+
+```
+Input: text1 = "abcde", text2 = "ace"
+Output: 3
+```
+
+Explanation: `"ace"` is a subsequence of both `"abcde"` and `"ace"` itself, and no common
+subsequence longer than 3 exists.
+
 ## Intuition
 
 Brute force compares all `2^m` subsequences of `text1` against `text2`. The insight that kills

@@ -7,6 +7,23 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given an `m x n` binary grid where `1` marks land and `0` marks water, find the largest
+island (a group of `1`s connected horizontally or vertically) and return its area in number
+of cells, or `0` if there is no land.
+
+**Example**
+
+```
+Input: grid = [[1,1,0],[1,1,0],[0,0,1]]
+Output: 4
+```
+
+Explanation: the top-left `2 x 2` block of `1`s forms a 4-cell island, while the bottom-right
+`1` is its own separate 1-cell island, so the largest area is 4.
+
+
 ## Intuition
 
 Same graph as Number of Islands: nodes are the `1` cells, edges join land cells sharing a

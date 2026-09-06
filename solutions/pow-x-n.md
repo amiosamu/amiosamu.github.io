@@ -7,6 +7,21 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a float `x` and an integer `n`, compute `x` raised to the power `n` (`x^n`) without
+relying on a built-in power operator. `n` may be negative, which means computing the power
+of the reciprocal `1/x`.
+
+**Example**
+
+```
+Input: x = 2.00000, n = 10
+Output: 1024.00000
+```
+
+Explanation: 2 raised to the 10th power is 1024, since 2*2*...*2 (ten times) equals 1024.
+
 ## Intuition
 
 Multiplying `x` by itself `n` times is O(n); but `x^n` can be built from `(x*x)^(n/2)` (with an

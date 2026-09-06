@@ -7,6 +7,19 @@ time: "O(m * n * 4^L)"
 space: "O(k)"
 ---
 
+## Description
+
+Given an `m x n` grid of characters `board` and a list of strings `words`, return all words from the list that can be traced out by moving to horizontally or vertically adjacent cells, using each cell at most once per word.
+
+**Example**
+
+```
+Input: board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]
+Output: ["eat","oath"]
+```
+
+Explanation: "oath" and "eat" can each be traced through a path of adjacent cells on the board, while "pea" and "rain" cannot be formed from any adjacent-cell path.
+
 ## Intuition
 
 Running Word Search I once per word re-walks the same grid paths over and over — every word beginning with `"oa"` pays for that prefix separately. Flip it around: put all the words in a trie and do **one** DFS per starting cell, carrying a trie node alongside the grid position. The path spelled so far is then checked against every word at once, and the search dies the instant the current path is not a prefix of anything in the dictionary, which is what makes the exponential branching harmless in practice. Two extra tricks matter: store the whole word on its terminal node so a hit needs no string rebuilding, and delete exhausted branches from the trie so the same ground is never re-searched.

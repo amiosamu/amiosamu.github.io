@@ -7,6 +7,19 @@ time: "O(n * 4^n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string `digits` containing digits from 2-9, return every letter combination the number could represent on a phone keypad (e.g. digit 2 maps to letters "abc"), in any order.
+
+**Example**
+
+```
+Input: digits = "23"
+Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+```
+
+Explanation: Digit '2' maps to letters "abc" and digit '3' maps to "def", so the output pairs each of the 3 letters for '2' with each of the 3 letters for '3', giving 3 * 3 = 9 combinations.
+
 ## Intuition
 
 This is a cartesian product, not a search: digit `i` contributes exactly one letter to the output, chosen from that digit's 3 or 4 keypad letters, independently of every other digit. So the recursion tree has fixed depth `len(digits)`, branching 3 or 4 at each level, and every leaf is a valid answer — nothing is ever rejected. The only real decisions are the keypad table and the empty-input case, which must return `[]` rather than `[""]`.

@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s` containing only `'('`, `')'`, and `'*'`, where each `'*'` may be treated as
+`'('`, as `')'`, or as an empty string, determine whether there is some way to interpret every
+`'*'` that makes `s` a valid (fully matched) parenthesis string.
+
+**Example**
+
+```
+Input: s = "(*)"
+Output: true
+```
+
+Explanation: Reading `'*'` as an empty string leaves `"()"`, a matched pair, so `s` is valid.
+
 ## Intuition
 
 Trying every interpretation of each `*` is exponential in the number of wildcards. Instead of

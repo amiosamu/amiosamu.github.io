@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `arr`, returns the length of the longest turbulent subarray, one where
+the comparison sign between each pair of adjacent elements strictly alternates between
+greater-than and less-than at every step.
+
+**Example**
+
+```
+Input: arr = [9,4,2,10,7,8,8,1,9]
+Output: 5
+```
+
+Explanation: the subarray `[4,2,10,7,8]` alternates `4>2<10>7<8`, flipping direction at every
+step, giving a turbulent run of length 5.
+
 ## Intuition
 
 Turbulence is a purely local property: a window is turbulent iff every adjacent comparison flips

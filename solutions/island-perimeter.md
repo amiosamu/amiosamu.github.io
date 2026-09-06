@@ -7,6 +7,19 @@ time: "O(m * n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a `grid` of 0s (water) and 1s (land) representing a single island with no lakes, return the perimeter of that island, treating each land cell as a unit square.
+
+**Example**
+
+```
+Input: grid = [[0,1,0,0],[1,1,1,0],[0,1,0,0],[1,1,0,0]]
+Output: 16
+```
+
+Explanation: Summing, over every land cell, the sides that border water or the grid edge (4 minus 1 for each land-to-land adjacency) totals 16.
+
 ## Intuition
 
 The graph is the land: every `1` is a node, and two land cells are joined by an edge when

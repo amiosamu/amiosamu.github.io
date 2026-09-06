@@ -7,6 +7,24 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given an `m x n` grid where `0` is an empty cell, `1` is a fresh orange, and `2` is a rotten
+orange, return the minimum number of minutes until no fresh orange remains, where every
+minute each rotten orange rots its fresh orthogonal neighbors. Return `-1` if some fresh
+orange can never rot.
+
+**Example**
+
+```
+Input: grid = [[2,1,1],[1,1,0],[0,1,1]]
+Output: 4
+```
+
+Explanation: the rot spreads outward one ring per minute from the single rotten orange at
+`(0, 0)`, and the farthest fresh orange, at `(2, 2)`, is reached on minute 4.
+
+
 ## Intuition
 
 The nodes are the cells holding an orange and the edges join oranges that share a side; empty

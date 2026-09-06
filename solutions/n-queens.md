@@ -7,6 +7,19 @@ time: "O(n!)"
 space: "O(n^2)"
 ---
 
+## Description
+
+Given an integer `n`, place `n` queens on an `n x n` chessboard so that no two queens attack each other, and return all distinct board configurations, each rendered as a list of strings using 'Q' for a queen and '.' for an empty square.
+
+**Example**
+
+```
+Input: n = 4
+Output: [[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
+```
+
+Explanation: On a 4x4 board there are exactly two arrangements of 4 queens with no shared row, column, or diagonal, and both are returned.
+
 ## Intuition
 
 Placing queens row by row turns the 2D constraint into a 1D choice: no two queens can ever share a row, so each row just needs one safe column. A queen at `(row, col)` attacks its whole column, its `row - col` diagonal, and its `row + col` diagonal, so tracking those three quantities in sets lets me check a candidate column in O(1) instead of rescanning the board. Brute force would try all `n^n` column assignments; pruning a row the moment a conflict shows up cuts that down drastically.

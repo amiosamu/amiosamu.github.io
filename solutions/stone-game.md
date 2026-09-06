@@ -7,6 +7,22 @@ time: "O(n^2)"
 space: "O(n^2)"
 ---
 
+## Description
+
+Given an even-length array `piles` where Alice and Bob alternately remove a pile from either
+end of the row (Alice moves first) and each plays to maximize their own total stones,
+determines whether Alice is guaranteed to win.
+
+**Example**
+
+```
+Input: piles = [5,3,4,5]
+Output: true
+```
+
+Explanation: if Alice takes the first pile (5), the remaining row `[3,4,5]` leaves Bob no way
+to stop Alice from finishing with more stones than him, so Alice wins.
+
 ## Intuition
 
 Instead of tracking each player's score separately, track the difference the player-to-move can force on the remaining range `piles[i..j]`. Whichever end they take, the opponent then plays optimally on what's left, so the best achievable difference is the pile just taken minus the opponent's best difference on the remainder.

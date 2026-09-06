@@ -7,6 +7,22 @@ time: "O(n^2)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string, count how many contiguous substrings of it are palindromes. A substring
+occurring at different start/end positions counts separately even if the characters are
+identical.
+
+**Example**
+
+```
+Input: s = "abc"
+Output: 3
+```
+
+Explanation: the only palindromic substrings are the three single characters `"a"`, `"b"`,
+`"c"` — no substring of length two or three reads the same forwards and backwards.
+
 ## Intuition
 
 Same machinery as Longest Palindromic Substring, but counting instead of measuring. Verifying

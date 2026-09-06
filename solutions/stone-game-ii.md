@@ -7,6 +7,23 @@ time: "O(n^3)"
 space: "O(n^2)"
 ---
 
+## Description
+
+Given piles of stones where Alice and Bob alternately take stones from the front of the row
+(Alice first), and on a turn with move-limit `M` a player may take between 1 and `2*M` piles
+(after which `M` becomes at least the number just taken), both playing to maximize their own
+total, returns the maximum number of stones Alice can end up with.
+
+**Example**
+
+```
+Input: piles = [2,7,9,4,4]
+Output: 10
+```
+
+Explanation: if Alice takes just the first pile (2), Bob then takes the next two (7+9), and
+Alice takes the last two (4+4), giving Alice 2 + 4 + 4 = 10, which beats any other opening move.
+
 ## Intuition
 
 Both players play optimally and the stones left from any point on are fixed in total, so whatever the opponent doesn't get, the current player does — "maximize my stones" becomes "maximize the remaining sum minus whatever the opponent can force from what's left." The state that matters isn't just the pile index but also `M`, since `M` bounds how many piles can be taken next.

@@ -7,6 +7,22 @@ time: "O(n^2)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an `n x n` 2D integer array `matrix` representing an image, rotate it 90 degrees clockwise
+in place, without allocating another 2D array.
+
+**Example**
+
+```
+Input: matrix = [[1,2,3],[4,5,6],[7,8,9]]
+Output: [[7,4,1],[8,5,2],[9,6,3]]
+```
+
+Explanation: The top row `[1,2,3]` becomes the rightmost column read top-to-bottom, so `matrix[0]`
+ends up as column 2 of the output, `[1,4,7]` reading down — matching row 0's entries `7,4,1` once
+the whole grid is turned a quarter turn clockwise.
+
 ## Intuition
 
 A 90-degree clockwise rotation is the map `(i, j) -> (j, n - 1 - i)`: the element in row `i`,

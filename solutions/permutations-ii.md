@@ -7,6 +7,19 @@ time: "O(n * n!)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a collection of integers `nums` that may contain duplicates, return all possible unique permutations, in any order.
+
+**Example**
+
+```
+Input: nums = [1,1,2]
+Output: [[1,1,2],[1,2,1],[2,1,1]]
+```
+
+Explanation: Swapping the two equal 1s would otherwise produce the same arrangement twice, so only 3 distinct orderings are returned instead of 3! = 6.
+
 ## Intuition
 
 With repeats in `nums`, the `used` array still stops a position being consumed twice, but it no longer stops the *same permutation* being produced twice: swapping which of two equal 1s goes first yields an identical output list. The rule that kills it is the same "skip equal siblings" idea as Subsets II, adapted to the fact that permutations have no start index. Sort `nums`, then among equal values force them to be consumed left to right: a value may be placed only if its identical left neighbour has already been placed. That elects one canonical index ordering per duplicate group and discards the rest.

@@ -7,6 +7,22 @@ time: "O(n^2)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s`, return the longest contiguous substring of `s` that reads the same
+forwards and backwards.
+
+**Example**
+
+```
+Input: s = "babad"
+Output: "bab"
+```
+
+Explanation: "bab" reads the same forwards and backwards and has length 3; "aba" is also a
+valid length-3 palindrome in `s`, but "bab" is the one produced by expanding outward from
+the center at index 1.
+
 ## Intuition
 
 Checking all `O(n^2)` substrings for palindromicity is `O(n^3)`. The insight that kills the extra

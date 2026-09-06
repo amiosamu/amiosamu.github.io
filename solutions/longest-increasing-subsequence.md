@@ -7,6 +7,22 @@ time: "O(n^2)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array of integers, find the length of the longest strictly increasing subsequence —
+elements keep their relative order but need not be contiguous, and each chosen element must
+be strictly greater than the one before it.
+
+**Example**
+
+```
+Input: nums = [10,9,2,5,3,7,101,18]
+Output: 4
+```
+
+Explanation: the subsequence `[2,3,7,101]` is strictly increasing and has length 4, and no
+strictly increasing subsequence of this array is longer.
+
 ## Intuition
 
 Brute force tries all `2^n` subsequences. The observation that collapses it: once I commit to

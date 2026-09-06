@@ -7,6 +7,22 @@ time: "O(target * n)"
 space: "O(target)"
 ---
 
+## Description
+
+Given an array of distinct positive integers and a target, count how many ordered sequences of
+those numbers (with repetition allowed) sum to exactly the target — sequences that use the same
+numbers in a different order count as different answers.
+
+**Example**
+
+```
+Input: nums = [1,2,3], target = 4
+Output: 7
+```
+
+Explanation: the 7 ordered sequences summing to 4 are `(1,1,1,1)`, `(1,1,2)`, `(1,2,1)`,
+`(2,1,1)`, `(2,2)`, `(1,3)`, and `(3,1)`.
+
 ## Intuition
 
 Despite the name, this counts **permutations**: `(1,2,1)` and `(1,1,2)` are different answers.

@@ -7,6 +7,22 @@ time: "O(n + m)"
 space: "O(n + m)"
 ---
 
+## Description
+
+Given two strings `str1` and `str2`, return the largest string `t` such that `str1` and `str2` are
+each equal to `t` repeated some whole number of times, or the empty string `""` if no such `t`
+exists.
+
+**Example**
+
+```
+Input: str1 = "ABCABC", str2 = "ABC"
+Output: "ABC"
+```
+
+Explanation: `"ABC"` repeated twice is `"ABCABC"` and repeated once is `"ABC"`, so `"ABC"` divides
+both, and it is already the longer string's full length, so nothing larger is possible.
+
 ## Intuition
 
 If some string `t` divides both, then `str1` is `t` repeated `a` times and `str2` is `t` repeated

@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a binary string `s` and integers `minJump` and `maxJump`, describes jumping from index
+`i` to any index `j` with `minJump <= j - i <= maxJump` provided `s[j] == '0'`; determines
+whether it is possible to reach the last index of `s` starting from index `0` (index 0 is
+guaranteed to be `'0'`).
+
+**Example**
+
+```
+Input: s = "011010", minJump = 2, maxJump = 3
+Output: true
+```
+
+Explanation: jump from index 0 to index 3 (`s[3] == '0'`, and 3 is within `[2,3]`), then from
+index 3 to index 5, the last index.
+
 ## Intuition
 
 The greedy reflex from the other Jump Game problems is wrong here, and it is worth saying why: with

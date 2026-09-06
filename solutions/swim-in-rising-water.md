@@ -7,6 +7,24 @@ time: "O(V log V) with V = n * n"
 space: "O(V) with V = n * n"
 ---
 
+## Description
+
+Given an `n x n` grid where `grid[r][c]` is the elevation of cell `(r, c)`, and water level
+rises to match elapsed time `t`, so a cell is only usable once `t >= grid[r][c]`, return the
+least time `t` at which it is possible to swim from the top-left cell to the bottom-right
+cell by moving between adjacent usable cells.
+
+**Example**
+
+```
+Input: grid = [[0,2],[1,3]]
+Output: 3
+```
+
+Explanation: At `t = 3` every cell's elevation is `<= 3`, so all four cells are usable and
+connected; at any smaller `t` the bottom-right cell (elevation 3) is not yet usable, so 3 is
+the earliest time a path exists.
+
 ## Intuition
 
 At time `t` I can stand on every cell with `grid[r][c] <= t`, so a path is swimmable at

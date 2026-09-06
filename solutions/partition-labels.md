@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s`, split it into as many parts as possible such that each letter appears in at
+most one part, and return a list of the sizes of these parts in order.
+
+**Example**
+
+```
+Input: s = "ababcbacadefegdehijhklij"
+Output: [9,7,8]
+```
+
+Explanation: The first 9 characters, `"ababcbaca"`, contain every occurrence of `'a'`, `'b'`, and
+`'c'` in the whole string, so the partition can close there; the next 7 and the final 8 characters
+split the same way, giving parts of size `9, 7, 8`.
+
 ## Intuition
 
 A partition can only close at index `i` if no character it contains reappears after `i` — that

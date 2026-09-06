@@ -7,6 +7,23 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list `intervals` of meeting time intervals where `intervals[i] = [starti, endi]`, return
+the minimum number of meeting rooms required so that every meeting can be scheduled without any
+two overlapping meetings sharing a room.
+
+**Example**
+
+```
+Input: intervals = [[0,30],[5,10],[15,20]]
+Output: 2
+```
+
+Explanation: `[5,10]` and `[15,20]` both fall entirely inside `[0,30]`, so at the moment `[5,10]`
+is happening two meetings are simultaneously in progress; no three meetings overlap at once, so 2
+rooms suffice.
+
 ## Intuition
 
 The answer is just the maximum number of meetings that are simultaneously in progress at any instant

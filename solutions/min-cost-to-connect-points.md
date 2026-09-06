@@ -7,6 +7,23 @@ time: "O(V^2) with V = n points"
 space: "O(V)"
 ---
 
+## Description
+
+Given the `(x, y)` coordinates of `n` points, where the cost of connecting two points is
+the Manhattan distance between them, return the minimum total cost to connect all points
+so that there is exactly one path between any pair of points — i.e. the weight of a
+minimum spanning tree over the points.
+
+**Example**
+
+```
+Input: points = [[0,0],[2,2],[3,10],[5,2],[7,0]]
+Output: 20
+```
+
+Explanation: The minimum spanning tree over these five points, using Manhattan distance as
+the edge weight between every pair, has a total edge weight of 20.
+
 ## Intuition
 
 Connecting all points at minimum total cost with no redundant edges is the definition

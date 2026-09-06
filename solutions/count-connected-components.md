@@ -7,6 +7,22 @@ time: "O(V + E * α(V))"
 space: "O(V)"
 ---
 
+## Description
+
+Given `n` nodes labeled `0` to `n - 1` and a list of undirected `edges`, return the number
+of connected components in the graph.
+
+**Example**
+
+```
+Input: n = 5, edges = [[0,1],[1,2],[3,4]]
+Output: 2
+```
+
+Explanation: nodes 0, 1, 2 are joined into one component by the first two edges, and nodes
+3, 4 form a second component, giving 2 components in total.
+
+
 ## Intuition
 
 The graph is handed over as `n` nodes and an undirected edge list. A DFS flood fill works

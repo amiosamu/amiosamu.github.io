@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` where `nums[i]` is the maximum jump length from index `i`, returns the
+minimum number of jumps needed to reach the last index starting from index `0` (the last
+index is guaranteed reachable).
+
+**Example**
+
+```
+Input: nums = [2,3,1,1,4]
+Output: 2
+```
+
+Explanation: jump from index 0 to index 1 (length 1), then from index 1 to index 4
+(length 3), reaching the last index in 2 jumps.
+
 ## Intuition
 
 This is a shortest-path problem on an unweighted graph, so it is BFS — but the graph has enough

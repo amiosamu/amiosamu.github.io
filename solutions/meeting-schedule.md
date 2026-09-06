@@ -7,6 +7,22 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list `intervals` of meeting time intervals where `intervals[i] = [starti, endi]`,
+determine whether a single person could attend every meeting, i.e. whether any two of the
+intervals overlap.
+
+**Example**
+
+```
+Input: intervals = [[0,30],[5,10],[15,20]]
+Output: false
+```
+
+Explanation: `[0,30]` overlaps both `[5,10]` and `[15,20]`, since each of those starts before
+`[0,30]` ends, so the same person cannot attend all three.
+
 ## Intuition
 
 A conflict is a pair of meetings that overlap, but I do not have to test all pairs. Sort by start

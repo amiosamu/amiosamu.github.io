@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given the dimensions of an `m x n` grid, a robot starts at the top-left corner and can move
+only down or right at each step. Return the number of distinct paths from the top-left corner
+to the bottom-right corner.
+
+**Example**
+
+```
+Input: m = 3, n = 7
+Output: 28
+```
+
+Explanation: there are 28 distinct sequences of down/right moves that take the robot from
+`(0, 0)` to `(2, 6)` on a 3-row, 7-column grid.
+
 ## Intuition
 
 Enumerating routes is `C(m+n-2, m-1)` of them — exponential to walk one at a time. But every

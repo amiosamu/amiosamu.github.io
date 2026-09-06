@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a sequence of daily prices for one stock, find the maximum profit achievable through any
+number of buy/sell transactions, holding at most one share at a time, with the rule that after
+selling a share you must wait one full day (a cooldown) before buying again.
+
+**Example**
+
+```
+Input: prices = [1,2,3,0,2]
+Output: 3
+```
+
+Explanation: buy on day 0 at price 1, sell on day 1 at price 2 for a profit of 1, cooldown on
+day 2, buy on day 3 at price 0, sell on day 4 at price 2 for a profit of 2 — total profit
+`1 + 2 == 3`.
+
 ## Intuition
 
 Without the cooldown you would just bank every upward move. The cooldown breaks that because

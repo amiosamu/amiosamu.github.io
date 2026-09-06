@@ -7,6 +7,19 @@ time: "O(n^2 + m)"
 space: "O(n + m)"
 ---
 
+## Description
+
+Given a string `s` and a `dictionary` of strings, break `s` into one or more non-overlapping substrings such that each substring is in `dictionary`, and return the minimum number of leftover characters that cannot be covered by any substring.
+
+**Example**
+
+```
+Input: s = "leetscode", dictionary = ["leet","code","leetcode"]
+Output: 1
+```
+
+Explanation: Using "leet" for `s[0:4]` and "code" for `s[5:9]` covers every character except `s[4]` ('s'), leaving 1 extra character.
+
 ## Intuition
 
 Trying every way to cut `s` into dictionary words explodes, but the choice at index `i` only depends on the suffix `s[i:]` — the characters before `i` cannot change which words start at `i`. So `dp[i] = ` minimum extra characters in `s[i:]`, and at each `i` there are just two kinds of move: leave `s[i]` unmatched, or consume a dictionary word starting at `i`. The trie is what makes the second move cheap: instead of slicing `s[i:j]` and hashing it against the dictionary for every `j`, I walk one node per character from `i` and read off every dictionary word starting at `i` in a single scan — and the walk dies the moment the prefix leaves the trie.

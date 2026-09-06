@@ -7,6 +7,19 @@ time: "O(n * 2^n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums` that may contain duplicates, return all possible subsets (the power set), without any duplicate subset appearing twice.
+
+**Example**
+
+```
+Input: nums = [1,2,2]
+Output: [[],[1],[1,2],[1,2,2],[2],[2,2]]
+```
+
+Explanation: Although `nums` has two 2s, `[2]` and `[1,2]` each appear only once in the output even though there are two ways to pick a single 2 or to pair it with the 1.
+
 ## Intuition
 
 Subsets with a start index already guarantees each *index set* appears once; what breaks here is that two different index sets can spell the same *value* multiset — with `[1,2,2]`, picking index 1 and picking index 2 both give `[1,2]`. Deduplicating at the end with a set of tuples works but is wasteful. The fix is structural: sort `nums` so equal values are adjacent, then at any single node allow a given value to be chosen only from its **first** occurrence among the remaining candidates. Two copies of a value can still both end up in `path` — they just have to be picked at consecutive depths, not as alternative siblings.

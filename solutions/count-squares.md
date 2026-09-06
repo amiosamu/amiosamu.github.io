@@ -7,6 +7,23 @@ time: "O(1) per add, O(n) per count"
 space: "O(n)"
 ---
 
+## Description
+
+Design a `DetectSquares` data structure that supports adding points via `add(point)` (the
+same point may be added more than once) and, given a query `point`, counting via
+`count(point)` how many axis-aligned squares can be formed using three previously added
+points plus the query point as the fourth corner.
+
+**Example**
+
+```
+Input: ["DetectSquares", "add", "add", "add", "count"], [[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]]]
+Output: [null, null, null, null, 1]
+```
+
+Explanation: After adding (3,10), (11,2), and (3,2), querying count([11, 10]) finds exactly
+one square with those three points as the other corners, all side length 8, so it returns 1.
+
 ## Intuition
 
 Brute force would store every point and, on each `count` query, scan all pairs looking for

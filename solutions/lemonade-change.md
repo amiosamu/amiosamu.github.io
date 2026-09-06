@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `bills` listing, in order, the bill (`$5`, `$10`, or `$20`) each customer pays
+for a `$5` lemonade, and starting with no change on hand, determines whether every customer
+can be given exact change using only bills collected from earlier customers.
+
+**Example**
+
+```
+Input: bills = [5,5,5,10,20]
+Output: true
+```
+
+Explanation: the three `$5` bills build up change; the `$10` customer gets one `$5` back, and
+the `$20` customer gets one `$5` and one `$10` back, so every transaction is covered.
+
 ## Intuition
 
 With only three denominations there is exactly one decision in the whole problem: a $20 needs $15

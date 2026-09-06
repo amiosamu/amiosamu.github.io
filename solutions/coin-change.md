@@ -7,6 +7,22 @@ time: "O(amount * len(coins))"
 space: "O(amount)"
 ---
 
+## Description
+
+Given an array of coin denominations and a target amount, return the fewest coins needed to
+make exactly that amount, using an unlimited supply of each denomination. Return `-1` if the
+amount cannot be made with any combination of the given coins.
+
+**Example**
+
+```
+Input: coins = [1,2,5], amount = 11
+Output: 3
+```
+
+Explanation: `11 = 5 + 5 + 1`, three coins, and no combination reaches 11 with fewer than
+three.
+
 ## Intuition
 
 Greedy — always take the largest coin that fits — is wrong for arbitrary denominations:

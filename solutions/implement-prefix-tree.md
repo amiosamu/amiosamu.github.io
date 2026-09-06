@@ -7,6 +7,19 @@ time: "O(L) per operation"
 space: "O(n)"
 ---
 
+## Description
+
+Implement a `Trie` (prefix tree) that supports `insert(word)` to add a string, `search(word)` to check whether an exact word was inserted, and `startsWith(prefix)` to check whether any inserted word begins with the given prefix.
+
+**Example**
+
+```
+Input: ["Trie", "insert", "search", "search", "startsWith", "insert", "search"], [[], ["apple"], ["apple"], ["app"], ["app"], ["app"], ["app"]]
+Output: [null, null, true, false, true, null, true]
+```
+
+Explanation: After `insert("apple")`, `search("apple")` is true but `search("app")` is false because "app" was never inserted whole; `startsWith("app")` is true since "apple" begins with "app", and once "app" itself is inserted, `search("app")` also becomes true.
+
 ## Intuition
 
 A hash set of words answers `search` in O(1) but tells you nothing about `startsWith` short of scanning every word. The fix is to stop storing words as units and store them as paths: one node per character, shared prefixes sharing nodes. Then a prefix query is just "does this path exist" and a full-word query is "does this path exist **and** is its last node marked as the end of a word". The `is_word` flag is the only thing separating the two, and it is why `insert("apple")` does not make `search("app")` true.

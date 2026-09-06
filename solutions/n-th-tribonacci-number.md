@@ -7,6 +7,20 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+The Tribonacci sequence is defined by `T0 = 0`, `T1 = 1`, `T2 = 1`, and
+`Tn = Tn-1 + Tn-2 + Tn-3` for `n >= 3`. Given `n`, return `Tn`.
+
+**Example**
+
+```
+Input: n = 4
+Output: 4
+```
+
+Explanation: `T3 = T2 + T1 + T0 = 1 + 1 + 0 = 2`, then `T4 = T3 + T2 + T1 = 2 + 1 + 1 = 4`.
+
 ## Intuition
 
 The recurrence is handed to you; the only real decision is how to evaluate it. Naive recursion

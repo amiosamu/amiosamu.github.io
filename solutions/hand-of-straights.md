@@ -7,6 +7,22 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `hand` of card values and an integer `groupSize`, determines whether the cards
+can be rearranged so that every card belongs to some group of `groupSize` consecutive
+integers.
+
+**Example**
+
+```
+Input: hand = [1,2,3,6,2,3,4,7,8], groupSize = 3
+Output: true
+```
+
+Explanation: the cards split into three groups of consecutive integers: `[1,2,3]`, `[2,3,4]`,
+and `[6,7,8]`.
+
 ## Intuition
 
 There is no real choice in this problem, which is what makes the greedy airtight. The smallest card

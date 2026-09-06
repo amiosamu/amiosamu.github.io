@@ -7,6 +7,22 @@ time: "O(V + E)"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given `n` nodes labeled `0` to `n - 1` and a list of undirected `edges`, determine whether
+they form a valid tree, meaning the graph is fully connected and contains no cycle.
+
+**Example**
+
+```
+Input: n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]
+Output: true
+```
+
+Explanation: the 4 edges connect all 5 nodes into a single component with none left over to
+close a cycle, so the graph is a valid tree.
+
+
 ## Intuition
 
 The graph is given directly — `n` nodes `0..n-1` and an undirected edge list — and a tree

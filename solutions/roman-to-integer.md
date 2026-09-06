@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s` representing a roman numeral, convert it to its integer value. Symbols
+normally add together left to right, but a smaller-value symbol placed immediately before a
+larger one is subtracted instead (e.g. `IV` means `5 - 1`).
+
+**Example**
+
+```
+Input: s = "III"
+Output: 3
+```
+
+Explanation: Each symbol is `I`, worth 1, and none precedes a larger symbol, so the three
+values simply add: 1 + 1 + 1 = 3.
+
 ## Intuition
 
 Reading left to right, a smaller-value symbol placed just before a larger one signals

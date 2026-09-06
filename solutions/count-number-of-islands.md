@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given an `m x n` binary grid where `'1'` marks land and `'0'` marks water, count the number
+of islands, where an island is a group of land cells connected horizontally or vertically.
+
+**Example**
+
+```
+Input: grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]
+Output: 1
+```
+
+Explanation: every `'1'` cell is reachable from every other `'1'` cell through up/down/left/
+right moves, so the whole grid forms a single connected island.
+
+
 ## Intuition
 
 The grid is a graph in disguise: each `"1"` cell is a node, and there is an edge between two

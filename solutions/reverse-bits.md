@@ -7,6 +7,21 @@ time: "O(1)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a 32-bit unsigned integer `n`, return the integer that results from reversing the
+order of its 32 bits.
+
+**Example**
+
+```
+Input: n = 1
+Output: 2147483648
+```
+
+Explanation: n = 1 has only its lowest bit set; reversing all 32 bits moves that bit to the
+highest position, giving 2^31 = 2147483648.
+
 ## Intuition
 
 Bit `i` of the input has to land at position `31 - i`. Rather than computing that index, note

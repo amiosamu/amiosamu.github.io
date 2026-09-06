@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a circular integer array `nums` (the element after the last one wraps around to the
+first), returns the maximum possible sum of a non-empty contiguous subarray, where the
+subarray is allowed to wrap from the end of the array back to the start.
+
+**Example**
+
+```
+Input: nums = [1,-2,3,-2]
+Output: 3
+```
+
+Explanation: the subarray `[3]` alone has sum 3, and no wrapping subarray does better here
+since wrapping would have to include the negative elements around it.
+
 ## Intuition
 
 A circular subarray is one of exactly two shapes: it does not wrap, in which case plain Kadane

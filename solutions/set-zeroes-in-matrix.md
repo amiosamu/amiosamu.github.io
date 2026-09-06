@@ -7,6 +7,23 @@ time: "O(m * n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an `m x n` integer matrix `matrix`, find every cell that contains a 0 and set its
+entire row and entire column to 0 as well, modifying `matrix` directly. The follow-up (and
+what the solution targets) is doing this in-place with only `O(1)` extra space, rather than
+allocating separate row/column marker arrays.
+
+**Example**
+
+```
+Input: matrix = [[1,1,1],[1,0,1],[1,1,1]]
+Output: [[1,0,1],[0,0,0],[1,0,1]]
+```
+
+Explanation: The single 0 sits at row 1, column 1, so every cell in row 1 and every cell in
+column 1 becomes 0, leaving the four corners untouched.
+
 ## Intuition
 
 The naive fix — zero a row the moment you see a 0 — is wrong, because the zeros you write are

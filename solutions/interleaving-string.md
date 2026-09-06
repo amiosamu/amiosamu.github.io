@@ -7,6 +7,23 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given three strings `s1`, `s2`, and `s3`, determines whether `s3` can be formed by
+interleaving all characters of `s1` and `s2` while preserving each string's own internal
+character order.
+
+**Example**
+
+```
+Input: s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"
+Output: true
+```
+
+Explanation: reading `s3` left to right, each character matches the next unused character of
+either `s1` or `s2`, so all of `s1` and `s2` are consumed exactly once with their internal
+order preserved.
+
 ## Intuition
 
 `s3[:i+j]` can only be an interleaving of `s1[:i]` and `s2[:j]` if its last character came from the end of `s1` or the end of `s2` — and whichever it came from, everything before it must already be a valid interleaving of the shorter prefixes. That recursive split on "where did the last character come from" is exactly a 2D boolean DP over `(i, j)`.

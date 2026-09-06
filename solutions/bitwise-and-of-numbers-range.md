@@ -7,6 +7,21 @@ time: "O(log right)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two integers `left` and `right` with `left <= right`, return the bitwise AND of every
+number in the inclusive range `[left, right]`.
+
+**Example**
+
+```
+Input: left = 5, right = 7
+Output: 4
+```
+
+Explanation: The range is 5 (101), 6 (110), 7 (111); ANDing all three together leaves only
+the shared high bit, giving 4 (100).
+
 ## Intuition
 
 Looping from `left` to `right` is hopeless when the range spans billions. The observation that

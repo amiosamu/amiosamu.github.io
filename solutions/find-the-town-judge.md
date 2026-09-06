@@ -7,6 +7,23 @@ time: "O(E + n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given `n` people labeled `1` to `n` and a list of `trust` pairs `[a, b]` meaning person `a`
+trusts person `b`, find the town judge: the one person trusted by everyone else who trusts
+nobody themselves. Return that person's label, or `-1` if no such person exists.
+
+**Example**
+
+```
+Input: n = 2, trust = [[1,2]]
+Output: 2
+```
+
+Explanation: person 1 trusts person 2, person 2 trusts nobody, and person 2 is trusted by
+the only other person (n - 1 = 1 trust), so person 2 is the judge.
+
+
 ## Intuition
 
 `trust` is a directed graph: the people are the nodes and `[a, b]` is an edge `a -> b`

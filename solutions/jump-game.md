@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` where `nums[i]` is the maximum jump length from index `i`, determines
+whether it is possible to reach the last index starting from index `0`.
+
+**Example**
+
+```
+Input: nums = [2,3,1,1,4]
+Output: true
+```
+
+Explanation: jump 1 step from index 0 to index 1, then jump 3 steps from index 1 straight to
+the last index (index 4).
+
 ## Intuition
 
 The brute force explores every jump length from every index, which is exponential, and the DP

@@ -7,6 +7,24 @@ time: "O(n * m)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a list of `words` that supposedly follow the letter order of an alien language, and
+a string `order` giving that language's 26-letter alphabet, determine whether `words` is
+sorted according to `order` using normal lexicographic rules (where a word that is a strict
+prefix of the next one is considered smaller).
+
+**Example**
+
+```
+Input: words = ["hello","leetcode"], order = "hlabcdefgijkmnopqrstuvwxyz"
+Output: true
+```
+
+Explanation: in `order`, `'h'` comes before `'l'`, so comparing the first letters of
+`"hello"` and `"leetcode"` already shows they are correctly ordered.
+
+
 ## Intuition
 
 This is the graph problem *after* the graph has been solved. In Alien Dictionary I have to

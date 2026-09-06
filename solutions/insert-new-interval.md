@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a list `intervals` of non-overlapping intervals sorted by start time and a new interval
+`newInterval`, insert `newInterval` into the list, merging it with any intervals it overlaps, and
+return the resulting list of intervals still sorted by start time.
+
+**Example**
+
+```
+Input: intervals = [[1,3],[6,9]], newInterval = [2,5]
+Output: [[1,5],[6,9]]
+```
+
+Explanation: `newInterval = [2,5]` overlaps `[1,3]` (since `2 <= 3`), so they merge into `[1,5]`;
+it does not reach `[6,9]` (since `5 < 6`), so that interval is left unchanged.
+
 ## Intuition
 
 The input is already sorted and non-overlapping, so I never need to sort again. Relative to

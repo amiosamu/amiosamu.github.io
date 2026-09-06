@@ -7,6 +7,24 @@ time: "O(C + V + E)"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given a list of `words` from an alien language, sorted lexicographically according to that
+language's unknown letter order, derive an order of the letters that is consistent with the
+sorting. Return any valid ordering as a single string, or `""` if the input is contradictory
+or otherwise cannot correspond to any valid alphabet.
+
+**Example**
+
+```
+Input: words = ["wrt","wrf","er","ett","rftt"]
+Output: "wertf"
+```
+
+Explanation: Comparing each pair of adjacent words at their first differing letter yields
+the constraints `t < f`, `w < e`, `r < t`, and `e < r`; the string "wertf" is one letter
+ordering consistent with all of them.
+
 ## Intuition
 
 A sorted word list tells me almost nothing about most letter pairs. All I can extract

@@ -7,6 +7,19 @@ time: "O(n * 2^n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list of candidate numbers `candidates` (each usable at most once) and a `target`, find all unique combinations of candidates that sum to `target`. Candidates may contain duplicates, so the same combination of numbers must not appear twice in the output.
+
+**Example**
+
+```
+Input: candidates = [10,1,2,7,6,1,5], target = 8
+Output: [[1,1,6],[1,2,5],[1,7],[2,6]]
+```
+
+Explanation: Each listed combination sums to 8 (1+1+6, 1+2+5, 1+7, 2+6), and although `candidates` has two 1s, `[1,1,6]` is produced only once even though there are two ways to pick which 1 goes where.
+
 ## Intuition
 
 Two changes from Combination Sum, and they pull in opposite directions. Each candidate may be used at most once, so the recursion advances to `i + 1`. But `candidates` may now contain repeats, so the start index alone no longer prevents duplicate *answers*: with `[1,1,2]` and target 3, index 0 and index 1 both produce `[1,2]`. The fix is the Subsets II rule — sort, then at any one node skip a candidate whose value equals the previous sibling's. Sorting also keeps the `break` prune from Combination Sum, which is what stops this from degenerating into a full 2^n walk on large inputs.

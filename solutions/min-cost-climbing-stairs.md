@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `cost` where `cost[i]` is the price paid when stepping off stair `i`, and
+starting from either index `0` or index `1` for free, return the minimum total cost to
+reach the top of the staircase, one floor past the last index, moving one or two steps at a
+time.
+
+**Example**
+
+```
+Input: cost = [10,15,20]
+Output: 15
+```
+
+Explanation: Starting at index 1 (free) and stepping directly to the top pays only
+`cost[1] = 15`, which beats starting at index 0 and paying `10` plus any further step.
+
 ## Intuition
 
 Greedy fails immediately — always taking the cheaper next step walks you into an expensive

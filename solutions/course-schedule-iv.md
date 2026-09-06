@@ -7,6 +7,23 @@ time: "O(V * (V + E) + q)"
 space: "O(V^2 + E)"
 ---
 
+## Description
+
+Given `numCourses` courses, a list of direct prerequisite pairs `[pre, course]`, and a list
+of `queries` `[u, v]`, return a boolean array answering, for each query, whether `u` is a
+prerequisite of `v`, directly or transitively.
+
+**Example**
+
+```
+Input: numCourses = 2, prerequisites = [[1,0]], queries = [[0,1],[1,0]]
+Output: [false,true]
+```
+
+Explanation: course 1 must be taken before course 0, so query `[0,1]` ("is 0 a prerequisite
+of 1?") is false, while query `[1,0]` ("is 1 a prerequisite of 0?") is true.
+
+
 ## Intuition
 
 Nodes are courses, and `[pre, course]` is a directed edge `pre -> course`. "Is `u` a

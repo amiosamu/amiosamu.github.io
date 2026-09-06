@@ -7,6 +7,23 @@ time: "O(rows * cols)"
 space: "O(rows * cols)"
 ---
 
+## Description
+
+Given an `m x n` board of `'X'` and `'O'` characters, capture in place every region of
+`'O'`s that is fully surrounded by `'X'`s (not connected to the border) by flipping it to
+`'X'`; regions of `'O'` that touch the border stay unchanged.
+
+**Example**
+
+```
+Input: board = [["X","X","X","X"],["X","O","O","X"],["X","X","O","X"],["X","O","X","X"]]
+Output: [["X","X","X","X"],["X","X","X","X"],["X","X","X","X"],["X","O","X","X"]]
+```
+
+Explanation: the `'O'`s at `(1,1)`, `(1,2)`, `(2,2)` never touch the border, so they flip to
+`'X'`, while the `'O'` at `(3,1)` touches the bottom border and is left alone.
+
+
 ## Intuition
 
 A region of 'O's only survives if it isn't connected, directly or through other 'O's, to the border — anything touching the border can never be fully surrounded, no matter how it winds through the grid. Rather than testing every region for enclosure, flip it around: flood-fill from every border 'O' first to mark the safe cells, then everything left unmarked afterward is provably surrounded and gets flipped to 'X'.

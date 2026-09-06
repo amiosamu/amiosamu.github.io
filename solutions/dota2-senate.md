@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string `senate` where each character is `'R'` (Radiant) or `'D'` (Dire) representing one
+senator's party in turn order, simulate repeated rounds in which every senator still in the game
+either bans the next opposing senator from voting or, once only one party has voting senators
+left, announces victory. Return the name of the winning party, `"Radiant"` or `"Dire"`.
+
+**Example**
+
+```
+Input: senate = "RD"
+Output: "Radiant"
+```
+
+Explanation: The senator at index 0 (Radiant) acts first and bans the senator at index 1 (Dire);
+with no Dire senators left able to act, Radiant announces victory.
+
 ## Intuition
 
 The only decision a senator makes is *whom* to ban, and the answer is always "the opponent who is

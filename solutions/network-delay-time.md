@@ -7,6 +7,23 @@ time: "O(E log V)"
 space: "O(V + E)"
 ---
 
+## Description
+
+Given `n` nodes labeled `1` to `n`, a list `times` of directed edges `(u, v, w)` meaning a
+signal takes `w` time to travel from `u` to `v`, and a source node `k`, return the minimum
+time for a signal sent from `k` to reach every node, or `-1` if some node is unreachable.
+
+**Example**
+
+```
+Input: times = [[2,1,1],[2,3,1],[3,4,1]], n = 4, k = 2
+Output: 2
+```
+
+Explanation: From node 2, nodes 1 and 3 receive the signal at time 1, and node 3 then
+relays it to node 4, which arrives at time 2 — the last node to receive it, so 2 is the
+answer.
+
 ## Intuition
 
 The signal floods every outgoing edge at once, so a node lights up at the *earliest*

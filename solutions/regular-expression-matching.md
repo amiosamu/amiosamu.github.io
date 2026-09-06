@@ -7,6 +7,22 @@ time: "O(m * n)"
 space: "O(m * n)"
 ---
 
+## Description
+
+Given an input string `s` and a pattern `p` containing `.` (matches any single character) and
+`*` (matches zero or more occurrences of the preceding element), determines whether `p`
+matches the entire string `s`.
+
+**Example**
+
+```
+Input: s = "aa", p = "a"
+Output: false
+```
+
+Explanation: the pattern `"a"` has no `*` and can only match a single character, but `s` has
+two, so the whole string cannot be matched.
+
 ## Intuition
 
 Backtracking on a `*` branch — try using it zero more times, or one more time — re-explores the same `(i, j)` prefix pair over and over, so memoizing "does `s[:i]` match `p[:j]`" turns it into a grid DP. Only two pattern constructs matter: a literal or `.` that must consume exactly one character, and a `*` quantifier whose count is resolved entirely by looking one column back in the pattern.

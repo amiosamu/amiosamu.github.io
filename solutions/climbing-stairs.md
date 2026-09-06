@@ -7,6 +7,20 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a staircase of `n` steps, where each move climbs either 1 or 2 steps, return the
+number of distinct sequences of moves that reach the top exactly.
+
+**Example**
+
+```
+Input: n = 3
+Output: 3
+```
+
+Explanation: The three distinct ways are `1+1+1`, `1+2`, and `2+1`.
+
 ## Intuition
 
 Enumerating every sequence of 1s and 2s is exponential, but the sequences that reach step `i`

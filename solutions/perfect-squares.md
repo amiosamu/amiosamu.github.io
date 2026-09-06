@@ -7,6 +7,21 @@ time: "O(n * sqrt(n))"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer `n`, return the fewest perfect squares (`1, 4, 9, 16, ...`) that sum to
+exactly `n`. A perfect square may be used more than once.
+
+**Example**
+
+```
+Input: n = 12
+Output: 3
+```
+
+Explanation: `12 == 4 + 4 + 4`, three perfect squares, and no combination of fewer perfect
+squares sums to 12.
+
 ## Intuition
 
 This is coin change where the coin denominations are `1, 4, 9, 16, ...` and every coin can be

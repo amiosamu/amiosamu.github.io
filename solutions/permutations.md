@@ -7,6 +7,19 @@ time: "O(n * n!)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `nums` of distinct integers, return all possible permutations of the array, in any order.
+
+**Example**
+
+```
+Input: nums = [1,2,3]
+Output: [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+```
+
+Explanation: All 3! = 6 orderings of the three distinct values are produced, each using every element exactly once.
+
 ## Intuition
 
 Order matters here, which is exactly why the start index used by every subset problem is wrong: `[1,2]` and `[2,1]` are *different* answers, so I must never forbid going back to an earlier index. What I do have to forbid is reusing the same position twice, and that needs a `used` array — a boolean per index of `nums`, not a set of values, since equal values would collide. Each node then loops over all n indices and descends into whichever are still free, giving a tree with n choices at the root, n-1 below it, and so on: n! leaves, one per permutation.

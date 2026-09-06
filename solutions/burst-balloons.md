@@ -7,6 +7,24 @@ time: "O(n^3)"
 space: "O(n^2)"
 ---
 
+## Description
+
+Given an array `nums` where `nums[i]` is the number painted on the `i`-th balloon, describes
+bursting every balloon one at a time; bursting balloon `i` earns
+`nums[left] * nums[i] * nums[right]` coins where `left` and `right` are the indices currently
+adjacent to it (treating a missing neighbor past either end as `1`), and asks for the maximum
+total coins obtainable by choosing the burst order.
+
+**Example**
+
+```
+Input: nums = [3,1,5,8]
+Output: 167
+```
+
+Explanation: bursting in the order (index 1, then 2, then 0, then 3) earns
+`3*1*5 + 3*5*8 + 1*3*8 + 1*8*1 = 15 + 120 + 24 + 8 = 167`.
+
 ## Intuition
 
 Bursting balloons forward is hard to reason about — bursting one balloon makes two others become neighbors, so the "neighbors" of a future burst depend on burst order. Thinking backward fixes this: pick which balloon in a range is burst *last*. At that moment every other balloon in the range is already gone, so its neighbors are exactly the two balloons bounding the range — a clean interval DP with no order-tracking needed.

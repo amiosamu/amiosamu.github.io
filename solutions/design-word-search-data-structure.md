@@ -7,6 +7,19 @@ time: "O(L) add, O(26^L) search"
 space: "O(n)"
 ---
 
+## Description
+
+Design a `WordDictionary` that supports `addWord(word)` to add a string, and `search(word)` to check whether any added word matches, where the search word may contain '.' as a wildcard that matches any single letter.
+
+**Example**
+
+```
+Input: ["WordDictionary","addWord","addWord","addWord","search","search","search","search"], [[],["bad"],["dad"],["mad"],["pad"],["bad"],[".ad"],["b.."]]
+Output: [null,null,null,null,false,true,true,true]
+```
+
+Explanation: "pad" was never added so `search("pad")` is false; `search("bad")` matches the added word "bad" exactly; `search(".ad")` matches "bad", "dad", or "mad" since '.' stands for any letter; `search("b..")` matches "bad" since the two dots can be any letters.
+
 ## Intuition
 
 Without the `.` this is a plain trie. The `.` is what breaks the single-path walk: at that position the search is no longer at one node but at *any* child of the current node, so matching stops being a loop and becomes a branching search. The insight is that the branching is bounded — a `.` forks into at most 26 subtrees, and every fork still consumes one character of the pattern, so the recursion depth is the pattern length. So: walk deterministically while the character is a letter, and recurse over `node.children.values()` only when you hit a dot.
