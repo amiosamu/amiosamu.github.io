@@ -7,6 +7,19 @@ time: "O(h)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary search tree and a key, delete the node holding that value from the tree, keeping the remaining tree a valid BST, and return the new root; if the key isn't present, the tree is returned unchanged.
+
+**Example**
+
+```
+Input: root = [5,3,6,2,4,null,7], key = 3
+Output: [5,4,6,2,null,null,7]
+```
+
+Explanation: Node 3 has two children (2 and 4); its in-order successor is 4, so 4's value is copied into 3's spot, and the original leaf holding 4 is then removed, leaving [5,4,6,2,null,null,7].
+
 ## Intuition
 
 Finding the node is the easy half — a plain BST descent. The hard half is that removing a node with two children leaves a hole that neither child can fill on its own: promoting the left child would strand the right subtree, and vice versa. The only value that can sit in that hole is one that's still greater than everything on the left and less than everything on the right, and there are exactly two such values — the in-order predecessor and the in-order successor. I take the successor, the leftmost node of the right subtree, copy its value into the hole, and then delete *it* instead, which is a strictly easier deletion because a leftmost node has no left child.

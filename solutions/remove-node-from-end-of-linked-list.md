@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the head of a linked list and an integer `n`, remove the `n`th node counting from the end of the list, and return the head of the resulting list.
+
+**Example**
+
+```
+Input: head = [1,2,3,4,5], n = 2
+Output: [1,2,3,5]
+```
+
+Explanation: Counting from the end, the 2nd node is the one holding 4; removing it leaves [1,2,3,5].
+
 ## Intuition
 
 "nth from the end" is only awkward because a singly linked list has no length and no way back.

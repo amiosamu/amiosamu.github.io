@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an absolute Unix-style file path as a string, possibly containing redundant slashes, `.` segments (current directory), and `..` segments (parent directory), return the simplified canonical path: a single leading slash, directories separated by single slashes, no trailing slash (unless the result is the root), and every `.` and resolvable `..` collapsed away.
+
+**Example**
+
+```
+Input: path = "/a/./b/../../c/"
+Output: "/c"
+```
+
+Explanation: The `.` is skipped, the first `..` removes `b`, and the second `..` removes `a`, leaving only `c`.
+
 ## Intuition
 
 A canonical path is just the list of directories you are actually inside, and `..` is a pop of that list — so the whole problem is a stack of names. Splitting the path on `/` turns every messy case into a single token: repeated slashes and a trailing slash both produce empty strings, `.` produces a token to ignore, and `..` produces a pop. The only subtlety is that popping at the root is a no-op rather than an error, since `/..` stays `/`.

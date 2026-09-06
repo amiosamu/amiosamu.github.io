@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, return its maximum depth: the number of nodes along the longest path from the root down to the farthest leaf.
+
+**Example**
+
+```
+Input: root = [3,9,20,null,null,15,7]
+Output: 3
+```
+
+Explanation: The longest root-to-leaf path is 3 → 20 → 15 (or 3 → 20 → 7), which passes through 3 nodes, so the maximum depth is 3.
+
 ## Intuition
 
 The depth of a tree is one more than the deeper of its two subtrees — that single sentence is the whole algorithm. It forces post-order, because a node cannot report its own depth until both children have reported theirs; the node's answer is assembled on the way back up, not on the way down. The empty tree has depth 0, which makes every missing child contribute 0 and removes the need to special-case leaves.

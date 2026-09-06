@@ -7,6 +7,19 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+An array of distinct integers, originally sorted in ascending order, has been rotated between 1 and n times at an unknown pivot. Given the rotated array `nums`, return its minimum element in O(log n) time.
+
+**Example**
+
+```
+Input: nums = [3,4,5,1,2]
+Output: 1
+```
+
+Explanation: The original sorted array `[1,2,3,4,5]` was rotated so that 1 is the first element of the second run, making it the smallest value present.
+
 ## Intuition
 
 A rotated sorted array is two increasing runs, and the minimum is the first element of the second run. The array is not globally sorted, so `nums[mid]` compared to a *target* tells me nothing — but compared to the fixed value `nums[n-1]` it does: every element of the first run is greater than `nums[n-1]`, and every element of the second run is less than or equal to it. That comparison is a monotone predicate over the indices, so the standard boundary search finds the run break directly. If the array was not rotated at all, the predicate is true everywhere and the boundary is index `0`, which is still the minimum.

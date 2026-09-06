@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the head of a linked list and two 1-indexed positions `left` and `right` with `left <= right`, reverse only the nodes from position `left` to position `right`, leaving the rest of the list untouched, and return the head.
+
+**Example**
+
+```
+Input: head = [1,2,3,4,5], left = 2, right = 4
+Output: [1,4,3,2,5]
+```
+
+Explanation: Positions 2 through 4 hold 2, 3, 4; reversing just that segment gives 4, 3, 2 while positions 1 and 5 (values 1 and 5) stay in place.
+
 ## Intuition
 
 The sublist reversal itself is easy; the stitching around it is what breaks. Instead of

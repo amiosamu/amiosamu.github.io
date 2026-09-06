@@ -7,6 +7,19 @@ time: "O(m + n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two sorted integer arrays `nums1` and `nums2`, merge `nums2` into `nums1` in place so that `nums1` becomes one sorted array. `nums1` has length `m + n`, where the first `m` elements are the array to merge and the last `n` elements are unused placeholders that make room for `nums2`'s `n` elements.
+
+**Example**
+
+```
+Input: nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
+Output: [1,2,2,3,5,6]
+```
+
+Explanation: Merging the real elements of `nums1` (`[1,2,3]`) with `nums2` (`[2,5,6]`) in sorted order fills the padding slots and produces `[1,2,2,3,5,6]`.
+
 ## Intuition
 
 Merging front to back is the natural instinct, but writing into `nums1[0]` would clobber a value I

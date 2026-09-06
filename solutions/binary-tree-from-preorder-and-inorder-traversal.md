@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given two integer arrays preorder and inorder, holding the preorder and inorder traversals of the same binary tree with all-unique node values, reconstruct and return that binary tree.
+
+**Example**
+
+```
+Input: preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
+Output: [3,9,20,null,null,15,7]
+```
+
+Explanation: preorder[0] = 3 names the root; in inorder, 3 splits the array into [9] on the left and [15,20,7] on the right, so 9 is the entire left subtree and 20 (with children 15 and 7) is the right subtree, matching [3,9,20,null,null,15,7].
+
 ## Intuition
 
 Two facts do all the work: pre-order starts with the root, and in-order puts everything in the left subtree *before* the root and everything in the right subtree after it. So `preorder[0]` names the root, finding it in `inorder` tells me the left subtree has exactly `mid - lo` nodes, and that count is enough to know where each side's slice of `preorder` begins. The naive version slices four lists per call, which is O(n²); instead I keep one global pointer into `preorder` and pass only index bounds into `inorder`, and I pre-hash value → in-order index so the split is O(1) instead of a scan.

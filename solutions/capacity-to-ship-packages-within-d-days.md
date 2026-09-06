@@ -7,6 +7,19 @@ time: "O(n log(sum(weights)))"
 space: "O(1)"
 ---
 
+## Description
+
+Packages, given as an array `weights`, must be shipped in the given order over exactly `days` days, loading each day's ship consecutively from the front of the array without exceeding its weight capacity. Return the least such capacity that still ships every package within `days` days.
+
+**Example**
+
+```
+Input: weights = [1,2,3,4,5,6,7,8,9,10], days = 5
+Output: 15
+```
+
+Explanation: With capacity 15 the packages split into the five days `[1,2,3,4,5]`, `[6,7]`, `[8]`, `[9]`, `[10]`, and no smaller capacity can ship them all within 5 days.
+
 ## Intuition
 
 Same shape as Koko: the thing being searched is the answer space, the capacities `[max(weights), sum(weights)]`, and the predicate "can I ship in `days` days with this capacity" is monotone — a bigger boat never needs more days. The second half of the insight is that for a *fixed* capacity the optimal packing is forced: order must be preserved, so greedily loading each package onto the current day until it would overflow is provably the minimum number of days. That makes the feasibility check a single linear pass.

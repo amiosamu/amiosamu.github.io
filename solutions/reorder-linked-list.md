@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the head of a linked list with nodes L0, L1, ..., Ln-1, reorder it in place, without changing any node's value, into the order L0, Ln-1, L1, Ln-2, L2, Ln-3, ...
+
+**Example**
+
+```
+Input: head = [1,2,3,4]
+Output: [1,4,2,3]
+```
+
+Explanation: With L0=1, L1=2, L2=3, L3=4, the target order L0, L3, L1, L2 is 1, 4, 2, 3.
+
 ## Intuition
 
 The target order `L0 → Ln → L1 → Ln-1 → …` alternates between walking forward from the front

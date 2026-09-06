@@ -7,6 +7,19 @@ time: "O(log n) per add, O(1) per find"
 space: "O(n)"
 ---
 
+## Description
+
+Design a data structure that supports adding integers from a stream one at a time and, at any point, reporting the median of all numbers added so far.
+
+**Example**
+
+```
+Input: ["MedianFinder", "addNum", "addNum", "findMedian", "addNum", "findMedian"], [[], [1], [2], [], [3], []]
+Output: [null, null, null, 1.5, null, 2.0]
+```
+
+Explanation: after adding `1` and `2`, the two middle values average to `(1 + 2) / 2 == 1.5`; after adding `3`, the sorted stream `[1,2,3]` has a single middle value, `2.0`.
+
 ## Intuition
 
 Keeping the stream sorted would make `findMedian` free but `addNum` O(n) for the insertion shift; re-sorting per query is worse. The observation that kills both: the median never depends on the *order* inside each half, only on where the two halves meet. So I split the values into a lower half and an upper half of nearly equal size and keep each half in a heap oriented toward that boundary — `small` is a **max-heap** (negated, since `heapq` is a min-heap) whose root is the largest of the low values, `large` is a min-heap whose root is the smallest of the high values. The median is read straight off those two roots.

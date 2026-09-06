@@ -7,6 +7,19 @@ time: "O(n * m)"
 space: "O(n + m)"
 ---
 
+## Description
+
+Given the roots of two binary trees root and subRoot, determine whether subRoot appears somewhere inside root as a complete subtree: a node of root whose value and entire descendant structure exactly match subRoot, not merely a node with a matching value.
+
+**Example**
+
+```
+Input: root = [3,4,5,1,2], subRoot = [4,1,2]
+Output: true
+```
+
+Explanation: The node valued 4 in root, together with its children 1 and 2, has exactly the same shape and values as subRoot, so subRoot occurs as a subtree of root.
+
 ## Intuition
 
 A subtree isn't just a matching value somewhere — it's a node of `root` whose *entire* structure below equals `subRoot`. So the problem decomposes into two independent recursions: an outer scan that offers each node of `root` as a candidate anchor, and the Same Tree check that decides whether a given pair matches all the way down. Both walk in pre-order — the outer one because the anchor must be tested before descending past it, the inner one because a mismatch at the top should stop the comparison immediately.

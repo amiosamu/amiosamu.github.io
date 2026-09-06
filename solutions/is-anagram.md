@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two strings `s` and `t`, return `true` if `t` is an anagram of `s` — meaning `t`
+can be formed by rearranging every letter of `s` exactly once, so both strings hold the
+same letters with the same counts — and `false` otherwise.
+
+**Example**
+
+```
+Input: s = "anagram", t = "nagaram"
+Output: true
+```
+
+Explanation: Both strings consist of the letters `a` (x3), `n`, `g`, `r`, `m` (x1 each),
+just in a different order, so `t` is an anagram of `s`.
+
 ## Intuition
 
 Two words are anagrams iff they have identical letter multisets, so the whole problem is

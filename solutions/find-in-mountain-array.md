@@ -7,6 +7,19 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given read-only access to a mountain array — strictly increasing to a single peak, then strictly decreasing — through a `MountainArray` interface exposing only `get(index)` and `length()`, find and return the leftmost index at which `target` occurs, or `-1` if it never occurs. The array cannot be scanned directly, and the number of `get` calls is capped, which is what rules out a linear search and pushes toward two binary searches instead.
+
+**Example**
+
+```
+Input: target = 3, mountain_arr = [1,2,3,4,5,3,1]
+Output: 2
+```
+
+Explanation: 3 occurs twice, at index 2 on the ascending side and index 5 on the descending side; the search returns the leftmost match, index 2.
+
 ## Intuition
 
 A mountain array is not sorted, but it is two sorted arrays glued at the peak: strictly increasing up to it, strictly decreasing after. So the whole problem is finding the peak, after which I run a normal ascending binary search on the left slope and a descending one on the right. The peak itself is a boundary problem: `get(i) < get(i+1)` is true on the whole ascent and false on the whole descent, one clean flip. The 100-call budget is the real constraint: the peak search spends two `get` calls per step and each slope search one, which lands around 40 calls at `n = 10^4`.

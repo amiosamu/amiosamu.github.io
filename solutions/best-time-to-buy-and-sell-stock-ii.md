@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `prices` where `prices[i]` is the price of a stock on day `i`, return the maximum profit achievable. Any number of transactions is allowed, but a new position cannot be opened before the previous one is closed (no buying while already holding a share).
+
+**Example**
+
+```
+Input: prices = [7,1,5,3,6,4]
+Output: 7
+```
+
+Explanation: Buy at 1 (day 1) and sell at 5 (day 2) for a profit of 4, then buy at 3 (day 3) and sell at 6 (day 4) for a profit of 3; 4 + 3 == 7 total.
+
 ## Intuition
 
 With unlimited transactions there is nothing to plan. Holding through a rise from day `i` to day `j` earns `prices[j] - prices[i]`, and that telescopes into the sum of the day-to-day differences along the way — so any long hold is worth exactly the same as buying and selling on each individual day inside it. Since I can also decline any day, I keep the positive differences and drop the negative ones, and that upper bound is achievable: it corresponds to buying at every local minimum and selling at every local maximum.

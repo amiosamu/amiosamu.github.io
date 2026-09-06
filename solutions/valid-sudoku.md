@@ -7,6 +7,33 @@ time: "O(1)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a partially filled `9x9` Sudoku `board` (each cell is a digit `1`-`9` or `"."` for
+empty), determine whether the digits already placed make it valid: no digit repeats
+within any row, any column, or any of the nine `3x3` sub-boxes. The board does not need
+to be solvable, only free of conflicts as filled in.
+
+**Example**
+
+```
+Input: board =
+[["5","3",".",".","7",".",".",".","."],
+ ["6",".",".","1","9","5",".",".","."],
+ [".","9","8",".",".",".",".","6","."],
+ ["8",".",".",".","6",".",".",".","3"],
+ ["4",".",".","8",".","3",".",".","1"],
+ ["7",".",".",".","2",".",".",".","6"],
+ [".","6",".",".",".",".","2","8","."],
+ [".",".",".","4","1","9",".",".","5"],
+ [".",".",".",".","8",".",".","7","9"]]
+Output: true
+```
+
+Explanation: No row, column, or 3x3 box has a repeated digit anywhere on the board — for
+example row 0 has only `5`, `3`, `7` filled in, with no digit appearing twice — so the
+board is valid.
+
 ## Intuition
 
 Only the board as filled matters — no solving, no backtracking, just three

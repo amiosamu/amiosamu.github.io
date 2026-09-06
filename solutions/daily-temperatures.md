@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list `temperatures` of daily temperatures, return an array where each element is the number of days you would have to wait after that day to reach a strictly warmer temperature, or 0 if there is no future day that is warmer.
+
+**Example**
+
+```
+Input: temperatures = [73,74,75,71,69,72,76,73]
+Output: [1,1,4,2,1,1,0,0]
+```
+
+Explanation: day 0 (73) waits 1 day for 74; day 2 (75) has to wait until index 6 (76), which is 4 days later; the last two days never see a warmer temperature, so they get 0.
+
 ## Intuition
 
 Brute force asks, for each day, "scan right until something warmer" — O(n²), and it re-scans the same cold stretch over and over. The insight is that a day is only *waiting* as long as every day since has been colder, so the set of unresolved days at any moment has strictly decreasing temperatures. Keep that set on a stack: when today is warmer than the top, today is by definition the first warmer day for it, because every day in between was colder still. Each day gets answered exactly once, when it is popped.

@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the values of its nodes in inorder traversal order: the left subtree, then the node itself, then the right subtree.
+
+**Example**
+
+```
+Input: root = [1,null,2,3]
+Output: [1,3,2]
+```
+
+Explanation: The tree is 1 with no left child and right child 2, whose left child is 3; visiting left-node-right gives 1 (no left subtree), then descends into 2's left subtree first (3), then 2 itself, for [1,3,2].
+
 ## Intuition
 
 In-order means left subtree, then node, then right subtree — that's the definition, and the three-line recursion writes itself. The interesting version is the follow-up: do it without recursion. The insight is that recursion's call stack is only ever holding *ancestors whose value hasn't been printed yet*, and every one of those was reached by walking left. So I can replicate it with one explicit `stack`: run all the way down the left spine pushing as I go, then pop, emit, and restart the same descent from the popped node's right child.

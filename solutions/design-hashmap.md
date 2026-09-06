@@ -7,6 +7,23 @@ time: "O(1) average per op"
 space: "O(n + k)"
 ---
 
+## Description
+
+Design a HashMap without using any built-in hash table library, supporting
+`put(key, value)` (insert, or overwrite if the key already exists), `get(key)` (return
+its value, or `-1` if the key is absent), and `remove(key)` (delete it if present).
+
+**Example**
+
+```
+Input: ["MyHashMap", "put", "put", "get", "get", "put", "get", "remove", "get"], [[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]
+Output: [null, null, null, 1, -1, null, 1, null, -1]
+```
+
+Explanation: `get(1)` returns `1` from the first `put`; `get(3)` returns `-1` since `3`
+was never inserted; `put(2, 1)` overwrites the earlier `(2, 2)`, so `get(2)` returns `1`;
+after `remove(2)`, `get(2)` returns `-1` again.
+
 ## Intuition
 
 Same skeleton as Design HashSet — a fixed array of `k` buckets, `key % k` to choose one,

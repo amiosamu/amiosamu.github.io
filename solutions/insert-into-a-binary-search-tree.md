@@ -7,6 +7,19 @@ time: "O(h)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the root of a binary search tree and a value val guaranteed not to already be present, insert val into the tree so the result is still a valid BST, and return the root of the resulting tree; any tree that results in a valid placement is accepted.
+
+**Example**
+
+```
+Input: root = [4,2,7,1,3], val = 5
+Output: [4,2,7,1,3,5]
+```
+
+Explanation: Descending from 4, 5 is greater so the search moves right to 7; 5 is less than 7 so it moves left into 7's empty left-child slot, giving the tree [4,2,7,1,3,5].
+
 ## Intuition
 
 The problem says any valid BST is accepted, which removes all the rebalancing and makes this a pure search: run the same descent you'd run to *look up* `val`, and where the lookup would fall off the tree is exactly where the new node belongs. No existing node moves — the insert is a single pointer write on a node that currently has a missing child, so the new node is always a leaf. The only real care is stopping one level early, at the parent, since you have to write into `parent.left` or `parent.right`.

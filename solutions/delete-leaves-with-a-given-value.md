@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree and an integer target, repeatedly remove leaf nodes whose value equals target — including new leaves created by earlier removals — until no leaf holds that value, and return the resulting root.
+
+**Example**
+
+```
+Input: root = [1,2,3,2,null,2,4], target = 2
+Output: [1,null,3,null,4]
+```
+
+Explanation: Node 2 (root's left child) has a leaf child valued 2, which is removed first; that leaves node 2 itself childless, and since its own value also equals the target it is removed too, so root's whole left subtree disappears. On the right, node 3's leaf child valued 2 is removed, but node 3 keeps its other child (leaf 4) and its own value isn't the target, so it survives — giving [1,null,3,null,4].
+
 ## Intuition
 
 The cascade is what makes this more than a filter: deleting a leaf can turn its parent into a leaf, which may then also qualify. Doing that with repeated top-down passes would be O(n) passes in the worst case. But if I prune children *before* testing a node, the cascade is already handled by the time I look at it — a node's leaf-ness is evaluated against the post-pruning tree, in one bottom-up sweep. That's post-order, and it's forced: the test at a node depends on its children's fate.

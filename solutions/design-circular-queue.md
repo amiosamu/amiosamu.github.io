@@ -7,6 +7,19 @@ time: "O(1)"
 space: "O(k)"
 ---
 
+## Description
+
+Design a fixed-capacity circular queue supporting `enQueue(value)` and `deQueue()` (add/remove, both returning whether they succeeded), `Front()`/`Rear()` (peek the first/last element, or -1 if empty), and `isEmpty()`/`isFull()`, all in O(1), by reusing a fixed-size buffer and wrapping indices instead of shifting elements.
+
+**Example**
+
+```
+Input: ["MyCircularQueue", "enQueue", "enQueue", "enQueue", "enQueue", "Rear", "isFull", "deQueue", "enQueue", "Rear"], [[3], [1], [2], [3], [4], [], [], [], [4], []]
+Output: [null, true, true, true, false, 3, true, true, true, 4]
+```
+
+Explanation: With capacity 3, the first three enQueues (1, 2, 3) succeed and fill the queue, so enQueue(4) fails (false); Rear() reports 3 and isFull() is true; deQueue() frees a slot so enQueue(4) then succeeds, making Rear() report 4.
+
 ## Intuition
 
 A queue on a plain list makes `deQueue` O(k) because everything shifts left. Since the capacity

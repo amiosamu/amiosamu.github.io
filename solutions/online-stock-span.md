@@ -7,6 +7,19 @@ time: "O(1) amortized per call"
 space: "O(n)"
 ---
 
+## Description
+
+Design a class that receives daily stock prices one at a time through `next(price)` and, for each call, returns the "span" — the number of consecutive days ending with today (inclusive) whose price was less than or equal to today's price.
+
+**Example**
+
+```
+Input: ["StockSpanner","next","next","next","next","next","next","next"], [[],[100],[80],[60],[70],[60],[75],[85]]
+Output: [null,1,1,1,2,1,4,6]
+```
+
+Explanation: on the 6th call the price is 75, which is greater than or equal to the previous three prices `60, 70, 60`, so its span covers those 3 days plus itself, giving 4.
+
 ## Intuition
 
 The span ends at the first strictly *greater* price to the left, so this is "previous greater element" answered online. Walking back day by day is O(n) per call, but notice that once a day is swallowed by a later, higher price, it can never end anyone's span again — a taller wall stands in front of it. So I keep a stack that is decreasing in price, and when today's price absorbs the top I do not re-walk the days it covered: I add its already-computed span in one step. Each stack entry is a `(price, span)` pair — the span is the memo that makes the collapse O(1).

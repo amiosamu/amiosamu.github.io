@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a list of strings `operations` describing a round of a scoring game — an integer (a new score), `"+"` (sum of the previous two scores), `"D"` (double the previous score), or `"C"` (cancel/remove the previous score) — replay the operations and return the sum of all scores that remain on the record.
+
+**Example**
+
+```
+Input: ops = ["5","2","C","D","+"]
+Output: 30
+```
+
+Explanation: the record becomes `[5]`, then `[5,2]`, then `"C"` removes 2 leaving `[5]`, then `"D"` doubles 5 to append 10 giving `[5,10]`, then `"+"` adds the last two (`5+10=15`) giving `[5,10,15]`; the sum is `5+10+15 == 30`.
+
 ## Intuition
 
 Every operation only ever refers to the *most recent* valid scores: `"+"` reads the last two, `"D"` reads the last one, `"C"` deletes the last one. That is exactly a stack's access pattern, so I keep a stack of the scores that are currently valid and the whole problem becomes one linear pass. The answer is the sum of whatever survives.

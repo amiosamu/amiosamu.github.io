@@ -7,6 +7,19 @@ time: "O(a + b + c)"
 space: "O(1)"
 ---
 
+## Description
+
+Given three integers `a`, `b`, `c`, a string is "happy" if it contains no three consecutive identical characters. Build the longest happy string possible using at most `a` occurrences of `'a'`, `b` of `'b'`, and `c` of `'c'`, returning any valid answer of maximum length (or `""` if none can be built).
+
+**Example**
+
+```
+Input: a = 1, b = 1, c = 7
+Output: "ccaccbcc"
+```
+
+Explanation: `"ccaccbcc"` uses exactly one `'a'`, one `'b'`, and seven `'c'`s, never repeats a character three times in a row, and no longer valid string can be formed from these counts.
+
 ## Intuition
 
 There is no fixed order to sort into — which letter is safe to append depends on the two characters already written. The greedy is to always take the letter with the most copies left, because the letters that run out last are the ones that end up stranded, and spending the biggest pile first keeps the piles even. The only exception is when that letter would form a third consecutive copy; then I take the runner-up for one character and immediately go back to the leader. Both "leader" and "runner-up" mean *current maximum of a changing multiset*, which is a **max-heap** — `heapq` negated, as always.

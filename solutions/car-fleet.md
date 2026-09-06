@@ -7,6 +7,19 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+A list of cars sit on a single-lane road at distinct positions, each moving toward the same `target` position at its own constant speed; a faster car behind a slower one cannot pass, so it slows down and merges into a fleet that travels together at the slower car's speed. Given `target` and the arrays `position` and `speed`, count how many distinct car fleets will eventually arrive at `target`.
+
+**Example**
+
+```
+Input: target = 12, position = [10,8,0,5,3], speed = [2,4,1,1,3]
+Output: 3
+```
+
+Explanation: The cars starting at 10 and 8 merge into one fleet before reaching 12, the car starting at 0 never catches anyone, and the cars starting at 5 and 3 merge into another fleet — three fleets in total.
+
 ## Intuition
 
 Cars never pass each other, so a faster car that catches a slower one simply inherits its speed — the whole clump then arrives at `target` when the *slowest* car in front of it would have. So instead of simulating collisions, compute each car's solo arrival time `(target - position) / speed` and process cars from the one closest to the target backwards. A car forms a new fleet only if its solo time is strictly greater than the current lead time; if it is less than or equal, it catches up and is absorbed. The number of fleets is then just the number of times a new, larger time appears.

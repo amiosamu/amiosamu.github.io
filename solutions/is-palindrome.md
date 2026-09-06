@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s`, return whether it is a palindrome after converting all uppercase letters to lowercase and removing every character that is not a letter or digit.
+
+**Example**
+
+```
+Input: s = "A man, a plan, a canal: Panama"
+Output: true
+```
+
+Explanation: Stripping punctuation and spaces and lowercasing gives "amanaplanacanalpanama", which reads the same forwards and backwards.
+
 ## Intuition
 
 The easy version is to filter the string down to lowercase alphanumerics, then compare it to its

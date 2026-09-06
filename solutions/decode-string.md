@@ -7,6 +7,19 @@ time: "O(m)"
 space: "O(m)"
 ---
 
+## Description
+
+Given an encoded string `s` made of letters and bracketed repeat groups of the form `k[encoded_string]`, return the fully decoded string, where each bracketed group is expanded `k` times and groups may nest arbitrarily deep.
+
+**Example**
+
+```
+Input: s = "3[a]2[bc]"
+Output: "aaabcbc"
+```
+
+Explanation: `3[a]` expands to `"aaa"` and `2[bc]` expands to `"bcbc"`; concatenating the two pieces gives `"aaabcbc"`.
+
 ## Intuition
 
 The encoding nests, so this is a parsing problem: `3[a2[c]]` needs the inner `2[c]` resolved before the outer repeat can be applied. Recursion would work, but the same thing falls out of one pass if I keep only two live registers — `cur`, the string being built at the current depth, and `num`, the multiplier being read — and push the pair onto a stack whenever a `[` opens a deeper level. A `]` then pops the parent's half-built string and its count, and stitches `parent + cur * k`. Digits can be multi-character, so the count is accumulated with `num * 10 + digit` rather than read as a single char.

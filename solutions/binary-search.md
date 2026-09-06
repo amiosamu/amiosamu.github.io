@@ -7,6 +7,19 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` sorted in ascending order and an integer `target`, return the index of `target` in `nums`, or `-1` if it is not present. The array holds distinct values, and the solution must run in O(log n) time.
+
+**Example**
+
+```
+Input: nums = [-1,0,3,5,9,12], target = 9
+Output: 4
+```
+
+Explanation: `nums[4] == 9`, so index 4 is returned.
+
 ## Intuition
 
 The array is sorted, so one comparison against the middle element rules out half of what is left: if `nums[mid] < target` nothing at or left of `mid` can be the target, and symmetrically on the other side. Scanning is O(n); halving the live interval every step is O(log n). This is the template every other problem in this group is a variation of, so it is worth fixing one loop shape and reusing it.

@@ -7,6 +7,22 @@ time: "O(n * m)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array of strings `strs`, return the longest string that is a prefix of every
+string in the array. If the strings share no common leading characters, return the empty
+string.
+
+**Example**
+
+```
+Input: strs = ["flower","flow","flight"]
+Output: "fl"
+```
+
+Explanation: `"fl"` is a prefix of all three words, but the next character differs
+(`"o"` vs `"i"`), so `"fl"` is the longest common prefix.
+
 ## Intuition
 
 The common prefix can never be longer than `strs[0]`, so instead of comparing strings to

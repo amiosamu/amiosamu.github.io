@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `prices` where `prices[i]` is the stock price on day `i`, choose one day to buy and a later day to sell to maximize profit. If no profitable transaction exists, return 0.
+
+**Example**
+
+```
+Input: prices = [7,1,5,3,6,4]
+Output: 5
+```
+
+Explanation: buying on day 1 at price 1 and selling on day 4 at price 6 gives profit `6 - 1 == 5`, the best of any buy/sell pair.
+
 ## Intuition
 
 Brute force tries every buy/sell pair, O(n²). The insight: when I stand on day `r` as the seller, the only buy day I care about is the cheapest day strictly before `r` — every other earlier day gives less profit. So sweeping left to right while remembering the minimum price seen so far answers each sell day in O(1). It is the degenerate sliding window where the left edge jumps straight to any new low.

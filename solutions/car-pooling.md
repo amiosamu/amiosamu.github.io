@@ -7,6 +7,19 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given `trips` where `trips[i] = [numPassengers, from, to]` describes passengers picked up at `from` and dropped off at `to`, and a car with a fixed `capacity`, return whether it is possible to pick up and drop off all passengers for every trip without ever exceeding capacity.
+
+**Example**
+
+```
+Input: trips = [[2,1,5],[3,3,7]], capacity = 4
+Output: false
+```
+
+Explanation: between locations 3 and 5 both trips overlap, carrying `2 + 3 == 5` passengers at once, which exceeds the capacity of 4.
+
 ## Intuition
 
 Sorting the trips by pickup location gets the events in the order the car meets them, but that alone is not enough: the passengers who leave between two pickups are not in pickup order, they are in *drop-off* order. So I sort once by `start` to drive the sweep, and keep the riders currently on board in a **min-heap keyed by `end`** — at each new pickup the only thing I need is the earliest drop-off, and I keep popping while it is at or before the current location. The occupancy only ever peaks at a pickup, so checking capacity there is sufficient.

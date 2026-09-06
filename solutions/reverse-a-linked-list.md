@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the head of a singly linked list, reverse the list in place and return the head of the reversed list. Every node keeps its value; only the direction of the `next` pointers changes, and no extra list or recursion is used.
+
+**Example**
+
+```
+Input: head = [1,2,3,4,5]
+Output: [5,4,3,2,1]
+```
+
+Explanation: Each node's `next` pointer is flipped to point at its predecessor, so the list comes out in exactly the reverse order it went in.
+
 ## Intuition
 
 Reversing a list is just flipping every `next` pointer to point at the node I came from. The

@@ -7,6 +7,19 @@ time: "O(n^2)"
 space: "O(log n)"
 ---
 
+## Description
+
+Given an n x n grid of 0s and 1s, where n is a power of two, build the equivalent quad-tree: recursively split the grid into four equal quadrants, representing any quadrant whose cells are all the same value as a single leaf node holding that value, and splitting a mixed quadrant into four further quadrants otherwise.
+
+**Example**
+
+```
+Input: grid = [[0,1],[1,0]]
+Output: Node(val=True, isLeaf=False, topLeft=Node(0,True), topRight=Node(1,True), bottomLeft=Node(1,True), bottomRight=Node(0,True))
+```
+
+Explanation: The four cells 0, 1, 1, 0 are not all equal, so the root cannot collapse into one leaf; each 1x1 quadrant is trivially uniform, so topLeft, topRight, bottomLeft, and bottomRight each become a leaf carrying their own cell's value.
+
 ## Intuition
 
 The obvious version scans a whole sub-grid to ask "is it all the same value?", and if it isn't, splits into four and repeats — that re-reads every cell at every level, O(n² log n). But the question "is this square uniform?" is answerable from the children instead of from the cells: a square is uniform exactly when all four quadrants came back as leaves carrying the same value. So I build bottom-up, and the merge test is four field reads instead of a scan.

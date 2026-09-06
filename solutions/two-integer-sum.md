@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array of integers `nums` and an integer `target`, return the indices of the two
+numbers that add up to `target`. Exactly one valid pair is guaranteed to exist, the same
+element cannot be used twice, and the two indices may be returned in either order.
+
+**Example**
+
+```
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+```
+
+Explanation: `nums[0] + nums[1] == 2 + 7 == 9`, so indices 0 and 1 are returned.
+
 ## Intuition
 
 The brute force is to try every pair, but that re-asks the same question `n` times:

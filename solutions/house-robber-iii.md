@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree where each node's value is the money in that house, choose a subset of nodes to rob that maximizes the total money collected, under the rule that no two directly connected nodes — a node and its parent, or a node and its child — can both be robbed.
+
+**Example**
+
+```
+Input: root = [3,2,3,null,3,null,1]
+Output: 7
+```
+
+Explanation: Robbing the root (3) together with its two grandchildren (the 3 hanging off the left child and the 1 hanging off the right child) totals 3 + 3 + 1 = 7 while skipping the two direct children (2 and 3), which satisfies the no-adjacent-robbing rule and beats any other selection.
+
 ## Intuition
 
 A single number per subtree isn't enough: knowing the best haul from a child's subtree doesn't say whether that haul *used the child*, and that's exactly what the parent needs to know, since robbing a node forbids robbing its children. So every subtree reports two numbers — the best total if I rob its root, and the best total if I don't. With both in hand the parent's choice is arithmetic, and the "skip a house, then you may take the grandchildren" reasoning falls out instead of being special-cased.

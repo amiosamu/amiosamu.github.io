@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array of positive integers `nums` and an integer `target`, return the length of the shortest contiguous subarray whose sum is at least `target`, or 0 if no such subarray exists.
+
+**Example**
+
+```
+Input: target = 7, nums = [2,3,1,2,4,3]
+Output: 2
+```
+
+Explanation: the subarray `[4,3]` sums to 7 and has length 2, which is shorter than any other subarray reaching 7.
+
 ## Intuition
 
 All values are positive, which is the whole game: extending a window can only raise its sum and shrinking it can only lower the sum. So for each right end `r` there is a single tipping point `l` — the furthest left edge whose window still reaches `target` — and `l` never has to move backwards as `r` advances. That turns the O(n²) "try every start" search into one pass where both pointers only go forward.

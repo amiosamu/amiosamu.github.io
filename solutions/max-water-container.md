@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `height` where `height[i]` is the height of a vertical line at position `i`, find two lines that together with the x-axis form a container, and return the maximum amount of water it can hold.
+
+**Example**
+
+```
+Input: height = [1,8,6,2,5,4,8,3,7]
+Output: 49
+```
+
+Explanation: The lines at indices 1 and 8 have heights 8 and 7; the container spans width `8 - 1 == 7` and is capped by the shorter line, `min(8,7) == 7`, giving area `7 * 7 == 49`.
+
 ## Intuition
 
 Trying every pair is O(n²). Start instead with the widest possible container, `l = 0` and `r = n - 1`, and ask which wall can safely be discarded. The area is `(r - l) * min(height[l], height[r])`, so the shorter wall caps it. Keeping the shorter wall and moving the taller one inward strictly loses width and cannot gain height — the `min` is still bounded by that same short wall — so every container using the shorter wall is already no better than the one just measured. That makes it safe to throw the shorter wall away, and each step removes one line, so the whole scan is linear.

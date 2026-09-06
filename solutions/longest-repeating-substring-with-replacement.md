@@ -7,6 +7,19 @@ time: "O(26 * n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s` of uppercase letters and an integer `k`, find the length of the longest substring that can be turned into a single repeated character by changing at most `k` of its characters.
+
+**Example**
+
+```
+Input: s = "ABAB", k = 2
+Output: 4
+```
+
+Explanation: replacing the two `'A'`s with `'B'`s (or vice versa) uses exactly `k = 2` replacements and turns the whole string into `"BBBB"`, so the answer is the full length, 4.
+
 ## Intuition
 
 The final string is all one character, so fix that character `c` up front and the problem collapses: the best window for `c` is the longest window containing at most `k` characters that aren't `c`. That condition is monotone — cutting the window can only reduce the number of non-`c` characters — so a single grow/shrink pass finds the best window for one `c`. There are only 26 candidates, so just run it 26 times and take the max, which avoids the trickier "max frequency in the window" bookkeeping of the single-pass version.

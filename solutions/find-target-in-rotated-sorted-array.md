@@ -7,6 +7,19 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+An array of distinct integers, originally sorted in ascending order, has been rotated at an unknown pivot. Given the rotated array `nums` and a `target` value, return the index of `target` in `nums`, or `-1` if it is not present, in O(log n) time.
+
+**Example**
+
+```
+Input: nums = [4,5,6,7,0,1,2], target = 0
+Output: 4
+```
+
+Explanation: `nums[4] == 0`, so index 4 is returned.
+
 ## Intuition
 
 Rotation destroys the global order, so there is no single monotone predicate over the whole array to search on. What survives is local: wherever I cut at `mid`, at least one of the two halves is a contiguous un-rotated run, because the array contains only one break point and it can sit in only one half. In a sorted half I can decide membership with two comparisons against its endpoints; if the target is in there I recurse into it, otherwise it must be in the other half. That is still one probe per halving, so `O(log n)` in a single pass.

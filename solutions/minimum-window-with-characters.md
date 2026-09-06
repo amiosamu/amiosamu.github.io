@@ -7,6 +7,19 @@ time: "O(n + m)"
 space: "O(m)"
 ---
 
+## Description
+
+Given strings `s` and `t`, return the smallest substring of `s` that contains every character of `t` (including repeated characters, with at least the same multiplicity). If no such substring exists, return `""`.
+
+**Example**
+
+```
+Input: s = "ADOBECODEBANC", t = "ABC"
+Output: "BANC"
+```
+
+Explanation: `"BANC"` contains one `'A'`, one `'B'`, and one `'C'`, and no shorter substring of `s` covers all three characters of `t`.
+
 ## Intuition
 
 Validity here is monotone: if `s[l..r]` covers `t`, so does any window containing it. So for each right end `r` there is exactly one smallest valid left edge, and it never moves backwards as `r` grows — expand until the window is valid, then shrink from the left as far as it stays valid, and record. The bookkeeping trick is to not compare two whole count maps every step: keep one counter `missing` of how many *slots* are still unfilled, using the sign of `need[ch]` to distinguish a genuinely needed character from a surplus copy.

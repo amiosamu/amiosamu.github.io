@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `k`, return the number of contiguous subarrays whose elements sum to exactly `k`. `nums` may contain negative numbers, zero, and duplicates.
+
+**Example**
+
+```
+Input: nums = [1,1,1], k = 2
+Output: 2
+```
+
+Explanation: The subarray `nums[0:2]` (`[1,1]`) and the subarray `nums[1:3]` (`[1,1]`) each sum to 2, giving two matching subarrays.
+
 ## Intuition
 
 The sum of `nums[i..j]` is `prefix[j] - prefix[i - 1]`, so asking "which subarrays ending at `j` sum to `k`" is the same as asking "how many earlier prefix sums equal `curSum - k`". That turns an O(n²) double loop into one pass with a frequency map of prefix sums seen so far. Note that a sliding window is *not* available here — `nums` may contain negatives, so the running sum isn't monotonic and shrinking from the left doesn't reliably reduce it.

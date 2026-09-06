@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `k`, return the `k` most frequent elements,
+in any order. The answer is guaranteed to be unique.
+
+**Example**
+
+```
+Input: nums = [1,1,1,2,2,3], k = 2
+Output: [1,2]
+```
+
+Explanation: `1` occurs 3 times and `2` occurs 2 times, more often than `3`'s single
+occurrence, so `1` and `2` are the two most frequent values.
+
 ## Intuition
 
 Counting is the easy half; the question is how to get the `k` largest counts

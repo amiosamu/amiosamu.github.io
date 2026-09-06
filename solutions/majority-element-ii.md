@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `nums` of size `n`, return all the distinct elements that appear more than `⌊n/3⌋` times. There can be at most two such elements, and the result may be returned in any order.
+
+**Example**
+
+```
+Input: nums = [3,2,3]
+Output: [3]
+```
+
+Explanation: `n == 3`, so an element must occur more than 1 time to qualify; 3 occurs twice and qualifies, while 2 occurs only once and does not.
+
 ## Intuition
 
 At most two values can appear more than `n/3` times, since three such values would already need more than `n` slots. That caps the number of candidates I have to carry, which is what makes O(1) space possible without a counting map. Boyer-Moore generalises: keep two candidates with counters, and whenever a third distinct value shows up while both counters are non-zero, cancel one occurrence of each of the three. Cancelling three distinct values at a time can never wipe out a value with frequency above `n/3`, so any real answer survives to the end as a candidate — though the survivors are not guaranteed to be answers, hence the verification pass.

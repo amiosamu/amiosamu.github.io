@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the values visible when the tree is viewed from the right side, ordered from the top level down: at each depth, the rightmost node present at that depth.
+
+**Example**
+
+```
+Input: root = [1,2,3,null,5,null,4]
+Output: [1,3,4]
+```
+
+Explanation: At depth 0 only 1 exists; at depth 1, 3 sits to the right of 2 and is the one visible; at depth 2, the only node is 4 (reached via 3's right child), so the view is [1,3,4].
+
 ## Intuition
 
 Standing to the right, what I see at depth `d` is the *rightmost* node at depth `d` — not the right child of anything, since a node's right subtree can be empty while its left subtree keeps going. So this is a level-order question, not a "walk down the right spine" question. Run BFS level by level and keep the last node popped in each round; that node is the rightmost one at its depth by construction.

@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `nums` of length `n`, build and return an array `ans` of length
+`2n` where `ans[i] == nums[i]` and `ans[i + n] == nums[i]` for every `0 <= i < n` — in
+other words, `nums` concatenated with itself.
+
+**Example**
+
+```
+Input: nums = [1,2,1]
+Output: [1,2,1,1,2,1]
+```
+
+Explanation: The output is `nums` followed by `nums` again, so `ans` has length 6 and
+`ans[1] == ans[4] == 2`.
+
 ## Intuition
 
 `ans[i] = nums[i % n]` is just a fancy way of saying "the array twice", so in Python

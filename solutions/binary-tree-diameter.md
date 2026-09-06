@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the length, in edges, of the longest path between any two nodes in the tree; the path does not need to pass through the root.
+
+**Example**
+
+```
+Input: root = [1,2,3,4,5]
+Output: 3
+```
+
+Explanation: The longest path runs 4 → 2 → 1 → 3 (equally, 5 → 2 → 1 → 3), which crosses 3 edges — longer than any path confined to one side of the root.
+
 ## Intuition
 
 Any path in a binary tree has a single highest node, and from there it goes down at most once to the left and at most once to the right. So the longest path *through a given node* is `height(left) + height(right)` edges, and the diameter is the max of that over all nodes. The trap is computing heights separately for every node — that's O(n²). One post-order pass fixes it: while each call is computing its own height it already holds both children's heights, so it can score its own node for free on the way back up.

@@ -7,6 +7,19 @@ time: "O(1) amortized per op"
 space: "O(n)"
 ---
 
+## Description
+
+Implement a first-in-first-out (FIFO) queue — supporting `push`, `pop`, `peek`, and `empty` — using only the standard operations of a stack as the underlying storage.
+
+**Example**
+
+```
+Input: ["MyQueue", "push", "push", "peek", "pop", "empty"], [[], [1], [2], [], [], []]
+Output: [null, null, null, 1, 1, false]
+```
+
+Explanation: after pushing 1 then 2, `peek()` and `pop()` both return 1 because it was pushed first (FIFO order); after the pop only 2 remains, so `empty()` is `false`.
+
 ## Intuition
 
 Pouring one stack into another reverses it, and reversing "newest first" gives "oldest first" — which is exactly queue order. So I keep two stacks: `inp` for arrivals and `out` for departures. The important part is *when* to pour: only when `out` runs dry, never on every read. That way each element is moved across exactly once in its lifetime, which makes the cost O(1) amortized instead of O(n) per call.

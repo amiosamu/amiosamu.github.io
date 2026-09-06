@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, determine whether it is a valid binary search tree: every node's value must be strictly greater than all values in its left subtree and strictly less than all values in its right subtree, not merely greater or less than its immediate children.
+
+**Example**
+
+```
+Input: root = [2,1,3]
+Output: true
+```
+
+Explanation: 1 is less than 2 and 3 is greater than 2, and neither has a subtree of its own to violate the property, so the tree is a valid BST.
+
 ## Intuition
 
 The trap is checking `node.left.val < node.val < node.right.val` locally: that passes on `[5, 1, 6, null, null, 3, 8]`, where 3 sits legally under 6 but illegally in 5's right subtree. The BST property is global — every node in the left subtree must beat the ancestor, not just the parent. The fix is to push the constraint down: each node inherits an open interval `(low, high)` it must live in, and going left tightens `high` to the node's value while going right tightens `low`.

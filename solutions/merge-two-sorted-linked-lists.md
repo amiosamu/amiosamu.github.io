@@ -7,6 +7,19 @@ time: "O(n + m)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the heads of two linked lists that are each already sorted in non-decreasing order, merge them into a single sorted list by splicing together the existing nodes — no new nodes are allocated — and return the head of the merged list.
+
+**Example**
+
+```
+Input: list1 = [1,2,4], list2 = [1,3,4]
+Output: [1,1,2,3,4,4]
+```
+
+Explanation: Repeatedly taking the smaller of the two current heads (1, then 1, then 2, then 3, then 4, then 4) yields the merged sequence [1,1,2,3,4,4].
+
 ## Intuition
 
 Both lists are already sorted, so the smallest node overall is always at the head of one of

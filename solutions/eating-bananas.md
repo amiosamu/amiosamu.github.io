@@ -7,6 +7,19 @@ time: "O(n log(max(piles)))"
 space: "O(1)"
 ---
 
+## Description
+
+Koko has piles of bananas, given as an array `piles`, and `h` hours before the guards return. Each hour she picks one pile and eats up to `k` bananas from it (finishing that pile even if it has fewer than `k` left). Given `piles` and `h`, return the minimum integer eating speed `k` that lets her finish every pile within `h` hours.
+
+**Example**
+
+```
+Input: piles = [3,6,7,11], h = 8
+Output: 4
+```
+
+Explanation: At speed 4, the piles take `ceil(3/4)+ceil(6/4)+ceil(7/4)+ceil(11/4) = 1+2+2+3 = 8` hours, exactly the limit, and no smaller speed finishes within 8 hours.
+
 ## Intuition
 
 There is nothing sorted to search — the array to binary search is the *answer space*, the speeds `1 .. max(piles)`. The insight is that feasibility is monotone: if Koko finishes in time at speed `k`, she also finishes at every speed above `k`, since raising `k` can only reduce `ceil(p / k)` for every pile. So the feasible speeds form a suffix of `[1, max(piles)]` and I want its first element. Checking one speed costs a linear pass, so the whole thing is `O(n log(max(piles)))` instead of trying every speed.

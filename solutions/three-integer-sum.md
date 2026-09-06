@@ -7,6 +7,19 @@ time: "O(n^2)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `nums`, return all unique triplets `[nums[i], nums[j], nums[k]]` with distinct indices `i`, `j`, `k` whose values sum to 0. The result must not contain duplicate triplets.
+
+**Example**
+
+```
+Input: nums = [-1,0,1,2,-1,-4]
+Output: [[-1,-1,2],[-1,0,1]]
+```
+
+Explanation: `-1 + -1 + 2 == 0` and `-1 + 0 + 1 == 0`; every other combination of three values either repeats one of these triplets or does not sum to zero.
+
 ## Intuition
 
 Fixing the first number turns 3Sum into "find two numbers summing to `-nums[i]`" — and once the

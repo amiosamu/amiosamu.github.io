@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s`, rearrange its characters so that no two adjacent characters are the same, and return any such rearrangement, or an empty string if none exists.
+
+**Example**
+
+```
+Input: s = "aab"
+Output: "aba"
+```
+
+Explanation: rearranging `"aab"` as `"aba"` places the two `a`s apart with `b` between them, so no two adjacent characters match.
+
 ## Intuition
 
 Placing letters in sorted order fails immediately — sorting groups identical letters together, which is the one thing forbidden. The right greedy is to always place the letter with the most copies left, because that letter is the one at risk of being stranded in a run at the end; postponing it only makes the problem harder. That means I need the maximum count *after every placement*, and the counts change every step, so a **max-heap** of `(-count, char)` it is. The one twist: the letter I just used must be excluded from the next pick, so I hold it aside in `prev` for exactly one round and push it back afterwards.

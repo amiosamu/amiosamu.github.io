@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `asteroids` where each value's sign gives its direction (positive moves right, negative moves left) and its absolute value gives its size, simulate all collisions between asteroids moving toward each other (the smaller one explodes, equal sizes both explode) and return the state of the asteroids once no more collisions occur.
+
+**Example**
+
+```
+Input: asteroids = [5,10,-5]
+Output: [5,10]
+```
+
+Explanation: `10` (moving right) and `-5` (moving left) collide; since `10` is bigger, `-5` explodes and `10` survives, leaving `[5,10]` (`5` never collides with anything).
+
 ## Intuition
 
 A collision only ever happens between a right-mover and a left-mover that is to its right — `+` immediately followed by `-`. Everything else drifts apart forever. So I scan left to right keeping a stack of survivors: a new left-moving asteroid has to fight the right-movers on top of the stack, one at a time, and each fight either destroys it, destroys the top, or destroys both. Once the top of the stack is a left-mover, nothing arriving later can ever hit it, so the stack below is permanently settled.

@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a character array `s`, reverse it in place so the characters appear in the opposite order, without allocating a second array.
+
+**Example**
+
+```
+Input: s = ["h","e","l","l","o"]
+Output: ["o","l","l","e","h"]
+```
+
+Explanation: The first and last characters swap (`h`/`o`), the second and second-to-last swap (`e`/`l`), and the middle `l` stays put, producing the reversed array.
+
 ## Intuition
 
 Reversing means character `i` and character `n - 1 - i` trade places. The naive move is to build a

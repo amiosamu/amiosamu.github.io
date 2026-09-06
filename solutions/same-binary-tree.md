@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the roots of two binary trees p and q, determine whether they are structurally identical and every pair of corresponding nodes holds the same value.
+
+**Example**
+
+```
+Input: p = [1,2,3], q = [1,2,3]
+Output: true
+```
+
+Explanation: Both trees have the same shape — a root valued 1 with left child 2 and right child 3 — and each matching pair of nodes carries the same value, so the trees are the same.
+
 ## Intuition
 
 Two trees are identical when their roots match and their left subtrees are identical and their right subtrees are identical — the definition is already the recursion, so the only real work is getting the None cases right. I walk both trees in lockstep in pre-order: compare the node pair first, then descend. Pre-order is the useful order here because a mismatch at the top means the subtrees below it can never rescue the answer, so checking the node first lets `and` short-circuit and stop the descent immediately.

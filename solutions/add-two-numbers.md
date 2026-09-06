@@ -7,6 +7,19 @@ time: "O(n + m)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two non-empty linked lists representing two non-negative integers with their digits stored in reverse order (the head is the least significant digit), add the two numbers and return the sum as a linked list in the same reversed-digit format.
+
+**Example**
+
+```
+Input: l1 = [2,4,3], l2 = [5,6,4]
+Output: [7,0,8]
+```
+
+Explanation: l1 encodes 342 and l2 encodes 465; 342 + 465 = 807, whose digits reversed are [7,0,8].
+
 ## Intuition
 
 The digits are stored least-significant-first, which is exactly the order grade-school addition

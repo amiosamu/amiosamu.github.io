@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a sorted integer array `nums`, remove the duplicates in place so each distinct value appears only once, keeping the remaining elements in their original order, and return the count `k` of unique values; the first `k` elements of `nums` after the operation must hold the deduplicated values.
+
+**Example**
+
+```
+Input: nums = [1,1,2]
+Output: 2
+```
+
+Explanation: The only duplicate is the second `1`; removing it leaves `[1,2]` as the deduplicated prefix, and its length, 2, is what gets returned.
+
 ## Intuition
 
 Because the array is sorted, equal values are contiguous — so a value is a duplicate exactly when it

@@ -7,6 +7,22 @@ time: "O(n * m)"
 space: "O(n * m)"
 ---
 
+## Description
+
+Given an array of strings `strs`, group the strings that are anagrams of each other into
+sublists, and return the list of groups. Both the order of the groups and the order of
+strings within a group are unconstrained.
+
+**Example**
+
+```
+Input: strs = ["eat","tea","tan","ate","nat","bat"]
+Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+```
+
+Explanation: `"eat"`, `"tea"`, and `"ate"` share the letters `{a,e,t}`; `"tan"` and
+`"nat"` share `{a,n,t}`; `"bat"` matches no other word, so it forms its own group.
+
 ## Intuition
 
 Comparing every pair of words is `O(n^2)` anagram checks. The fix is to give each word a

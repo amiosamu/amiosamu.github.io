@@ -7,6 +7,19 @@ time: "O(h + k)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary search tree and an integer k, return the kth smallest value stored in the tree (1-indexed).
+
+**Example**
+
+```
+Input: root = [3,1,4,null,2], k = 1
+Output: 1
+```
+
+Explanation: The values in sorted order are 1, 2, 3, 4, so the 1st smallest is 1.
+
 ## Intuition
 
 In-order traversal of a BST emits values in sorted order — that is the whole problem. So the kth smallest is simply the kth value the in-order walk produces, and I don't need to collect anything: I count pops and return the moment the counter hits `k`. Doing it iteratively rather than recursively is what makes the early exit clean, since I can just `return` out of the loop instead of unwinding a recursion with a flag.

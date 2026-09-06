@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, count the good nodes: a node X is good if no node on the path from the root down to X holds a value greater than X's own value.
+
+**Example**
+
+```
+Input: root = [3,1,4,3,null,1,5]
+Output: 4
+```
+
+Explanation: The root 3, the 3 nested under it, the 4, and the 5 are each at least as large as every value on their own path from the root, while the two nodes valued 1 are smaller than an ancestor, so exactly 4 nodes qualify.
+
 ## Intuition
 
 "No node on the path from root to X has a value greater than X" is a statement about X's ancestors only, and I don't need the whole list of them — I only need their maximum. That maximum is a single number I can carry down as a parameter, updated at each step. So one pre-order DFS threading `best` (the largest value seen on the path so far, root included) answers every node in O(1) as I arrive at it.

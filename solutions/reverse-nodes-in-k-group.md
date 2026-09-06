@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the head of a linked list and an integer `k`, reverse the nodes of the list `k` at a time and return the head; if the number of remaining nodes is not a multiple of `k`, the last group, which is shorter than `k`, is left as-is.
+
+**Example**
+
+```
+Input: head = [1,2,3,4,5], k = 2
+Output: [2,1,4,3,5]
+```
+
+Explanation: The first two nodes [1,2] reverse to [2,1] and the next two [3,4] reverse to [4,3]; the last node, [5], forms a group of only one, shorter than k = 2, so it stays untouched.
+
 ## Intuition
 
 Reversing a block of `k` nodes is the standard three-pointer loop; everything hard here is at

@@ -7,6 +7,19 @@ time: "O(log x)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a non-negative integer `x`, return the square root of `x` rounded down to the nearest integer, without using any built-in exponent or square-root function.
+
+**Example**
+
+```
+Input: x = 8
+Output: 2
+```
+
+Explanation: The square root of 8 is about 2.828, and rounding that down gives 2.
+
 ## Intuition
 
 The answer is not an index into anything — it is a number in `[0, x]` — but `m * m <= x` is monotone in `m`: true for every `m` up to the true root and false forever after. Any monotone yes/no test over an ordered range can be binary searched, so instead of scanning candidates I halve the range of candidates. The problem asks for the floor of the square root, which is precisely "the largest `m` for which the test still passes".

@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `height` representing an elevation map where each bar has width 1, return the total amount of rainwater that can be trapped between the bars after it rains.
+
+**Example**
+
+```
+Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
+Output: 6
+```
+
+Explanation: Summing `min(leftMax, rightMax) - height[i]` at every index where that value is positive totals 6 trapped units.
+
 ## Intuition
 
 Water sits on top of a single column, not in a "valley" you have to find: the level above index `i` is `min(prefix max to the left, suffix max to the right)`, so the trapped amount there is `min(prefix[i], suffix[i]) - height[i]`. Precomputing both arrays already solves it in O(n) time, but it costs O(n) space. The observation that removes the arrays: only the *smaller* of the two running maxes decides the water level, and if `leftMax < rightMax` then whatever the true right-hand maximum turns out to be it is at least `rightMax`, so `leftMax` is already the binding wall — that column can be settled immediately. So I walk two pointers inwards and always advance the side whose running max is smaller.

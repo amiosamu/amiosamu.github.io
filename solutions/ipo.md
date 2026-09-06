@@ -7,6 +7,19 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an initial capital `w`, and arrays `profits` and `capital` describing up to `n` projects (project `i` needs at least `capital[i]` on hand to start and yields `profits[i]` once finished), choose at most `k` distinct projects, one at a time, to maximize the final capital. A project can only be started if the current capital covers its requirement.
+
+**Example**
+
+```
+Input: k = 2, w = 0, profits = [1,2,3], capital = [0,1,1]
+Output: 4
+```
+
+Explanation: with `w = 0` only project 0 (needs 0 capital) is affordable; finishing it yields profit 1, raising capital to 1, which now affords project 2 (needs 1); finishing it yields profit 3, for a total of `1 + 3 == 4`.
+
 ## Intuition
 
 Picking the k most profitable projects outright is wrong — the best ones may be unaffordable at the start — and re-scanning all n projects on each of the k rounds is O(n·k). The saving observation is that capital only ever *increases*, so the affordable set only ever grows: once a project becomes unlockable it stays unlockable forever. So I sort the projects by capital once and sweep a pointer through them, dumping each newly affordable project into a **max-heap keyed by profit** (negated for `heapq`), and each round takes that heap's root. Greedy is safe because profits are non-negative, so taking the largest one can never restrict the future.

@@ -7,6 +7,19 @@ time: "O(1)"
 space: "O(n)"
 ---
 
+## Description
+
+Design a stack that supports `push`, `pop`, `top`, and `getMin` (retrieving the minimum element currently in the stack), with every operation running in O(1) time.
+
+**Example**
+
+```
+Input: ["MinStack","push","push","push","getMin","pop","top","getMin"], [[],[-2],[0],[-3],[],[],[],[]]
+Output: [null,null,null,null,-3,null,0,-2]
+```
+
+Explanation: after pushing -2, 0, -3 the minimum is -3; popping removes -3 so `top()` returns 0, and the minimum of the remaining `[-2,0]` is -2.
+
 ## Intuition
 
 Recomputing the minimum after a pop is the expensive part, so instead of one minimum I store the answer for *every* prefix of the stack. `mins[i]` is the minimum of the bottom `i+1` elements. Pushing extends that prefix by one, which is a single `min`; popping shortens it, and the previous prefix minimum is already sitting right there. The two stacks stay the same height, so they pop in lockstep and nothing is ever recomputed.

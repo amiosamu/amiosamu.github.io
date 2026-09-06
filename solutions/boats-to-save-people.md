@@ -7,6 +7,19 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `people` where `people[i]` is the weight of the i-th person, and an integer `limit` on how much weight a single boat can carry, return the minimum number of boats needed to carry everyone across, where each boat carries at most two people whose combined weight does not exceed `limit`.
+
+**Example**
+
+```
+Input: people = [3,2,2,1], limit = 3
+Output: 3
+```
+
+Explanation: One boat pairs the person weighing 1 with one weighing 2 (`1 + 2 == 3`), leaving the remaining person weighing 2 and the person weighing 3 to each take their own boat — 3 boats total.
+
 ## Intuition
 
 Each boat carries at most two people, so the question is only how many pairs I can form. The heaviest remaining person has to board *some* boat now, and the only choice is who rides with them — and the cheapest passenger to spend on that seat is the lightest remaining person, because if even they don't fit, nobody does, and if someone heavier would have fit, the lightest would have too. So sorting and walking a pointer in from each end settles every boat in one comparison, and no counting of subsets is needed.

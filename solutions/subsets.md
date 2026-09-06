@@ -7,6 +7,19 @@ time: "O(n * 2^n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums` of unique elements, return all possible subsets (the power set), with no duplicate subsets, in any order.
+
+**Example**
+
+```
+Input: nums = [1,2,3]
+Output: [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+```
+
+Explanation: every one of the `2^3 == 8` combinations of including or excluding each of `1`, `2`, `3` appears exactly once, from the empty subset up to the full array.
+
 ## Intuition
 
 The naive framing is "for each element, take it or leave it", which gives a binary tree of depth n. I prefer the equivalent framing that generalizes to every other subset problem in this group: at each node I choose *which element to append next*, and I may only pick from indices at or after `start`. That single restriction is what makes `[1,2]` and `[2,1]` the same subset — order is fixed to be increasing by index, so each subset is generated exactly once. Every node of that tree is itself a valid subset, so the answer is recorded on entry rather than at a leaf.

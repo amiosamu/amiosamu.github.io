@@ -7,6 +7,19 @@ time: "O(n + m)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two strings `word1` and `word2`, build a new string by taking characters alternately, starting with `word1`; once one string is exhausted, append the remaining characters of the other.
+
+**Example**
+
+```
+Input: word1 = "abc", word2 = "pqr"
+Output: "apbqcr"
+```
+
+Explanation: Characters alternate a, p, b, q, c, r — one from each string in turn — and both strings run out at the same time, so nothing is left to append.
+
 ## Intuition
 
 Two cursors that advance in lockstep, one per string, and the only real question is what happens

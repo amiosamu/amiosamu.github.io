@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string `s` containing only the bracket characters `()[]{}`, determine whether every opening bracket is closed by the same type of bracket and brackets are closed in the correct order.
+
+**Example**
+
+```
+Input: s = "()[]{}"
+Output: true
+```
+
+Explanation: each opening bracket is immediately followed by its matching closer before any other bracket needs closing, so the string is valid.
+
 ## Intuition
 
 Brackets nest, so a closing bracket must match the *most recently opened* bracket that is still unmatched — nothing else can be its partner without crossing. "Most recent unmatched" is a stack. Push openers, and on a closer check the top: if it is not its mate, the string is dead immediately.

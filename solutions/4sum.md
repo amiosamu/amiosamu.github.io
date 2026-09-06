@@ -7,6 +7,19 @@ time: "O(n^3)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `target`, return all unique quadruplets `[nums[a], nums[b], nums[c], nums[d]]` with four distinct indices whose values sum to `target`. The result must not contain duplicate quadruplets.
+
+**Example**
+
+```
+Input: nums = [1,0,-1,0,-2,2], target = 0
+Output: [[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]
+```
+
+Explanation: For example `-2 + -1 + 1 + 2 == 0` and `-2 + 0 + 0 + 2 == 0`; each listed quadruplet sums to the target and no duplicate combination is repeated.
+
 ## Intuition
 
 The brute force enumerates all four indices, O(n⁴). The insight is that a quadruple is really "two fixed values plus a 2Sum": once `nums[i]` and `nums[j]` are pinned, the remaining pair must sum to `target - nums[i] - nums[j]`, and on a *sorted* array that pair is found by a two-pointer sweep in O(n) instead of O(n²). Sorting also makes duplicates adjacent, so the only way to produce a repeated quadruple is to reuse the same value at the same position — skipping equal neighbours at each of the four slots is enough to dedupe without a set.

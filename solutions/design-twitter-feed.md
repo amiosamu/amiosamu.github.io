@@ -7,6 +7,19 @@ time: "O(f) per feed, O(1) per post/follow"
 space: "O(tweets + follows)"
 ---
 
+## Description
+
+Design a simplified Twitter where users can post tweets, follow and unfollow other users, and retrieve the 10 most recent tweet ids in their news feed — their own tweets plus those of everyone they follow, newest first.
+
+**Example**
+
+```
+Input: ["Twitter","postTweet","getNewsFeed","follow","postTweet","getNewsFeed","unfollow","getNewsFeed"], [[],[1,5],[1],[1,2],[2,6],[1],[1,2],[1]]
+Output: [null,null,[5],null,null,[6,5],null,[5]]
+```
+
+Explanation: user 1 posts tweet 5, so their feed is `[5]`; after user 1 follows user 2 and user 2 posts tweet 6, user 1's feed becomes `[6,5]` (tweet 6 is newer); after user 1 unfollows user 2, the feed drops back to `[5]`.
+
 ## Intuition
 
 Each user's own tweet list is already sorted by time — appended in order — so a news feed is a **k-way merge of f sorted lists**, and I only want the first 10 items of the merge. Merging all of them and sorting would cost O(total tweets log total tweets) per call; instead I seed a max-heap with the newest tweet of each followee and pop 10 times, refilling from whichever list the winner came from. A global counter stamped on every tweet gives the ordering, so I never depend on wall-clock time and never get a tie.

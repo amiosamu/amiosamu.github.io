@@ -7,6 +7,19 @@ time: "O(4^n / sqrt(n))"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer `n` representing `n` pairs of parentheses, generate all combinations of well-formed (validly nested) parenthesis strings of length `2n`.
+
+**Example**
+
+```
+Input: n = 3
+Output: ["((()))","(()())","(())()","()(())","()()()"]
+```
+
+Explanation: these are the 5 distinct ways to arrange 3 pairs of parentheses so that every prefix has at least as many `'('` as `')'`.
+
 ## Intuition
 
 Generating all `2^(2n)` strings and validating each is wasteful — most die on the very first bad character. Instead I build the string left to right and only ever append a character that keeps the prefix valid, so every leaf of the recursion is a real answer and nothing is ever thrown away. The whole validity check collapses into two counters: I may open while `open_count < n`, and I may close while `close_count < open_count` (closing more than I have opened is what makes a prefix unrecoverable).

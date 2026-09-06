@@ -7,6 +7,23 @@ time: "O(1) average per op"
 space: "O(n + k)"
 ---
 
+## Description
+
+Design a HashSet without using any built-in hash table library, supporting `add(key)`
+(insert a non-negative integer key), `remove(key)` (delete it if present), and
+`contains(key)` (report whether it's currently stored).
+
+**Example**
+
+```
+Input: ["MyHashSet", "add", "add", "contains", "contains", "add", "contains", "remove", "contains"], [[], [1], [2], [1], [3], [2], [2], [2], [2]]
+Output: [null, null, null, true, false, null, true, null, false]
+```
+
+Explanation: After `add(1)` and `add(2)`, `contains(1)` is `true` and `contains(3)` is
+`false`; adding `2` again changes nothing; after `remove(2)`, `contains(2)` flips back to
+`false`.
+
 ## Intuition
 
 Keys go up to `10^6`, so a plain boolean array of that size actually works — but it's not

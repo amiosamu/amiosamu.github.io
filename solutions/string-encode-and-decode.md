@@ -7,6 +7,23 @@ time: "O(m)"
 space: "O(1)"
 ---
 
+## Description
+
+Design an algorithm to encode a list of strings into a single string, and decode that
+string back into the original list. A string in the list may contain any character,
+including whatever delimiter the encoding itself uses, so the scheme must not rely on a
+character being forbidden in the input.
+
+**Example**
+
+```
+Input: strs = ["neet","code","love","you"]
+Output: ["neet","code","love","you"]
+```
+
+Explanation: `encode(strs)` produces `"4#neet4#code4#love3#you"`, and decoding that
+string recovers the original four strings in the same order.
+
 ## Intuition
 
 Any separator character I pick — comma, `#`, even `\0` — can legally appear inside

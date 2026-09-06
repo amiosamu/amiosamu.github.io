@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` where each element is `0`, `1`, or `2` — representing red, white,
+and blue — sort the array in place, in a single pass, so that objects of the same color
+are adjacent and ordered red, white, then blue, without calling a library sort function.
+
+**Example**
+
+```
+Input: nums = [2,0,2,1,1,0]
+Output: [0,0,1,1,2,2]
+```
+
+Explanation: Rearranging in place groups the two 0s first, then the two 1s, then the two
+2s, matching the red-white-blue order.
+
 ## Intuition
 
 Counting 0s, 1s and 2s and rewriting the array works and is easy, but it reads the

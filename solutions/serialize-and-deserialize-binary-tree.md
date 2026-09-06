@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Design an algorithm to serialize a binary tree into a string and deserialize that string back into a tree with the same structure and values, without relying on any particular way the tree was built.
+
+**Example**
+
+```
+Input: root = [1,2,3,null,null,4,5]
+Output: [1,2,3,null,null,4,5]
+```
+
+Explanation: `serialize(root)` encodes the tree into a string, and `deserialize` on that string rebuilds a tree identical to the original, so the round trip returns the same structure it started with.
+
 ## Intuition
 
 A traversal alone doesn't determine a tree — that's why "Construct Binary Tree from Preorder and Inorder" needs two of them. But the reason a single pre-order is ambiguous is that missing children are invisible; if I write an explicit marker for every None, the ambiguity disappears, because the reader then knows exactly when a subtree ends. Pre-order is the order to pick: it emits the root before its subtrees, so the reader can create a node and then immediately recurse to fill its children in the same order they were written, consuming the stream strictly left to right with no index arithmetic.

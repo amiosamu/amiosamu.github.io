@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given a string `s`, find the length of the longest substring that contains no repeating characters.
+
+**Example**
+
+```
+Input: s = "abcabcbb"
+Output: 3
+```
+
+Explanation: the longest substring without repeating characters is `"abc"`, which has length 3.
+
 ## Intuition
 
 Checking every substring for distinctness is O(n²) or worse. The insight: if `s[l..r]` already contains a duplicate, then no window starting at `l` and ending past `r` can be valid either — so the left edge never needs to move backwards. That makes the answer a single window that only ever grows on the right and shrinks on the left, and the set of characters currently inside it is all the state I need.

@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the values of its nodes in postorder traversal order: the left subtree, then the right subtree, then the node itself.
+
+**Example**
+
+```
+Input: root = [1,null,2,3]
+Output: [3,2,1]
+```
+
+Explanation: Visiting left-right-node means 1's (empty) left subtree contributes nothing, then its right subtree rooted at 2 is fully processed first (2's left child 3, then 2 itself), and only then is 1 emitted, giving [3,2,1].
+
 ## Intuition
 
 Post-order is left subtree, right subtree, then node — the node comes *last*, which is what makes the honest iterative version painful: when you pop a node off the stack you can't tell whether you're arriving at it for the first time or coming back from its right child, so you need a `last_visited` pointer to disambiguate. The trick that avoids all of it: run the easy pre-order loop but push left before right, which emits `node, right, left`, and then reverse the result. `node, right, left` reversed is exactly `left, right, node`.

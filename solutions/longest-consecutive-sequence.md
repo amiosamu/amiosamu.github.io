@@ -7,6 +7,23 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an unsorted array of integers `nums`, return the length of the longest run of
+consecutive integers that all appear somewhere in the array (their positions in `nums`
+need not be adjacent), computed in `O(n)` time.
+
+**Example**
+
+```
+Input: nums = [100,4,200,1,3,2]
+Output: 4
+```
+
+Explanation: The values `1, 2, 3, 4` are all present in the array and form a run of
+consecutive integers of length 4; `100` and `200` are each isolated, so 4 is the longest
+run.
+
 ## Intuition
 
 Sorting solves this but costs O(n log n), and the problem asks for linear. Put every number in a set and membership becomes O(1), so a run can be walked forward one `+1` at a time. The catch is that walking forward from *every* number re-walks the same run over and over. The fix: `n` is the start of a run only if `n - 1` is absent from the set. Counting only from those starts means each number is stepped over exactly once across the whole algorithm, since each belongs to exactly one run.

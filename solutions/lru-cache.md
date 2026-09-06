@@ -7,6 +7,19 @@ time: "O(1)"
 space: "O(capacity)"
 ---
 
+## Description
+
+Design a fixed-capacity cache supporting `get(key)` (return the value or -1 if absent, and mark the key as recently used) and `put(key, value)` (insert or update, marking the key as recently used and evicting the least recently used key first if the cache is over capacity), both in O(1).
+
+**Example**
+
+```
+Input: ["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"], [[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]
+Output: [null, null, null, 1, null, -1, null, -1, 3, 4]
+```
+
+Explanation: With capacity 2, putting key 3 evicts key 2 (least recently used at that point), so the later get(2) returns -1; putting key 4 then evicts key 1, so get(1) also returns -1, while get(3) and get(4) return their stored values 3 and 4.
+
 ## Intuition
 
 Two requirements pull in different directions: O(1) lookup by key, and O(1) "which key was used

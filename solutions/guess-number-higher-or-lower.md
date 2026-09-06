@@ -7,6 +7,19 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+A number `pick` between 1 and `n` has already been chosen, and the only way to learn anything about it is by calling the provided API `guess(num)`, which returns `-1` if `pick` is lower than `num`, `1` if `pick` is higher, and `0` if `num` equals `pick`. Given `n`, find `pick` using as few calls as possible.
+
+**Example**
+
+```
+Input: n = 10, pick = 6
+Output: 6
+```
+
+Explanation: Calling `guess(6)` returns 0, confirming that 6 is the chosen number.
+
 ## Intuition
 
 There is no array here, but there is the same structure: the hidden `pick` sits somewhere in `[1, n]` and `guess(num)` tells me which side of `num` it is on. That is exactly the three-way comparison of a normal binary search with `guess` standing in for `nums[mid] - target`, so the same loop applies unchanged. The only thing worth getting right is the sign convention: `guess` returns `-1` when my guess is *too high*, which is the opposite of what the name suggests.

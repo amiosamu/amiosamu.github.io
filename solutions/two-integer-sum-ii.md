@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a 1-indexed array `numbers` sorted in non-decreasing order and an integer `target`, return the 1-indexed positions of the two numbers that add up to `target`. Exactly one solution exists, and the same element cannot be used twice.
+
+**Example**
+
+```
+Input: numbers = [2,7,11,15], target = 9
+Output: [1,2]
+```
+
+Explanation: `numbers[0] + numbers[1] == 2 + 7 == 9`, so the 1-indexed positions 1 and 2 are returned.
+
 ## Intuition
 
 A hash map solves this in O(n) time but O(n) space, and the problem explicitly asks for constant

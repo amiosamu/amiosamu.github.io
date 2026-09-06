@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `nums`, return an array `answer` where `answer[i]` is the product
+of every element of `nums` except `nums[i]`, computed without using division and in
+`O(n)` time.
+
+**Example**
+
+```
+Input: nums = [1,2,3,4]
+Output: [24,12,8,6]
+```
+
+Explanation: `answer[0] = 2*3*4 = 24`, `answer[1] = 1*3*4 = 12`, `answer[2] = 1*2*4 = 8`,
+and `answer[3] = 1*2*3 = 6`.
+
 ## Intuition
 
 Division is banned, and that ban is the entire problem — otherwise it is one total

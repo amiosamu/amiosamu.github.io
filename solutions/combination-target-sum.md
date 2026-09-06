@@ -7,6 +7,19 @@ time: "O(n^(t/m))"
 space: "O(t/m)"
 ---
 
+## Description
+
+Given an array of distinct positive integers `candidates` and a target integer `target`, return all unique combinations of `candidates` where the chosen numbers sum to `target`. The same number may be chosen from `candidates` an unlimited number of times.
+
+**Example**
+
+```
+Input: candidates = [2,3,6,7], target = 7
+Output: [[2,2,3],[7]]
+```
+
+Explanation: `2 + 2 + 3 == 7` reuses `2` twice, and `7` alone also sums to `7`; both are valid, and no other combination of the candidates reaches 7.
+
 ## Intuition
 
 Candidates may be reused without limit, so the loop recurses on `i` rather than `i + 1` — that is the only structural difference from Subsets. The start index still does the deduplication work: it forbids ever going *back* to a smaller index, so a combination is only ever assembled in non-decreasing order and `[2,3]` and `[3,2]` cannot both appear. Sorting the candidates buys a real prune on top of that: once `candidates[i] > remain` the rest of the row is even bigger, so I can `break` out of the loop instead of testing each remaining sibling.

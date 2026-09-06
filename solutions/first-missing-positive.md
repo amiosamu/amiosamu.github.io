@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an unsorted integer array `nums`, return the smallest positive integer that does not appear in it. The array may contain negatives, zeros, duplicates, and gaps; the solution must run in O(n) time using O(1) extra space.
+
+**Example**
+
+```
+Input: nums = [3,4,-1,1]
+Output: 2
+```
+
+Explanation: 1 is present but 2 is not, and 2 is the smallest positive integer missing from the array.
+
 ## Intuition
 
 With `n` numbers, the answer is somewhere in `1..n + 1` — if all of `1..n` are present the answer is `n + 1`, otherwise it is the smallest one missing. So values outside `1..n` are irrelevant, and everything I need is a membership table for `n` slots. The constraint is O(1) extra space, so the array has to *be* that table: put value `v` at index `v - 1`. After that placement pass, the first index whose entry isn't `i + 1` names the answer directly.

@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array of strings `tokens` representing an arithmetic expression in Reverse Polish (postfix) Notation, evaluate the expression and return the resulting integer.
+
+**Example**
+
+```
+Input: tokens = ["2","1","+","3","*"]
+Output: 9
+```
+
+Explanation: `"+"` combines the two preceding operands `2` and `1` into `3`, then `"*"` combines that `3` with the next operand `3` to give `3 * 3 == 9`.
+
 ## Intuition
 
 Postfix notation is designed so that an operator's arguments are always the two most recently completed results — that is what removes the need for parentheses. So a stack of pending operands is all the state required: numbers get pushed, an operator pops two, combines them, and pushes the single result back. The only trap is order and rounding: the *first* pop is the right operand, and division truncates toward zero, not toward negative infinity like Python's `//`.

@@ -7,6 +7,19 @@ time: "O(n) push, O(1) pop/top"
 space: "O(n)"
 ---
 
+## Description
+
+Implement a last-in-first-out (LIFO) stack — supporting `push`, `pop`, `top`, and `empty` — using only the standard operations of a queue as the underlying storage.
+
+**Example**
+
+```
+Input: ["MyStack", "push", "push", "top", "pop", "empty"], [[], [1], [2], [], [], []]
+Output: [null, null, null, 2, 2, false]
+```
+
+Explanation: after pushing 1 then 2, `top()` and `pop()` both return 2 because it was pushed most recently; after the pop only 1 remains, so `empty()` is `false`.
+
 ## Intuition
 
 A queue hands back the oldest element and a stack wants the newest, so somewhere I have to pay to reverse the order. The trick is to pay it once, on `push`: after appending `x` to the back, rotate the queue by moving every *other* element from front to back, which drags `x` around to the front. The queue is then permanently in stack order, so `pop` and `top` are just the queue's own front operations and no second queue is needed.

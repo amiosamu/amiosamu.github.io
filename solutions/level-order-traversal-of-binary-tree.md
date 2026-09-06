@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the values of its nodes grouped level by level from the root downward, with each level's values listed left to right.
+
+**Example**
+
+```
+Input: root = [3,9,20,null,null,15,7]
+Output: [[3],[9,20],[15,7]]
+```
+
+Explanation: The root 3 forms the first level on its own, its children 9 and 20 form the second level, and 20's children 15 and 7 form the third level, giving [[3],[9,20],[15,7]].
+
 ## Intuition
 
 A plain BFS with a queue already visits nodes in level order, but it hands me one flat stream and I can't tell where one level ends and the next begins. The fix is one line of bookkeeping: at the top of each round, the queue contains *exactly* the current level and nothing else, because I haven't pushed any of its children yet. So I snapshot `len(queue)` first and pop precisely that many nodes — those are one level, and everything I push during the round is the next one.

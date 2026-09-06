@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` of size `n`, return the majority element — the value that appears
+more than `n // 2` times. The array is guaranteed to always contain a majority element.
+
+**Example**
+
+```
+Input: nums = [3,2,3]
+Output: 3
+```
+
+Explanation: `n = 3`, so a majority element must appear more than once; `3` appears twice
+(at indices 0 and 2), more than any other value, so it is the answer.
+
 ## Intuition
 
 Counting with a dict is the obvious `O(n)` answer but costs `O(n)` space, and sorting and

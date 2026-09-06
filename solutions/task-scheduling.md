@@ -7,6 +7,19 @@ time: "O(m * n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array of CPU tasks, each represented by an uppercase letter, and a non-negative cooldown `n` such that two same-letter tasks must be separated by at least `n` intervals (idling if nothing else is available), return the minimum number of time units needed to finish all tasks.
+
+**Example**
+
+```
+Input: tasks = ["A","A","A","B","B","B"], n = 2
+Output: 8
+```
+
+Explanation: one valid schedule is `A -> B -> idle -> A -> B -> idle -> A -> B`, which takes 8 units because each repeat of `A` or `B` needs a gap of at least 2.
+
 ## Intuition
 
 The identity of a task is irrelevant — only how many times each letter still has to run. The bottleneck is the most frequent letter, because it forces gaps of `n` around every one of its runs, and the cheapest way to fill those gaps is with the *next* most frequent letters, since leaving them for later only creates more gaps later. So at every tick I want the largest remaining count that is not still cooling down: a **max-heap** of counts (negated, because `heapq` is a min-heap) for what is runnable, plus a FIFO queue for what is on cooldown, since tasks come off cooldown in exactly the order they went on.

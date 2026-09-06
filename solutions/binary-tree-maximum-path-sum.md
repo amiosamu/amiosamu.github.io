@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the maximum path sum of any non-empty path. A path is a sequence of nodes connected by edges, each node used at most once, and it does not need to pass through the root.
+
+**Example**
+
+```
+Input: root = [1,2,3]
+Output: 6
+```
+
+Explanation: the best path is `2 -> 1 -> 3`, giving `2 + 1 + 3 == 6`.
+
 ## Intuition
 
 Every path has a unique highest node — the point where it stops going up and turns back down. So instead of enumerating paths, I enumerate that turning point: for each node, the best path whose apex is that node is `node.val` plus the best downward path into the left child plus the best downward path into the right child. But a path that *continues upward through* a node can only use one of its two sides, so the value I hand my parent is different from the value I score. Two different quantities, one traversal. The second trick is clamping negative contributions to 0 — a subtree that hurts is simply not entered.

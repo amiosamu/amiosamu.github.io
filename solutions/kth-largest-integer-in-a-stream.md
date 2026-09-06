@@ -7,6 +7,19 @@ time: "O(n log k) to build, O(log k) per add"
 space: "O(k)"
 ---
 
+## Description
+
+Design a class that, given an integer `k` and an initial array `nums`, tracks the kth largest element as new values are added one at a time via `add(val)`.
+
+**Example**
+
+```
+Input: ["KthLargest", "add", "add", "add", "add", "add"], [[3, [4, 5, 8, 2]], [3], [5], [10], [9], [4]]
+Output: [null, 4, 5, 5, 8, 8]
+```
+
+Explanation: with `k = 3` over `[4, 5, 8, 2]`, the 3rd largest is `4`; adding `3` keeps it `4`; adding `5` makes the top three `{5, 5, 8}` so the answer is `5`, and it stays `5` and then `8` as larger values arrive.
+
 ## Intuition
 
 Sorting is off the table because the numbers keep arriving — I would be re-sorting on every `add`. But I never need the whole ordering: the kth largest so far depends only on the k largest values seen, and everything below them is dead weight forever. So I keep exactly those k in a **min-heap**, which puts the *smallest* of the k largest — the answer — at `heap[0]`. Each new value either kicks out that smallest one or is itself immediately discarded.

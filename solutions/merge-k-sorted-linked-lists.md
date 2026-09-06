@@ -7,6 +7,19 @@ time: "O(N log k)"
 space: "O(k)"
 ---
 
+## Description
+
+Given an array of `k` linked lists, each already sorted in ascending order, merge all of them into one sorted linked list and return its head.
+
+**Example**
+
+```
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+```
+
+Explanation: Merging the three sorted lists [1,4,5], [1,3,4], and [2,6] by always taking the smallest available head produces the fully sorted sequence [1,1,2,3,4,4,5,6].
+
 ## Intuition
 
 Merging the lists one at a time into an accumulator re-walks the growing result on every merge,

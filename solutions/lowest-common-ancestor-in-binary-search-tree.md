@@ -7,6 +7,19 @@ time: "O(h)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the root of a binary search tree and two of its nodes p and q, return their lowest common ancestor: the deepest node in the tree that has both p and q as descendants (a node is considered a descendant of itself).
+
+**Example**
+
+```
+Input: root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 8
+Output: 6
+```
+
+Explanation: 2 lies in the left subtree of 6 and 8 lies in the right subtree of 6, so their paths down from the root split apart exactly at node 6, making it the lowest common ancestor.
+
 ## Intuition
 
 In a general binary tree finding the LCA takes a full post-order pass, but the BST ordering hands it over for free: if both `p` and `q` are smaller than the current node they must both live in its left subtree, if both are larger they both live in its right, and in either case the current node is too high to be the *lowest* common ancestor. The first node where they don't agree on a direction — one goes left and the other right, or one of them *is* the node — is the answer. So it's a single root-to-node descent, no traversal and no recursion needed.

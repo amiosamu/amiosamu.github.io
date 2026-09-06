@@ -7,6 +7,19 @@ time: "O(1) set, O(log n) get"
 space: "O(n)"
 ---
 
+## Description
+
+Design a time-based key-value store `TimeMap` that supports `set(key, value, timestamp)`, storing `value` for `key` at the given timestamp (timestamps for a given key are guaranteed to strictly increase across calls), and `get(key, timestamp)`, which returns the value stored for `key` at the largest recorded timestamp that is less than or equal to the given timestamp, or `""` if no such timestamp exists.
+
+**Example**
+
+```
+Input: ["TimeMap", "set", "get", "get", "set", "get", "get"], [[], ["foo", "bar", 1], ["foo", 1], ["foo", 3], ["foo", "bar2", 4], ["foo", 4], ["foo", 5]]
+Output: [null, null, "bar", "bar", null, "bar2", "bar2"]
+```
+
+Explanation: `get("foo", 3)` still returns `"bar"` because the only recorded timestamp for `"foo"` at or before 3 is 1; once `"bar2"` is set at timestamp 4, both `get("foo", 4)` and `get("foo", 5)` return `"bar2"`, the latest value at or before their timestamps.
+
 ## Intuition
 
 The one fact that makes this easy is buried in the constraints: `set` is called with strictly increasing timestamps for each key. So the list of `(timestamp, value)` pairs I append per key is already sorted — no sorting, no balanced tree, just a plain list. `get` is then "find the last entry whose timestamp is `<= t`", which is the boundary of the monotone predicate `entry.timestamp <= t`, i.e. the same lower-bound loop as Search Insert Position read off the other side.

@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array `heights` representing the bar heights of a histogram where each bar has width 1, return the area of the largest rectangle that can be formed using contiguous bars.
+
+**Example**
+
+```
+Input: heights = [2,1,5,6,2,3]
+Output: 10
+```
+
+Explanation: The bars at indices 2 and 3, with heights 5 and 6, support a rectangle of height 5 spanning both bars, giving an area of `2 * 5 = 10`, which is the maximum possible.
+
 ## Intuition
 
 Every maximal rectangle is limited by one bar: it has some height `h` from the histogram and extends left and right until it hits a bar shorter than `h`. So the answer is `max over i of heights[i] * (span of bars at least as tall as heights[i] around i)`, and the brute force is scanning outwards from each bar, O(n²). A stack kept increasing in height gives both edges for free — when a bar shorter than the top arrives, that top's right edge is exactly here, and its left edge is where it was first allowed to extend to. I store `(start, height)` so a popped bar carries its own left edge with it.

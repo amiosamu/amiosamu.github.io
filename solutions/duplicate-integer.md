@@ -7,6 +7,21 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums`, return `true` if any value appears at least twice in the
+array, and `false` if every element is distinct.
+
+**Example**
+
+```
+Input: nums = [1,2,3,1]
+Output: true
+```
+
+Explanation: The value `1` appears at both index 0 and index 3, so the array contains a
+duplicate.
+
 ## Intuition
 
 A duplicate exists exactly when the array has fewer distinct values than elements —

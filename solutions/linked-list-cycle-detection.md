@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given the head of a linked list, determine whether it contains a cycle, i.e. some node's `next` pointer eventually leads back to a node already visited, so a traversal would never reach the end.
+
+**Example**
+
+```
+Input: head = [3,2,0,-4], with the last node's next pointing back to the node holding 2
+Output: true
+```
+
+Explanation: Following `next` from -4 lands back on the node with value 2 instead of on null, so the list loops forever and the function returns true.
+
 ## Intuition
 
 The obvious solution is a set of visited nodes, which costs O(n) memory. The trick that kills

@@ -7,6 +7,19 @@ time: "O(1)"
 space: "O(n)"
 ---
 
+## Description
+
+Design a stack-like collection `FreqStack` that supports `push(val)`, adding `val` to the stack, and `pop()`, which removes and returns the most frequent value currently in the stack; if several values are tied for the highest frequency, the one pushed most recently is removed.
+
+**Example**
+
+```
+Input: ["FreqStack","push","push","push","push","push","push","pop","pop","pop","pop"], [[],[5],[7],[5],[7],[4],[5],[],[],[],[]]
+Output: [null,null,null,null,null,null,null,5,7,5,4]
+```
+
+Explanation: After the six pushes, 5 has been pushed three times (the highest frequency), so the first `pop` returns 5; the next `pop` then finds 7 and 5 tied at frequency two and returns the more recently pushed 7, and so on.
+
 ## Intuition
 
 A heap keyed by (frequency, push order) works but costs a log factor. The sharper observation: when a value is pushed for the `c`-th time, record it on a stack dedicated to frequency level `c`. Popping is then "take the top of the highest non-empty level", and the tie-break comes for free — the level's stack is in push order, so the most recent value at that frequency is on top. Because a pop reduces a value's count by exactly one, the maximum frequency only ever drops by one at a time, so `maxCnt` can be maintained with a decrement rather than recomputed.

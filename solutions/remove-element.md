@@ -7,6 +7,22 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` and a value `val`, remove every occurrence of `val` from `nums` in
+place, so that the first `k` elements hold the remaining values in any order, and return
+`k`. Elements of `nums` beyond index `k` are not checked by the grader.
+
+**Example**
+
+```
+Input: nums = [3,2,2,3], val = 3
+Output: 2, with nums = [2,2,_,_]
+```
+
+Explanation: Both elements equal to `val` (the two 3s) are removed, leaving the two 2s in
+the first two slots, so the returned count `k` is 2.
+
 ## Intuition
 
 Deleting in place sounds like shifting everything left after each removal, which is

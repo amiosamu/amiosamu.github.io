@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `k`, return whether there exist two distinct indices `i` and `j` such that `nums[i] == nums[j]` and `abs(i - j) <= k`.
+
+**Example**
+
+```
+Input: nums = [1,2,3,1], k = 3
+Output: true
+```
+
+Explanation: `nums[0] == nums[3] == 1` and `abs(0 - 3) == 3 <= 3`, so a qualifying pair exists.
+
 ## Intuition
 
 The brute force compares every pair `(i, j)` and checks `nums[i] == nums[j] and j - i <= k`, which is O(n²). The observation that kills it: for the current index `i`, only the *most recent* earlier occurrence of `nums[i]` can matter — if that one is already further than `k` away, every occurrence before it is further still. So one map from value to its last seen index is enough, and each index only ever looks backwards once.

@@ -7,6 +7,19 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array of stone weights, repeatedly smash the two heaviest stones together: if they are equal both are destroyed, otherwise the lighter is destroyed and the heavier becomes the difference of the two. Return the weight of the last remaining stone, or 0 if none remain.
+
+**Example**
+
+```
+Input: stones = [2,7,4,1,8,1]
+Output: 1
+```
+
+Explanation: `8` and `7` smash to `1`; then `4` and `2` smash to `2`; then `2` and `1` smash to `1`; then `1` and `1` smash to `0`; the one stone left weighs `1`.
+
 ## Intuition
 
 Sorting once is useless here: after smashing the two heaviest stones the *remainder* has to be re-inserted in the right place, so the multiset changes shape on every step. What I actually need each round is only the two largest elements and the ability to put a new one back cheaply — that is exactly a max-heap. Python's `heapq` is a min-heap, so I push every stone negated and negate again on the way out.

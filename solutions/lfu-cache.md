@@ -7,6 +7,19 @@ time: "O(1)"
 space: "O(capacity)"
 ---
 
+## Description
+
+Design a fixed-capacity cache supporting `get(key)` (return the value or -1, and count as a use) and `put(key, value)` (insert or update, counting as a use), where a full cache evicts the least frequently used key, breaking ties by evicting the least recently used among those with the minimum frequency.
+
+**Example**
+
+```
+Input: ["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"], [[2], [1, 1], [2, 2], [1], [3, 3], [2], [3], [4, 4], [1], [3], [4]]
+Output: [null, null, null, 1, null, -1, 3, null, -1, 3, 4]
+```
+
+Explanation: With capacity 2, after get(1) key 1 has frequency 2 versus key 2's frequency 1, so putting key 3 evicts key 2 (lower frequency); get(2) then returns -1 while get(3) returns 3. Putting key 4 next evicts key 1, the least frequently used survivor at that point, so the final get(1) returns -1 while get(3) and get(4) return 3 and 4.
+
 ## Intuition
 
 LFU is LRU with a second dimension: evict the least-used key, and break ties by least-recently

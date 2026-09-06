@@ -7,6 +7,19 @@ time: "O(log(n - k) + k)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a sorted array `arr`, an integer `k`, and a target value `x`, return the `k` values from `arr` that are closest to `x`, in ascending order. Ties (equal distance) are broken in favor of the smaller value.
+
+**Example**
+
+```
+Input: arr = [1,2,3,4,5], k = 4, x = 3
+Output: [1,2,3,4]
+```
+
+Explanation: distances to `x = 3` are `2,1,0,1,2` for `1,2,3,4,5`; `1` and `5` are tied at distance 2, and the tie favors the smaller value `1`, so the four closest are `[1,2,3,4]`.
+
 ## Intuition
 
 The answer must be `k` *consecutive* elements: `arr` is sorted, so if two elements are in the answer, everything between them is at least as close as the further of the two. That reduces the problem to picking one number — the start index `l` of the window, somewhere in `[0, n - k]`. And the choice is monotone: comparing the element about to fall off the left, `arr[mid]`, against the one that would be gained on the right, `arr[mid + k]`, tells me which half of the candidate starts to discard, so binary search finds `l` directly.

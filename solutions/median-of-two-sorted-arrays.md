@@ -7,6 +7,19 @@ time: "O(log(min(m, n)))"
 space: "O(1)"
 ---
 
+## Description
+
+Given two arrays `nums1` and `nums2`, each already sorted in ascending order, return the median of the combined set of all their elements, in O(log(min(m, n))) time.
+
+**Example**
+
+```
+Input: nums1 = [1,3], nums2 = [2]
+Output: 2.0
+```
+
+Explanation: Merging both arrays gives `[1,2,3]`, whose middle element is 2.
+
 ## Intuition
 
 Merging is `O(m + n)` and the requirement is logarithmic, so I never merge. The median is defined by a *cut*: split the combined elements into a left part and a right part of fixed sizes such that everything on the left is `<= `everything on the right; then the median is read off the two elements adjacent to the cut. A cut is fully determined by how many elements `i` it takes from `A` — the count from `B` is forced as `j = half - i` — so the unknown is a single number in `[0, m]`, and the condition on it is monotone. Searching the shorter array keeps it `O(log(min(m, n)))`.

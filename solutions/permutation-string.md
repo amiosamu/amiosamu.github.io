@@ -7,6 +7,19 @@ time: "O(n + m)"
 space: "O(1)"
 ---
 
+## Description
+
+Given two strings `s1` and `s2`, return `True` if `s2` contains a contiguous substring that is a permutation of `s1`.
+
+**Example**
+
+```
+Input: s1 = "ab", s2 = "eidbaooo"
+Output: true
+```
+
+Explanation: `s2` contains the substring `"ba"`, which rearranges to `"ab"`, a permutation of `s1`.
+
 ## Intuition
 
 A permutation of `s1` is exactly a substring of `s2` of length `len(s1)` whose letter counts match `s1`'s — order is irrelevant, so only the 26 counts matter. That fixes the window width, and a fixed-width window changes by exactly two counts per step: one letter enters on the right, one leaves on the left. So instead of re-counting each substring, I slide and compare the two 26-slot count arrays.

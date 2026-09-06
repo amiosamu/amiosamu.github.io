@@ -7,6 +7,19 @@ time: "O(log(m * n))"
 space: "O(1)"
 ---
 
+## Description
+
+Given an `m x n` matrix in which each row is sorted in ascending order and the first integer of each row is greater than the last integer of the previous row, and a `target` value, return whether `target` exists anywhere in the matrix.
+
+**Example**
+
+```
+Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3
+Output: true
+```
+
+Explanation: 3 sits in the first row of the matrix, so it is present and `true` is returned.
+
 ## Intuition
 
 Each row is sorted and the first value of a row exceeds the last value of the row above it, so reading the matrix row by row gives one globally sorted sequence of `m * n` numbers. That means this is plain binary search on a virtual array — I never build the array, I just convert a flat index `i` into `(i // cols, i % cols)` on the fly. The two-step "binary search the row, then binary search inside it" is the same `O(log(m*n))` and twice the code.

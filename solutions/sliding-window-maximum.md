@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(k)"
 ---
 
+## Description
+
+Given an array `nums` and a window size `k`, return an array of the maximum value in each contiguous window of size `k` as it slides from the start of `nums` to the end.
+
+**Example**
+
+```
+Input: nums = [1,3,-1,-3,5,3,6,7], k = 3
+Output: [3,3,5,5,6,7]
+```
+
+Explanation: the first window `[1,3,-1]` has max 3, the next `[3,-1,-3]` has max 3, and so on through `[6,7]`'s implicit predecessor `[5,3,6]` (max 6) and `[3,6,7]` (max 7).
+
 ## Intuition
 
 Rescanning each window is O(n * k). The observation that kills it: if `nums[i] <= nums[j]` for some `i < j`, then `nums[i]` can never be the maximum of any window that still contains it, because such a window also contains the newer and bigger `nums[j]`. So those dominated values can be thrown away permanently, and what survives is a deque of indices whose values strictly decrease — its front is the current window's maximum, its back is the newest element.

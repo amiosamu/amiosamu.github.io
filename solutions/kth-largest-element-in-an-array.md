@@ -7,6 +7,19 @@ time: "O(n log k)"
 space: "O(k)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `k`, return the kth largest element in the array — the kth largest in sorted order, not the kth distinct value.
+
+**Example**
+
+```
+Input: nums = [3,2,1,5,6,4], k = 2
+Output: 5
+```
+
+Explanation: sorted descending, `nums` is `[6,5,4,3,2,1]`, and the 2nd entry is `5`.
+
 ## Intuition
 
 Sorting works and is one line, but it pays O(n log n) to order the whole array when the question only concerns the boundary between the top k and everything else. Anything already smaller than k values seen so far is dead — it can never become the kth largest. So I carry only k candidates in a **min-heap**, where the root is the smallest of them, i.e. the current kth largest; a new number is worth keeping precisely when it beats that root.

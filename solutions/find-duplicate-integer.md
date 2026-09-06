@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an array `nums` of `n + 1` integers where every value lies in `[1, n]`, and exactly one value is repeated (possibly more than twice), find and return that repeated value — without modifying the array and using only O(1) extra space.
+
+**Example**
+
+```
+Input: nums = [1,3,4,2,2]
+Output: 2
+```
+
+Explanation: Every value from 1 to 4 should appear once, but 2 appears twice while 1, 3, and 4 each appear once, so 2 is the duplicate.
+
 ## Intuition
 
 Sorting mutates the array and a seen-set costs O(n) memory, and the problem forbids both. The

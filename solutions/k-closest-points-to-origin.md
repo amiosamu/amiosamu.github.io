@@ -7,6 +7,19 @@ time: "O(n log k)"
 space: "O(k)"
 ---
 
+## Description
+
+Given an array of points on the 2D plane and an integer `k`, return the `k` points closest to the origin `(0, 0)` by Euclidean distance, in any order.
+
+**Example**
+
+```
+Input: points = [[1,3],[-2,2]], k = 1
+Output: [[-2,2]]
+```
+
+Explanation: `[-2,2]` has squared distance `(-2)^2 + 2^2 == 8`, while `[1,3]` has `1^2 + 3^2 == 10`, so the single closest point is `[-2,2]`.
+
 ## Intuition
 
 Sorting all n points by distance gives the answer in O(n log n), but it computes far more than I asked for — a full ordering of the far-away points I am about to throw away. The only fact I need while scanning is "is this point closer than the worst of the k I am currently holding?", and that is one comparison against the maximum of a k-sized set. So I keep a **max-heap of size k**: the farthest of my current best k sits at the root, and each new point either evicts it or is evicted itself. `heapq` is a min-heap, so I store the squared distance negated.

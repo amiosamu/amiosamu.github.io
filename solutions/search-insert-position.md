@@ -7,6 +7,19 @@ time: "O(log n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a sorted array of distinct integers `nums` and a `target` value, return the index of `target` if it is found; otherwise return the index where it would be inserted to keep `nums` sorted. The solution must run in O(log n) time.
+
+**Example**
+
+```
+Input: nums = [1,3,5,6], target = 5
+Output: 2
+```
+
+Explanation: 5 already appears at index 2, so that index is returned directly.
+
 ## Intuition
 
 This is not really "find the target" — it is "find the first index whose value is `>= target`", which answers both cases at once: if that element equals `target` it is the target's index, and if it does not, it is exactly where `target` belongs. That predicate, `nums[i] < target`, is monotone: true for a prefix of the array and false ever after. So I run the standard inclusive binary search and read the boundary off `l` instead of returning early on a hit.

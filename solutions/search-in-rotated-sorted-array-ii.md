@@ -7,6 +7,19 @@ time: "O(log n) average, O(n) worst"
 space: "O(1)"
 ---
 
+## Description
+
+An array of integers, originally sorted in ascending order but possibly containing duplicates, has been rotated at an unknown pivot. Given the rotated array `nums` and a `target` value, return whether `target` occurs anywhere in `nums`.
+
+**Example**
+
+```
+Input: nums = [2,5,6,0,0,1,2], target = 0
+Output: true
+```
+
+Explanation: 0 appears at indices 3 and 4 of `nums`, so `true` is returned.
+
 ## Intuition
 
 The version-one trick — decide which half is sorted with `nums[l] <= nums[mid]` — breaks when duplicates appear, because `nums[l] == nums[mid] == nums[r]` gives no information at all: `[1,0,1,1,1]` and `[1,1,1,0,1]` look identical at those three positions. The fix is to admit defeat on exactly that case and shrink the interval by one from each end, which is safe since `nums[l]` and `nums[r]` are not the target (we just checked `nums[mid]`, and they equal it). Every other case is handled exactly as before, so the worst case degrades to `O(n)` only on runs of equal values.

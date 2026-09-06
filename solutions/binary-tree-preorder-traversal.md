@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, return the values of its nodes in preorder traversal order: the node itself, then the left subtree, then the right subtree.
+
+**Example**
+
+```
+Input: root = [1,null,2,3]
+Output: [1,2,3]
+```
+
+Explanation: Visiting node-left-right starts at 1 (no left child), then its right child 2, then 2's left child 3, giving [1,2,3].
+
 ## Intuition
 
 Pre-order is node, then left subtree, then right subtree — the node is emitted *before* I descend anywhere, which is what makes this the one traversal with a trivial iterative form. Because nothing has to be remembered about a node after I've printed it, I don't need the descend-then-come-back dance that in-order and post-order need: I just need a to-do list of subtrees. A stack is that list, and since a stack reverses, I push the right child first so the left child comes off next.

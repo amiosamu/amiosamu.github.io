@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given a string `s`, return whether it can be made into a palindrome by deleting at most one character.
+
+**Example**
+
+```
+Input: s = "abca"
+Output: true
+```
+
+Explanation: Deleting the `b` gives "aca", or deleting the `c` gives "aba" — either way one deletion is enough to make the remaining string a palindrome.
+
 ## Intuition
 
 Trying every deletion is O(n) candidate strings times O(n) to check each, so O(n²). The insight: as

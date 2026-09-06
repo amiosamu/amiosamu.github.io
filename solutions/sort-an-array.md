@@ -7,6 +7,20 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given an array of integers `nums`, sort it in ascending order and return it, without
+calling a built-in sort function.
+
+**Example**
+
+```
+Input: nums = [5,2,3,1]
+Output: [1,2,3,5]
+```
+
+Explanation: Reordering the four values from smallest to largest gives `1, 2, 3, 5`.
+
 ## Intuition
 
 The point of the problem is that `nums.sort()` is banned, so I have to write an

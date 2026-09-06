@@ -7,6 +7,22 @@ time: "O(m * n) build, O(1) per query"
 space: "O(m * n)"
 ---
 
+## Description
+
+Design a data structure that is built once from a fixed 2D integer matrix and then
+answers repeated `sumRegion(row1, col1, row2, col2)` queries, each returning the sum of
+the matrix elements inside that rectangle (inclusive of both corners).
+
+**Example**
+
+```
+Input: ["NumMatrix", "sumRegion", "sumRegion", "sumRegion"], [[[[3,0,1,4,2],[5,6,3,2,1],[1,2,0,1,5],[4,1,0,1,7],[1,0,3,0,5]]], [2, 1, 4, 3], [1, 1, 2, 2], [1, 2, 2, 4]]
+Output: [null, 8, 11, 12]
+```
+
+Explanation: `sumRegion(2, 1, 4, 3)` sums every entry with row in `[2, 4]` and column in
+`[1, 3]` — `2+0+1+1+0+1+7+1+0+3+0+5` — which totals `8`.
+
 ## Intuition
 
 The matrix never changes, and `sumRegion` is called many times — so pay once at

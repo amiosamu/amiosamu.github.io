@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(h)"
 ---
 
+## Description
+
+Given the root of a binary tree, determine whether it is height-balanced: for every node in the tree, the heights of its left and right subtrees differ by no more than 1.
+
+**Example**
+
+```
+Input: root = [3,9,20,null,null,15,7]
+Output: true
+```
+
+Explanation: Node 3's two subtrees have heights 1 (just node 9) and 2 (20 with children 15 and 7), a difference of 1, and every other node's subtrees differ by at most 1 as well, so the whole tree is balanced.
+
 ## Intuition
 
 The naive reading — "for every node, compute both subtree heights and compare" — is O(n²), because each height call re-walks a whole subtree that its parent will walk again. But the height computation *already* visits every node in the right order, so the balance check can ride along inside it: a node checks `abs(left - right) <= 1` at the moment it has both heights in hand. To also propagate failure upward without a second return value, I overload the height with a sentinel: `-1` means "somewhere below me the tree is unbalanced", and a real height is always ≥ 0, so the two can never be confused.

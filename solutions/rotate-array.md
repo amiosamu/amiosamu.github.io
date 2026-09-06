@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(1)"
 ---
 
+## Description
+
+Given an integer array `nums` and an integer `k`, rotate the array to the right by `k` steps in place, without allocating a second array.
+
+**Example**
+
+```
+Input: nums = [1,2,3,4,5,6,7], k = 3
+Output: [5,6,7,1,2,3,4]
+```
+
+Explanation: The last three elements (`5,6,7`) move to the front, and the remaining elements (`1,2,3,4`) follow in their original order.
+
 ## Intuition
 
 Rotating right by `k` means the last `k` elements come first, in order, followed by the first `n - k`, in order. Reversing the whole array gets both blocks into the right *place* but leaves each one backwards; reversing each block in isolation then fixes the order inside it. So three in-place reversals do what a copy would do, with no extra array. The other thing to notice is that `k` can exceed `n`, and a rotation by `n` is the identity, so only `k % n` matters.

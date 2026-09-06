@@ -7,6 +7,19 @@ time: "O(n log n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given `tasks` where `tasks[i] = [enqueueTime, processingTime]`, a single-threaded CPU processes one task at a time, always picking the available task with the shortest processing time (ties broken by smallest index), and idles if nothing is available yet. Return the order in which the tasks are processed, by original index.
+
+**Example**
+
+```
+Input: tasks = [[1,2],[2,4],[3,2],[4,1]]
+Output: [0,2,3,1]
+```
+
+Explanation: at time 1 only task 0 is available, so it runs until time 3; by then tasks 1-3 have all arrived, and among processing times `4, 2, 1` the shortest, task 3 (time 1), runs next, then task 2 (time 2), then task 1.
+
 ## Intuition
 
 There are two different orders in play and no single sort can serve both: tasks *become available* in enqueue-time order, but they are *chosen* in shortest-processing-time order. Sorting once by enqueue time handles the arrivals, and since the set of available tasks changes every time the clock jumps, the choice has to come from a structure that accepts new members cheaply and always exposes the minimum — a **min-heap keyed by `(processingTime, index)`**, where the index is the problem's own tie-break for equal durations.

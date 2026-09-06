@@ -7,6 +7,19 @@ time: "O(n)"
 space: "O(n)"
 ---
 
+## Description
+
+Given the head of a linked list where each node additionally has a `random` pointer that can point to any node in the list or to null, build and return a deep copy of the list — a completely new set of nodes with the same values and the same relative `next`/`random` structure.
+
+**Example**
+
+```
+Input: head = [[7,null],[13,0],[11,4],[10,2],[1,0]]  (each pair is [val, index the node's random pointer targets])
+Output: [[7,null],[13,0],[11,4],[10,2],[1,0]]
+```
+
+Explanation: The copy has the same values in the same order and the same random targets (e.g. the copied node with val 13 still points its random pointer at the copied node with val 7 at index 0), but every node object is newly allocated.
+
 ## Intuition
 
 The hard part is not copying values, it is that a `random` pointer can point forward to a node

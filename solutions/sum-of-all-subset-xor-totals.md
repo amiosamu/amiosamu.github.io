@@ -7,6 +7,19 @@ time: "O(2^n)"
 space: "O(n)"
 ---
 
+## Description
+
+The XOR total of an array is the XOR of all its elements, or 0 if the array is empty. Given an array `nums`, return the sum of the XOR totals of every possible subset of `nums`.
+
+**Example**
+
+```
+Input: nums = [1,3]
+Output: 6
+```
+
+Explanation: the subsets are `[]`, `[1]`, `[3]`, `[1,3]` with XOR totals `0`, `1`, `3`, `1^3 == 2`, and `0 + 1 + 3 + 2 == 6`.
+
 ## Intuition
 
 `nums` has at most 12 elements, so 2^n subsets is 4096 — I can just walk every one of them. The only thing worth noticing is that I never need to materialize a subset: XOR is associative and I build the subset one element at a time, so I can carry the running XOR down the recursion as a plain integer. Each element is a single binary decision — take it (XOR it into `cur`) or skip it — and the answer is the sum of `cur` over all 2^n leaves.
