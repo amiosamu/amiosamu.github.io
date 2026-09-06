@@ -498,6 +498,44 @@ Input: jobs = [(2,"write"),(1,"fix"),(3,"ship")], push((1,"review")), pop all
 Output: [(1,"fix"),(1,"review"),(2,"write"),(3,"ship")]
 ```
 
+### Bottom-Up Heapify
+
+Repeatedly pushing `n` values costs O(n log n). Bottom-up heapify is faster: every leaf is already a valid one-node heap, so sift down each parent from index `n // 2 - 1` back to the root. Although a sift can cost O(log n), most nodes are close to the leaves and move only a few levels, making the total O(n).
+
+```python
+def heapify(nums):
+    n = len(nums)
+
+    def sift_down(i):
+        while True:
+            smallest = i
+            left = 2 * i + 1
+            right = 2 * i + 2
+
+            if left < n and nums[left] < nums[smallest]:
+                smallest = left
+            if right < n and nums[right] < nums[smallest]:
+                smallest = right
+            if smallest == i:
+                return
+
+            nums[i], nums[smallest] = nums[smallest], nums[i]
+            i = smallest
+
+    for i in range(n // 2 - 1, -1, -1):
+        sift_down(i)
+    return nums
+```
+
+**Sample**
+
+```
+Input: heapify([9,4,7,1,-2,6,5])
+Output: [-2,1,5,9,4,6,7]
+```
+
+More than one array can represent a valid heap. The output above is the deterministic result of this implementation. Python's `heapq.heapify(nums)` performs the same kind of in-place O(n) transformation.
+
 **Caveat:** A heap does not keep the whole array sorted; only the root is guaranteed to be globally minimal. Python compares later tuple fields to break equal priorities, so include a monotonic counter when payloads are not comparable or FIFO tie-breaking is required. Negating numeric priorities provides a max-heap on Python versions without max-heap APIs.
 
 ## Tries
@@ -568,18 +606,47 @@ The representation determines basic operation costs:
 | Adjacency sets | O(V + E) | O(1) average | O(deg(u)) | Frequent edge membership checks |
 | Adjacency matrix | O(V^2) | O(1) | O(V) | Dense graphs or constant-time edge checks |
 
-With adjacency lists, BFS and DFS both take O(V + E) time and O(V) extra space for the visited set plus queue or stack. Adding a vertex is O(1); adding an edge is O(1) amortized. Removing an edge from list-backed neighbors costs O(deg(u)), but is O(1) average with adjacency sets.
+With adjacency lists, adding a vertex is O(1) and adding an edge is O(1) amortized. Removing an edge from list-backed neighbors costs O(deg(u)), but is O(1) average with adjacency sets.
+
+### Building Adjacency Lists and Matrices
+
+An adjacency list stores only existing edges. Initialize every vertex first so isolated vertices are not lost. For an undirected graph, add both `a -> b` and `b -> a`; for a directed graph, add only the given direction.
+
+```python
+def build_adjacency_list(vertex_count, edges, directed=False):
+    graph = [[] for _ in range(vertex_count)]
+    for a, b in edges:
+        graph[a].append(b)
+        if not directed:
+            graph[b].append(a)
+    return graph
+
+
+def build_adjacency_matrix(vertex_count, edges, directed=False):
+    matrix = [[0] * vertex_count for _ in range(vertex_count)]
+    for a, b in edges:
+        matrix[a][b] = 1
+        if not directed:
+            matrix[b][a] = 1
+    return matrix
+```
+
+**Sample**
+
+```
+Input: vertices = 4, edges = [(0,1),(0,2),(1,3)], directed = false
+Output adjacency list: [[1,2],[0,3],[0],[1]]
+Output adjacency matrix: [[0,1,1,0],[1,0,0,1],[1,0,0,0],[0,1,0,0]]
+```
+
+For a weighted graph, store `(neighbor, weight)` pairs in the adjacency list. In a weighted matrix, use infinity for a missing edge and `0` on the diagonal so that a real zero-weight edge is distinguishable from no edge.
+
+### Breadth-First and Depth-First Search
+
+BFS explores one distance layer at a time with a queue, so it finds shortest paths in an unweighted graph. DFS follows a path with a stack or recursion before backtracking. With adjacency lists, both take O(V + E) time and O(V) extra space.
 
 ```python
 from collections import deque
-
-
-def build_undirected_graph(edges):
-    graph = {}
-    for a, b in edges:
-        graph.setdefault(a, []).append(b)
-        graph.setdefault(b, []).append(a)
-    return graph
 
 
 def bfs(graph, start):
@@ -589,23 +656,209 @@ def bfs(graph, start):
     while queue:
         node = queue.popleft()
         order.append(node)
-        for neighbor in graph.get(node, []):
+        for neighbor in graph[node]:
             if neighbor not in seen:
                 seen.add(neighbor)
                 queue.append(neighbor)
+    return order
+
+
+def dfs(graph, start):
+    stack = [start]
+    seen = set()
+    order = []
+    while stack:
+        node = stack.pop()
+        if node in seen:
+            continue
+        seen.add(node)
+        order.append(node)
+        stack.extend(reversed(graph[node]))
     return order
 ```
 
 **Sample**
 
 ```
-Input: edges = [(A,B),(A,C),(B,D),(C,D)], start = A
-Output: bfs = [A,B,C,D]
+Input: graph = [[1,2],[0,3],[0,3],[1,2]], start = 0
+Output: bfs = [0,1,2,3], dfs = [0,1,3,2]
 ```
 
-The output assumes neighbors remain in insertion order. A different valid adjacency order may produce `[A,C,B,D]` while visiting the same reachable vertices.
+Traversal order depends on neighbor order. Mark a BFS vertex seen when it is enqueued, not when it is dequeued, or several parents may enqueue it repeatedly. One traversal only covers the start vertex's connected component; loop over all vertices to cover a disconnected graph.
 
-**Caveat:** Mark a vertex visited when it is enqueued, not when it is dequeued, or several parents may enqueue it repeatedly. A traversal from one start only covers that connected component; loop over all vertices to cover a disconnected graph. For weighted shortest paths, plain BFS is correct only when every edge has equal weight; use Dijkstra's algorithm with a priority queue for non-negative unequal weights.
+### Topological Sort
+
+A topological ordering puts every prerequisite before the vertices that depend on it. It exists only for a directed acyclic graph (DAG). Kahn's algorithm repeatedly removes vertices with indegree zero; if it cannot remove all `V` vertices, the graph contains a directed cycle.
+
+```python
+from collections import deque
+
+
+def topological_sort(vertex_count, edges):
+    graph = [[] for _ in range(vertex_count)]
+    indegree = [0] * vertex_count
+    for source, destination in edges:
+        graph[source].append(destination)
+        indegree[destination] += 1
+
+    queue = deque(i for i, degree in enumerate(indegree) if degree == 0)
+    order = []
+    while queue:
+        node = queue.popleft()
+        order.append(node)
+        for neighbor in graph[node]:
+            indegree[neighbor] -= 1
+            if indegree[neighbor] == 0:
+                queue.append(neighbor)
+
+    return order if len(order) == vertex_count else []
+```
+
+**Sample**
+
+```
+Input: vertices = 4, edges = [(0,1),(0,2),(1,3),(2,3)]
+Output: [0,1,2,3]
+```
+
+The time cost is O(V + E), and the graph, indegree array, queue, and output use O(V + E) space. A DAG can have several valid topological orders.
+
+### Dijkstra's Algorithm
+
+Dijkstra finds shortest paths from one source when every edge weight is non-negative. It stores the best distance found so far and uses a min-heap to process the next closest vertex. A heap entry can become stale after a shorter route is discovered, so skip it instead of trying to remove it from the heap.
+
+```python
+import heapq
+
+
+def dijkstra(graph, source):
+    distances = [float("inf")] * len(graph)
+    distances[source] = 0
+    heap = [(0, source)]
+
+    while heap:
+        distance, node = heapq.heappop(heap)
+        if distance != distances[node]:
+            continue
+
+        for neighbor, weight in graph[node]:
+            candidate = distance + weight
+            if candidate < distances[neighbor]:
+                distances[neighbor] = candidate
+                heapq.heappush(heap, (candidate, neighbor))
+
+    return distances
+```
+
+**Sample**
+
+```
+Input: graph = [[(1,4),(2,1)],[(3,1)],[(1,2),(3,5)],[]], source = 0
+Output: [0,3,1,4]
+```
+
+With an adjacency list and binary heap, the time cost is O((V + E) log V) and extra space is O(V + E), including the heap's possible stale entries. Unreachable vertices remain infinity. Dijkstra is not correct with negative edge weights.
+
+### Bellman-Ford
+
+Bellman-Ford also finds single-source shortest paths, allows negative edge weights, and reports a reachable negative cycle. A shortest simple path has at most `V - 1` edges, so relax every edge up to `V - 1` times. One additional successful relaxation proves that distances can decrease forever around a negative cycle.
+
+```python
+def bellman_ford(vertex_count, edges, source):
+    distances = [float("inf")] * vertex_count
+    distances[source] = 0
+
+    for _ in range(vertex_count - 1):
+        changed = False
+        for start, end, weight in edges:
+            if distances[start] != float("inf"):
+                candidate = distances[start] + weight
+                if candidate < distances[end]:
+                    distances[end] = candidate
+                    changed = True
+        if not changed:
+            break
+
+    for start, end, weight in edges:
+        if (
+            distances[start] != float("inf")
+            and distances[start] + weight < distances[end]
+        ):
+            return None
+
+    return distances
+```
+
+**Sample**
+
+```
+Input: vertices = 4, edges = [(0,1,4),(0,2,5),(1,2,-2),(2,3,3)], source = 0
+Output: [0,4,2,5]
+```
+
+Bellman-Ford takes O(VE) time and O(V) extra space. It returns `None` above if a negative cycle is reachable from the source; negative cycles elsewhere do not affect that source's paths.
+
+### Floyd-Warshall
+
+Floyd-Warshall computes shortest distances between every pair of vertices. After iteration `k`, `dist[i][j]` is the best route from `i` to `j` whose intermediate vertices come only from `0..k`. This dynamic-programming invariant leads directly to three nested loops.
+
+```python
+def floyd_warshall(matrix):
+    vertex_count = len(matrix)
+    dist = [row[:] for row in matrix]
+
+    for middle in range(vertex_count):
+        for start in range(vertex_count):
+            for end in range(vertex_count):
+                dist[start][end] = min(
+                    dist[start][end],
+                    dist[start][middle] + dist[middle][end],
+                )
+
+    return dist
+```
+
+**Sample**
+
+```
+Input: [[0,3,10],[infinity,0,1],[2,infinity,0]]
+Output: [[0,3,4],[3,0,1],[2,5,0]]
+```
+
+Floyd-Warshall takes O(V^3) time and O(V^2) result space. It supports negative edges but not meaningful shortest paths through negative cycles; after the algorithm, any `dist[i][i] < 0` proves that the graph contains a negative cycle. Use infinity for missing edges so additions involving an unreachable segment stay infinite.
+
+### Minimum Spanning Trees
+
+A minimum spanning tree (MST) connects every vertex in an undirected weighted graph with minimum total edge weight and no cycles. Kruskal's algorithm sorts edges by weight and uses DSU to accept only edges that join different components.
+
+```python
+def kruskal(vertex_count, edges):
+    dsu = DSU(vertex_count)
+    total_weight = 0
+    tree = []
+
+    for weight, a, b in sorted(edges):
+        if dsu.union(a, b):
+            tree.append((a, b, weight))
+            total_weight += weight
+            if len(tree) == vertex_count - 1:
+                break
+
+    if len(tree) != vertex_count - 1:
+        return None
+    return total_weight, tree
+```
+
+**Sample**
+
+```
+Input: vertices = 4, edges = [(1,0,1),(4,0,2),(2,1,2),(5,1,3),(3,2,3)]
+Output: total weight = 6, edges = [(0,1,1),(1,2,2),(2,3,3)]
+```
+
+Sorting dominates at O(E log E); DSU operations add O(E alpha(V)). If the graph is disconnected, the implementation returns `None` rather than a spanning tree. Prim's algorithm is the common heap-based alternative and grows one tree from a start vertex.
+
+**Caveat:** Choose the algorithm from the graph's guarantees. BFS handles equal-weight shortest paths, Dijkstra handles non-negative weights, Bellman-Ford handles negative weights from one source, and Floyd-Warshall handles all-pairs queries on graphs small enough for O(V^3). Topological ordering applies only to DAGs, while an MST is defined for undirected weighted connectivity rather than shortest routes from a source.
 
 ## Disjoint Set Union
 

@@ -1,23 +1,38 @@
-// Pre-compute TOC headings from markdown content
+import GithubSlugger from 'github-slugger'
+import type { Nodes } from 'mdast'
+import { toString } from 'mdast-util-to-string'
+import remarkGfm from 'remark-gfm'
+import remarkParse from 'remark-parse'
+import { unified } from 'unified'
+
 export interface TocItem {
   id: string
   text: string
-  level: number
+  level: 2 | 3
 }
 
 export function extractHeadings(content: string): TocItem[] {
-  const headingRegex = /^(#{2,3})\s+(.+)$/gm
+  const tree = unified().use(remarkParse).use(remarkGfm).parse(content)
+  const slugger = new GithubSlugger()
   const items: TocItem[] = []
-  let match
 
-  while ((match = headingRegex.exec(content)) !== null) {
-    const level = match[1].length
-    const text = match[2].trim()
-    const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
-    items.push({ id, text, level })
+  function visit(node: Nodes) {
+    if (node.type === 'heading') {
+      const text = toString(node).trim()
+      const id = slugger.slug(text)
+
+      // Slug every heading so IDs stay aligned with rehype-slug, but only
+      // expose the levels used by the essay navigation.
+      if ((node.depth === 2 || node.depth === 3) && text) {
+        items.push({ id, text, level: node.depth })
+      }
+    }
+
+    if ('children' in node) {
+      node.children.forEach(visit)
+    }
   }
 
+  visit(tree)
   return items
 }
-
-
