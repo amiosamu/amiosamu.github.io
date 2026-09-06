@@ -81,11 +81,7 @@ export default function ProblemPage({ params }: { params: { slug: string } }) {
                 </a>
               </div>
 
-              {(problem.pattern ||
-                problem.time ||
-                problem.space ||
-                problem.nextReview ||
-                problem.retired) && (
+              {(problem.pattern || problem.time || problem.space) && (
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
                   {problem.pattern && (
                     <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
@@ -100,24 +96,6 @@ export default function ProblemPage({ params }: { params: { slug: string } }) {
                   {problem.space && (
                     <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
                       space <span className="font-mono text-foreground">{problem.space}</span>
-                    </span>
-                  )}
-                  {problem.retired ? (
-                    <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-                      re-solved {problem.reviewCount}× · retired
-                    </span>
-                  ) : (
-                    problem.nextReview && (
-                      <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-                        {problem.reviewCount > 0 && `re-solved ${problem.reviewCount}× · `}
-                        next{' '}
-                        <span className="font-mono text-foreground">{problem.nextReview}</span>
-                      </span>
-                    )
-                  )}
-                  {problem.revisit && (
-                    <span className="rounded-full bg-muted px-3 py-1 text-amber-700 dark:text-amber-400">
-                      flagged for revisit
                     </span>
                   )}
                 </div>

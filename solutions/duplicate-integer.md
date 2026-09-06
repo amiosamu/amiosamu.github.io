@@ -1,33 +1,28 @@
 ---
+# Contains Duplicate · Easy · Arrays & Hashing
+# https://leetcode.com/problems/contains-duplicate/
+draft: false
 pattern: "Set membership"
 time: "O(n)"
 space: "O(n)"
-date: "2026-08-05"
-# Append today's date each time you re-solve this from a blank file.
-# Failed the re-solve? Empty the list — the schedule restarts.
-reviews: []
 ---
 
 ## Intuition
 
-A duplicate exists exactly when the array has fewer distinct values than elements.
-That is a one-liner with a set, but the streaming version is worth writing out
-because it can exit early — the moment a repeat shows up, there's nothing left to learn.
+A duplicate exists exactly when the array has fewer distinct values than elements —
+that is the one-liner `len(set(nums)) < len(nums)`. The streaming version is worth
+writing out because it can exit early: the moment a repeat shows up there is nothing
+left to learn, so the rest of the array never gets read.
 
 ## Approach
 
-Walk the array keeping a set of what's been seen. If the current value is already
-in the set, return `True` immediately. If the loop finishes, everything was distinct.
-
-Sorting first would also work and drops the extra space to `O(1)` (ignoring the sort's
-own stack), but it costs `O(n log n)` time. The set trade is usually the one worth making.
-
-## Complexity
-
-| | |
-|---|---|
-| Time | `O(n)`, and often much less — it returns on the first repeat |
-| Space | `O(n)` for the set |
+1. Keep a `seen` set of the values already passed.
+2. For each `x` in `nums`, check `x in seen` **before** inserting — if it's there, return `True`.
+3. Otherwise `seen.add(x)` and continue.
+4. If the loop finishes, every value was distinct, so return `False`.
+5. Alternative: sort first and compare adjacent pairs. That drops the extra space to `O(1)`
+   (ignoring the sort's own stack) but costs `O(n log n)` time. The set trade is usually
+   the one worth making.
 
 ## Code
 
@@ -43,3 +38,12 @@ class Solution:
 
         return False
 ```
+
+## Why it works
+
+The loop invariant is that `seen` holds exactly the elements at indices `< i`, so the
+membership test at index `i` asks precisely "does `nums[i]` equal an earlier element?" —
+which is the definition of a duplicate. If no index ever answers yes, no pair anywhere
+in the array is equal. Each element costs one `O(1)` hash lookup and at most one insert,
+so it is `O(n)` time (often far less, since it returns on the first repeat) and `O(n)`
+space for the set.

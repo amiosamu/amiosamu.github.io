@@ -34,15 +34,6 @@ export interface Problem {
   pattern?: string
   time?: string
   space?: string
-  date?: string
-  /** How many times it's been re-solved from scratch. */
-  reviewCount: number
-  /** ISO date the next re-solve is due. Absent once the schedule is exhausted. */
-  nextReview?: string
-  /** Manually flagged for another pass regardless of schedule. */
-  revisit: boolean
-  /** Survived the whole interval ladder. */
-  retired: boolean
 }
 
 export interface Solution extends Problem {
@@ -76,45 +67,6 @@ export function slugifyCategory(category: string): string {
 // neetcode_url is stored as a relative path.
 function absoluteNeetcodeUrl(url: string): string {
   return url.startsWith('http') ? url : `https://neetcode.io${url}`
-}
-
-/**
- * Days to wait after each successful from-scratch re-solve. A failed attempt
- * means clearing `reviews` in the frontmatter, which drops you back to the start.
- */
-const REVIEW_INTERVALS = [1, 3, 7, 21, 60]
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
-
-function addDays(isoDate: string, days: number): string {
-  const date = new Date(`${isoDate}T00:00:00Z`)
-  date.setUTCDate(date.getUTCDate() + days)
-  return date.toISOString().slice(0, 10)
-}
-
-/**
- * Works out when a problem is next due. Deliberately returns a date rather than
- * a "due" boolean: this is a static site, so anything compared against "today"
- * at build time would be stale by the next morning. Callers compare in the browser.
- */
-function computeSchedule(data: Record<string, any> | null) {
-  const raw = Array.isArray(data?.reviews) ? data!.reviews : []
-  const reviews = raw
-    .filter((value: unknown): value is string => typeof value === 'string' && ISO_DATE.test(value))
-    .sort()
-
-  const anchor =
-    reviews[reviews.length - 1] ??
-    (typeof data?.date === 'string' && ISO_DATE.test(data.date) ? data.date : undefined)
-
-  const interval = REVIEW_INTERVALS[reviews.length]
-
-  return {
-    reviewCount: reviews.length,
-    revisit: data?.revisit === true,
-    retired: interval === undefined,
-    nextReview: anchor && interval !== undefined ? addDays(anchor, interval) : undefined,
-  }
 }
 
 let problemsCache: Problem[] | null = null
@@ -151,7 +103,6 @@ export function getAllProblems(): Problem[] {
     const hasFile = data !== null
     // A scaffolded stub carries `draft: true` until it's actually written.
     const solved = hasFile && data.draft !== true
-    const schedule = computeSchedule(data)
 
     return {
       slug: entry.slug,
@@ -166,12 +117,6 @@ export function getAllProblems(): Problem[] {
       pattern: data?.pattern || undefined,
       time: data?.time || undefined,
       space: data?.space || undefined,
-      date: data?.date || undefined,
-      reviewCount: schedule.reviewCount,
-      // Only published work enters the review rotation.
-      nextReview: solved ? schedule.nextReview : undefined,
-      revisit: solved && schedule.revisit,
-      retired: solved && schedule.retired,
     }
   })
 
@@ -186,24 +131,7 @@ export function getAllProblems(): Problem[] {
 export function getPageSlugs(): string[] {
   const problems = getAllProblems()
   warnAboutOrphanedFiles(problems)
-  warnAboutMissingDates(problems)
   return problems.filter((problem) => problem.linkable).map((problem) => problem.slug)
-}
-
-// The review schedule anchors on `date`. Without it a published problem never
-// comes up for re-solve, which is a silent failure worth surfacing.
-function warnAboutMissingDates(problems: Problem[]) {
-  const undated = problems.filter(
-    (problem) => problem.solved && !problem.retired && !problem.nextReview
-  )
-
-  if (undated.length > 0) {
-    console.warn(
-      `\n[dsa] ${undated.length} published problem(s) have no valid \`date\` and will never be scheduled for re-solve:\n` +
-        undated.map((problem) => `  - solutions/${problem.slug}.md`).join('\n') +
-        `\n`
-    )
-  }
 }
 
 // A file whose name isn't a catalog slug is invisible everywhere else, so say so
