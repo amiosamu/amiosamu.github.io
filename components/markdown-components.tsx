@@ -86,7 +86,7 @@ export function MarkdownComponents() {
     table({ node, children, ...props }: any) {
       // Wrapped so a wide table scrolls on its own instead of stretching the page.
       return (
-        <div className="my-6 overflow-x-auto">
+        <div className="my-6 max-w-full overflow-x-auto">
           <table {...props}>{children}</table>
         </div>
       )
@@ -98,7 +98,7 @@ export function MarkdownComponents() {
           <img
             src={src}
             alt={alt || ''}
-            className="rounded-lg w-full h-auto"
+            className="rounded-lg max-w-full h-auto"
             loading="lazy"
             {...props}
           />
