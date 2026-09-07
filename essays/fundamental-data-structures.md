@@ -307,17 +307,21 @@ Space is O(n), usually with spare capacity to keep the load factor low.
 ```python
 counts = {}
 for word in ["red", "blue", "red"]:
-    counts[word] = counts.get(word, 0) + 1
+    counts[word] = counts.get(word, 0) + 1   # insert/update
 
-print(counts)
-print(counts.get("green", 0))
+print(counts.get("green", 0))       # lookup with a default for a missing key
+print("red" in counts)              # membership
+del counts["blue"]                  # delete
+for key, value in counts.items():   # traverse
+    print(key, value)
 ```
 
 **Sample**
 
 ```
 Input: words = ["red","blue","red"]
-Output: counts = {"red": 2, "blue": 1}, count("green") = 0
+Output: counts = {"red": 2, "blue": 1} after the loop; get("green") = 0; "red" in counts = true
+Output after delete("blue"): counts = {"red": 2}; traverse yields ("red", 2)
 ```
 
 ### Hash Sets
@@ -343,6 +347,42 @@ Output: values = [2,3,4], contains(4) = true, contains(1) = false
 Set union is O(n + m), intersection is O(min(n, m)) on average, and difference is O(n), with result space proportional to the output.
 
 **Caveat:** O(1) is an average-case guarantee, and resizing still causes occasional O(n) work. Keys must be hashable and their hash/equality must not change while stored, so a Python list cannot be a key but a tuple of hashable values can. Do not rely on set iteration order; use `sorted` when output order matters.
+
+### Counting and Grouping
+
+Two hash-map patterns come up often enough to name on their own: counting how many times each key occurs, and grouping items that share a derived key into buckets. Both are a single linear pass that leans on the same O(1) average insert/update.
+
+| Operation | Time | Notes |
+| --- | --- | --- |
+| Count occurrences of n items | O(n) | One increment per item |
+| Group n items by a derived key | O(n * k) | k = cost of computing one item's key |
+
+```python
+from collections import Counter, defaultdict
+
+freq = Counter(["red", "blue", "red", "green", "blue", "red"])  # count frequency
+
+groups = defaultdict(list)
+for word in ["eat", "tea", "tan", "ate", "nat", "bat"]:
+    key = "".join(sorted(word))   # anagrams share a sorted-letter key
+    groups[key].append(word)
+
+print(freq)
+print(freq.most_common(1))
+print(dict(groups))
+```
+
+**Sample**
+
+```
+Input: words = ["red","blue","red","green","blue","red"]
+Output: freq = Counter({"red": 3, "blue": 2, "green": 1}), most_common(1) = [("red", 3)]
+
+Input: words = ["eat","tea","tan","ate","nat","bat"]
+Output: groups = {"aet": ["eat","tea","ate"], "ant": ["tan","nat"], "abt": ["bat"]}
+```
+
+**Caveat:** `Counter(iterable)` builds the same frequency map as a manual `get(key, 0) + 1` loop but in one call, and `most_common(k)` only sorts when you ask for it, not on every update. `defaultdict(list)` skips the `if key not in groups` check before appending, but merely reading `groups[missing_key]` inserts that empty list — probing keys you do not intend to create can silently grow the dict. A grouping key must be hashable, so use a sorted string or tuple, not a list.
 
 ## Trees
 
@@ -575,6 +615,23 @@ class Trie:
     def starts_with(self, prefix):
         return self._find(prefix) is not None
 
+    def remove(self, word):
+        def _remove(node, i):
+            if i == len(word):
+                if not node.is_word:
+                    return False
+                node.is_word = False
+                return not node.children   # true if this node can be pruned
+            ch = word[i]
+            child = node.children.get(ch)
+            if child is None:
+                return False
+            if _remove(child, i + 1):
+                del node.children[ch]
+            return not node.children and not node.is_word
+
+        _remove(self.root, 0)
+
     def _find(self, text):
         node = self.root
         for ch in text:
@@ -589,9 +646,12 @@ class Trie:
 ```
 Input: insert("car"), insert("card"), search("car"), search("ca"), starts_with("ca")
 Output: true, false, true
+
+Input: remove("car"), search("car"), search("card")
+Output: search("car") = false, search("card") = true
 ```
 
-**Caveat:** Tries trade memory for predictable prefix performance; a hash set is usually smaller and simpler for exact membership only. Removing `"car"` must clear its end marker without deleting nodes still needed by `"card"`. A dictionary per node handles broad alphabets but has substantial overhead.
+**Caveat:** Tries trade memory for predictable prefix performance; a hash set is usually smaller and simpler for exact membership only. Removing `"car"` clears only its own end marker, not its nodes, since `"card"` still needs the path through them — `remove` deletes a node only once nothing depends on it. A dictionary per node handles broad alphabets but has substantial overhead.
 
 ## Graphs
 
