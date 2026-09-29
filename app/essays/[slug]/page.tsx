@@ -57,8 +57,16 @@ export default function EssayPage({ params }: { params: { slug: string } }) {
           Back to essays
         </Link>
 
-        <div className="lg:grid lg:grid-cols-[13rem_minmax(0,52rem)] lg:justify-center lg:gap-10">
-          <TableOfContents headings={headings} contentId="essay-content" />
+        <div
+          className={
+            headings.length > 0
+              ? 'lg:grid lg:grid-cols-[13rem_minmax(0,52rem)] lg:justify-center lg:gap-10'
+              : 'mx-auto max-w-4xl'
+          }
+        >
+          {headings.length > 0 && (
+            <TableOfContents headings={headings} contentId="essay-content" />
+          )}
 
           <article className="min-w-0">
             <header className="mb-8">
