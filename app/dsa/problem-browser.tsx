@@ -84,18 +84,36 @@ export default function ProblemBrowser({ problems, categories }: ProblemBrowserP
 
     if (sections.length === 0) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting)
-        if (visible.length > 0) {
-          setActiveCategory(visible[0].target.id)
-        }
-      },
-      { rootMargin: '-80px 0px -70% 0px' }
-    )
+    let animationFrame = 0
 
-    sections.forEach((section) => observer.observe(section))
-    return () => observer.disconnect()
+    const updateActiveCategory = () => {
+      animationFrame = 0
+      let currentId = sections[0].id
+
+      // Match the top-32 sidebar position and section scroll margin exactly.
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top > 128) break
+        currentId = section.id
+      }
+
+      setActiveCategory(currentId)
+    }
+
+    const requestUpdate = () => {
+      if (animationFrame === 0) {
+        animationFrame = window.requestAnimationFrame(updateActiveCategory)
+      }
+    }
+
+    requestUpdate()
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+
+    return () => {
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+      if (animationFrame !== 0) window.cancelAnimationFrame(animationFrame)
+    }
   }, [grouped])
 
   function toggleDifficulty(difficulty: Difficulty) {
