@@ -9,10 +9,9 @@ space: "O(m * n)"
 
 ## Description
 
-Given an `m x n` grid of rooms where `-1` is a wall, `0` is a gate, and `2147483647` is an
-empty room, fill each empty room in place with the distance to its nearest gate, reachable
-only by moving up/down/left/right through empty rooms; rooms no gate can reach keep the
-sentinel value.
+Given an `m x n` grid where `-1` is a wall, `0` is a gate, and `2147483647` is an empty
+room, replace each empty room in place with its distance to the nearest gate. Movement is
+allowed only between horizontally or vertically adjacent rooms.
 
 **Example**
 
@@ -21,36 +20,22 @@ Input: rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-
 Output: [[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]
 ```
 
-Explanation: the gate at `(0, 2)` reaches `(1, 2)` in 1 step, `(2, 2)` in 2, `(3, 2)` in 3,
-and `(3, 3)` in 4 steps, matching the filled values down that column; the walls (`-1`) are
-never overwritten.
-
+Each finite value is the shortest distance to either gate. Walls remain `-1`, and unreachable
+rooms would remain `2147483647`.
 
 ## Intuition
 
-Nodes are the non-wall cells, edges join cells sharing a side, and every edge costs one step —
-so "distance to the nearest gate" is a shortest-hop question, which forces BFS rather than
-DFS. The obvious version, one BFS per empty room, is `O((m * n)^2)`.
-
-Reverse the direction of the question: instead of asking each room which gate is closest, let
-all the gates search outward at once. Seed a single queue with *every* gate, since they all
-sit at distance `0`, and the frontier expands in lockstep — round `d` of the BFS is exactly
-the set of rooms whose nearest gate is `d` steps away. One traversal, every room settled.
+Every valid move has unit cost, so breadth-first search discovers shortest distances. Starting
+one search from every gate at once makes the queue frontier represent distance from the entire
+set of gates. The first visit to a room therefore comes from its nearest gate.
 
 ## Approach
 
-1. `rows, cols = len(rooms), len(rooms[0])`; `INF = 2147483647`.
-2. Seed `q = collections.deque()` with every `(r, c)` where `rooms[r][c] == 0`. Their stored
-   distance is already correct.
-3. While `q`: pop `(r, c)` and consider the four neighbours `(r±1, c)`, `(r, c±1)`.
-4. Push a neighbour only if it is in bounds and `rooms[nr][nc] == INF`, and write
-   `rooms[nr][nc] = rooms[r][c] + 1` **at push time**.
-5. That single `== INF` test is the visited check *and* the wall check: walls hold `-1`, and
-   any room already reached now holds a finite distance, so both fail the test. Writing the
-   distance on push (not on pop) is what makes a room enter the queue once; deferring it
-   would let two frontier cells both enqueue the same room.
-6. Nothing to return — `rooms` is filled in place. Rooms in a component with no gate are
-   never reached and keep `INF`, which is the required output.
+1. Record the dimensions and enqueue every gate. All queued cells initially have distance zero.
+2. Remove cells from the queue in FIFO order and inspect their four neighbors.
+3. Ignore out-of-bounds cells, walls, gates, and rooms already assigned a finite distance.
+4. For each untouched empty room, write the current distance plus one and enqueue it immediately.
+5. Continue until the queue is empty. Unreachable rooms are never mutated and retain `INF`.
 
 ## Code
 
@@ -79,10 +64,14 @@ class Solution:
 
 ## Why it works
 
-Seeding every gate at distance `0` is equivalent to adding a virtual super-source with a
-zero-cost edge to each gate, and BFS from a single source on an unweighted graph pops nodes in
-non-decreasing distance order — so the first time a room is reached, it is reached along a
-shortest path from the whole gate set, and the value written then is final. Using `rooms`
-itself as the visited marker keeps the space to the queue alone. Every cell is written once
-and expanded once with four neighbour checks, giving `O(m * n)` time and a queue that peaks at
-`O(m * n)`.
+Initially the queue contains exactly the cells at distance zero from a gate. Suppose every cell
+removed before a room has its correct shortest distance. BFS reaches the room from a predecessor
+with the smallest possible distance, so assigning predecessor distance plus one is optimal. The
+assignment also marks the room visited, preventing any later, no-shorter path from changing it.
+By induction over queue order, every written distance is correct. Rooms never reached have no path
+to a gate and correctly keep the sentinel value.
+
+**Complexity**
+
+- **Time:** `O(m * n)`, because each cell is enqueued at most once.
+- **Space:** `O(m * n)` in the worst case for the BFS queue.

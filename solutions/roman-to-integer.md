@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a string `s` representing a roman numeral, convert it to its integer value. Symbols
-normally add together left to right, but a smaller-value symbol placed immediately before a
-larger one is subtracted instead (e.g. `IV` means `5 - 1`).
+Given a valid Roman numeral string `s`, return its integer value. A symbol normally contributes
+positively, but a smaller symbol immediately before a larger one contributes negatively.
 
 **Example**
 
@@ -20,26 +19,21 @@ Input: s = "III"
 Output: 3
 ```
 
-Explanation: Each symbol is `I`, worth 1, and none precedes a larger symbol, so the three
-values simply add: 1 + 1 + 1 = 3.
+Explanation: Each `I` contributes `1`, so the total is `1 + 1 + 1 = 3`.
 
 ## Intuition
 
-Reading left to right, a smaller-value symbol placed just before a larger one signals
-subtraction (`IV` is `5 - 1`); every other symbol simply adds its own value. That means a single
-pass that peeks at the next symbol is enough - no need to hardcode all six subtractive pairs
-(`IV`, `IX`, `XL`, `XC`, `CD`, `CM`) as special cases.
+In a valid Roman numeral, whether a symbol is added or subtracted is determined by its immediate
+right neighbor. If that neighbor has a larger value, subtract the current symbol; otherwise add it.
+This local rule handles every standard subtractive pair without listing those pairs separately.
 
 ## Approach
 
-1. Build `values`, a dict mapping each symbol to its integer value:
-   `I=1, V=5, X=10, L=50, C=100, D=500, M=1000`.
-2. Initialize `total = 0`.
-3. Iterate `i` over every index of `s`.
-4. If `i + 1` is a valid index and `values[s[i]] < values[s[i+1]]`, the current symbol is being
-   used subtractively (like the `I` in `IV`): subtract `values[s[i]]` from `total`.
-5. Otherwise, add `values[s[i]]` to `total`.
-6. Return `total` after the loop finishes.
+1. Map the seven Roman symbols to their integer values and initialize `total = 0`.
+2. Scan each index `i`. If a next symbol exists and has greater value, subtract the current
+   symbol's value.
+3. Otherwise add the current value, including the final symbol, which has no right neighbor.
+4. Return `total`.
 
 ## Code
 
@@ -58,8 +52,12 @@ class Solution:
 
 ## Why it works
 
-Every valid roman numeral places a smaller symbol before a larger one only when it's meant to
-subtract, and that pattern never spans more than two adjacent symbols - so comparing each symbol
-only to its immediate right neighbor is enough to tell the two cases apart. The pass touches
-each symbol once and the values dict is a fixed constant size, giving `O(n)` time and `O(1)`
-space.
+For each position, the Roman numeral rules assign exactly one contribution: negative when the
+next symbol is larger and positive otherwise. The algorithm applies that rule once to every symbol.
+Summing those signed contributions is the standard value of the numeral, so `total` is correct when
+the scan ends.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass over the numeral.
+- **Space:** `O(1)` because the symbol table has seven entries.

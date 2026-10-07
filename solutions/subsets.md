@@ -9,7 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Given an integer array `nums` of unique elements, return all possible subsets (the power set), with no duplicate subsets, in any order.
+Given an integer array `nums` of unique elements, return its power set in any order.
 
 **Example**
 
@@ -18,21 +18,24 @@ Input: nums = [1,2,3]
 Output: [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
 ```
 
-Explanation: every one of the `2^3 == 8` combinations of including or excluding each of `1`, `2`, `3` appears exactly once, from the empty subset up to the full array.
+Explanation: All `2^3 = 8` choices of included elements appear exactly once.
 
 ## Intuition
 
-The naive framing is "for each element, take it or leave it", which gives a binary tree of depth n. I prefer the equivalent framing that generalizes to every other subset problem in this group: at each node I choose *which element to append next*, and I may only pick from indices at or after `start`. That single restriction is what makes `[1,2]` and `[2,1]` the same subset — order is fixed to be increasing by index, so each subset is generated exactly once. Every node of that tree is itself a valid subset, so the answer is recorded on entry rather than at a leaf.
+At each recursion node, choose which later element to append next. Restricting choices to indices
+at or after `start` builds elements in increasing index order, so the same subset cannot appear
+in a different order. Every partial path is already a valid subset and should be recorded, not
+only leaf paths.
 
 ## Approach
 
-1. The decision at each node is which index `i >= start` to append next; the loop over `i` enumerates the sibling choices.
-2. `path` holds the elements chosen so far, in index order. `res` collects finished subsets.
-3. Base case: there isn't one in the usual sense — every node is an answer. Append `path[:]` at the *top* of `dfs`, before the loop. The recursion ends naturally when `start == len(nums)` and the loop body never runs.
-4. Append `path[:]`, a copy, not `path` itself: `path` is a single mutable list reused by the entire traversal, so storing the reference would leave `res` full of aliases that all end up empty.
-5. For each `i` in `range(start, len(nums))`: append `nums[i]`, recurse with `dfs(i + 1)`, then `path.pop()` to undo the choice before trying the next sibling. The pop is what restores the invariant "`path` describes the current node" for the next iteration.
-6. Duplicates are avoided by the start index alone, not by a used-set and not by sorting: passing `i + 1` forbids re-picking `nums[i]` or anything before it, so each subset is built in exactly one order. The problem guarantees `nums` are unique, so no equal-sibling skip is needed (that's Subsets II).
-7. No pruning: every branch leads to distinct valid answers, so there is nothing to cut.
+1. Keep `path` as the current subset and define `dfs(start)` to choose only indices at or after
+   `start`.
+2. Append `path[:]` on entry; a copy is required because later branches mutate `path`.
+3. For each candidate index `i`, append `nums[i]`, recurse with `i + 1`, then pop to restore the
+   current path before the next sibling.
+4. Start with `dfs(0)` and return all recorded subsets. When no candidates remain, the loop ends
+   naturally.
 
 ## Code
 
@@ -54,4 +57,13 @@ class Solution:
 
 ## Why it works
 
-Every subset has exactly one increasing-index ordering, and the traversal builds exactly the increasing-index sequences: the node reached by choices `i1 < i2 < ... < ik` is the subset `{nums[i1], ..., nums[ik]}`, and no other node produces it. So the map from nodes to subsets is a bijection — completeness and no-duplicates fall out of the same argument. There are 2^n nodes and each copies a list of length up to n, hence O(n * 2^n) time; the auxiliary space is the depth-n stack plus `path`, since the output is required.
+Every subset of unique input elements corresponds to exactly one increasing sequence of their
+indices. By induction on that sequence, the recursion can follow it because each call permits
+every later index, so every subset is reached. Conversely, all generated paths have strictly
+increasing indices, so two different paths cannot represent the same subset. Recording every
+path therefore produces the complete power set exactly once.
+
+**Complexity**
+
+- **Time:** `O(n * 2^n)` to generate and copy all subsets.
+- **Space:** `O(n)` auxiliary space for `path` and recursion, plus `O(n * 2^n)` output space.

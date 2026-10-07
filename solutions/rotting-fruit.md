@@ -9,10 +9,9 @@ space: "O(m * n)"
 
 ## Description
 
-Given an `m x n` grid where `0` is an empty cell, `1` is a fresh orange, and `2` is a rotten
-orange, return the minimum number of minutes until no fresh orange remains, where every
-minute each rotten orange rots its fresh orthogonal neighbors. Return `-1` if some fresh
-orange can never rot.
+Given an `m x n` grid where `0` is empty, `1` is a fresh orange, and `2` is a rotten orange,
+return the minimum number of minutes until no fresh orange remains. Each minute, every rotten
+orange rots its fresh orthogonal neighbors. Return `-1` if this is impossible.
 
 **Example**
 
@@ -21,38 +20,27 @@ Input: grid = [[2,1,1],[1,1,0],[0,1,1]]
 Output: 4
 ```
 
-Explanation: the rot spreads outward one ring per minute from the single rotten orange at
-`(0, 0)`, and the farthest fresh orange, at `(2, 2)`, is reached on minute 4.
-
+Explanation: Rot spreads one grid edge per minute. The final fresh orange is reached after four
+minutes.
 
 ## Intuition
 
-The nodes are the cells holding an orange and the edges join oranges that share a side; empty
-cells are simply absent from the graph. Rot spreads to *all* side-neighbours simultaneously
-each minute, so one minute of simulation is exactly one BFS level, and the answer is the
-number of levels a BFS seeded with every initially-rotten orange needs to swallow the fresh
-ones. Distance matters, so it is BFS, not DFS — and multi-source, because rot starts from all
-the `2`s at once.
+Rot reaches all adjacent cells simultaneously, so each minute is one breadth-first search
+level. The search must start with every initially rotten orange because all sources spread at
+the same time.
 
-I track a `fresh` counter during the seeding pass rather than rescanning at the end. If the
-queue drains while `fresh > 0`, those oranges sit in a component containing no rotten seed and
-can never rot — that is the `-1` case.
+`fresh` tracks how many oranges remain. Marking an orange rotten when it is enqueued prevents
+two neighbors from enqueueing and counting the same orange twice. This mutates `grid`, using
+its values as the visited state.
 
 ## Approach
 
-1. One pass over the grid: push every `(r, c)` with `grid[r][c] == 2` into `q`, and
-   `fresh += 1` for every `1`.
-2. `minutes = 0`. Loop `while q and fresh:` — the `fresh` guard is what stops the count from
-   running one minute too long after the last orange rots.
-3. Process a whole level per iteration: `for _ in range(len(q))`, snapshotting the level size
-   *before* popping so the oranges rotted this minute land in the next level.
-4. Pop `(r, c)`; for each in-bounds neighbour with value `1`, set `grid[nr][nc] = 2`,
-   `fresh -= 1`, and push it. Rewriting the cell to `2` at push time is the visited mark —
-   without it, two rotten neighbours would both enqueue the same fresh orange and it would be
-   counted twice in `fresh`.
-5. After the inner loop, `minutes += 1`.
-6. Return `minutes if fresh == 0 else -1`. A grid with no fresh oranges skips the loop
-   entirely and returns `0`, as required.
+1. Scan `grid`, enqueue every rotten cell in `q`, and count fresh oranges in `fresh`.
+2. While both `q` and `fresh` are nonempty, process exactly `len(q)` cells as one minute.
+3. For each fresh neighbor, write `2`, decrement `fresh`, and enqueue its coordinates.
+4. Increment `minutes` after each complete level, then return it if `fresh == 0`; otherwise
+   return `-1`. If there are no fresh oranges initially, the loop is skipped and the result is
+   `0`.
 
 ## Code
 
@@ -88,10 +76,14 @@ class Solution:
 
 ## Why it works
 
-BFS from the whole rotten set expands in lockstep, so the `k`-th level holds exactly the
-oranges whose shortest hop distance to any initially-rotten orange is `k` — which is precisely
-the minute they rot under the simultaneous-spread rule. Counting levels therefore counts
-minutes, and stopping the loop as soon as `fresh` hits zero avoids charging a final minute in
-which nothing changed. If `fresh` is still positive when the queue empties, no rotten orange
-is connected to those cells, so no amount of time helps and `-1` is right. Each cell is rotted
-at most once and expanded at most once: `O(m * n)` time, `O(m * n)` queue.
+At the start of minute `t`, the queue contains exactly the oranges that became rotten at minute
+`t - 1`. This holds initially for all sources at minute zero. Processing one queue level rots
+exactly their fresh neighbors, which are precisely the cells at shortest distance `t` from any
+source. Marking at enqueue time ensures each such cell enters the next level once, preserving
+the invariant by induction. Thus `minutes` is the first time all reachable fresh oranges rot.
+If the queue empties with `fresh > 0`, those cells have no path from a source and can never rot.
+
+**Complexity**
+
+- **Time:** `O(m * n)` because each cell is scanned and enqueued at most once.
+- **Space:** `O(m * n)` for the queue in the worst case; `grid` is modified in place.

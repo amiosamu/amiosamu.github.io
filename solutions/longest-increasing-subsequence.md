@@ -9,9 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an array of integers, find the length of the longest strictly increasing subsequence —
-elements keep their relative order but need not be contiguous, and each chosen element must
-be strictly greater than the one before it.
+Given an integer array, return the length of its longest strictly increasing subsequence.
+Selected elements retain their relative order but do not need to be contiguous.
 
 **Example**
 
@@ -20,32 +19,23 @@ Input: nums = [10,9,2,5,3,7,101,18]
 Output: 4
 ```
 
-Explanation: the subsequence `[2,3,7,101]` is strictly increasing and has length 4, and no
-strictly increasing subsequence of this array is longer.
+For example, `[2,3,7,101]` is a strictly increasing subsequence of maximum length `4`.
 
 ## Intuition
 
-Brute force tries all `2^n` subsequences. The observation that collapses it: once I commit to
-`nums[i]` being the first element of the subsequence, the rest of the choice depends only on
-`i` — I need the longest increasing subsequence starting at some `j > i` with `nums[j] > nums[i]`.
-That is `n` subproblems, each answered by scanning the indices to its right.
+Once `nums[i]` is chosen as the first value, the next value may be any larger element at a later
+index. The best continuation from each such index is another instance of the same problem. A
+right-to-left dynamic program computes these continuations before they are needed.
 
 ## Approach
 
-1. Let `dp[i]` = the length of the longest strictly increasing subsequence that **starts at
-   index `i`** (so `nums[i]` is always included, and every `dp[i] >= 1`).
-2. Base case: initialize `dp = [1] * n`. An index with nothing larger to its right is a
-   subsequence of length 1 on its own.
-3. Recurrence: `dp[i] = max(1, max(1 + dp[j] for j > i if nums[j] > nums[i]))`.
-4. Iteration order: `i` from `n - 1` down to `0`, and for each `i` an inner loop `j` from
-   `i + 1` to `n - 1`. Going right to left guarantees `dp[j]` is final before it is read.
-5. Use a strict `<` comparison (`nums[i] < nums[j]`) — the problem wants strictly increasing,
-   so equal values must not chain.
-6. Return `max(dp)`, not `dp[0]`: the best subsequence can start anywhere.
-7. If asked to beat `O(n^2)`: keep a `tails` list where `tails[L]` is the smallest possible tail
-   of an increasing subsequence of length `L + 1`, and for each `x` use `bisect_left` to replace
-   the first element `>= x` (append if none). `tails` stays sorted, its length is the answer,
-   and the whole thing is `O(n log n)`.
+1. Define `dp[i]` as the longest increasing subsequence that starts at index `i`.
+2. Initialize every state to one because a single element is a valid subsequence.
+3. Process `i` from right to left and inspect every later index `j`.
+4. When `nums[j] > nums[i]`, update `dp[i]` with `1 + dp[j]`. The strict comparison excludes
+   equal values.
+5. Return `max(dp)` because the optimal subsequence may start anywhere. The input is guaranteed
+   non-empty, so this maximum is defined.
 
 ## Code
 
@@ -65,8 +55,13 @@ class Solution:
 
 ## Why it works
 
-Every increasing subsequence has a unique first index `i`, and after fixing it the remainder is
-itself an increasing subsequence starting at some later index with a strictly larger value — so
-the recurrence partitions the search space rather than double-counting it, and taking the max
-over `i` covers all of them. The right-to-left sweep respects the dependency `dp[i] -> dp[j>i]`.
-Filling `n` cells with an `O(n)` scan each gives `O(n^2)` time and `O(n)` space.
+For a fixed starting index `i`, any longer valid subsequence chooses a next index `j > i` with
+`nums[j] > nums[i]`; its best possible remaining length is `dp[j]`. Conversely, prefixing
+`nums[i]` to any such continuation is valid. The recurrence therefore considers every valid next
+choice and returns the exact optimum for `i`. Right-to-left evaluation makes those continuation
+states final, and the maximum over all starts covers every increasing subsequence.
+
+**Complexity**
+
+- **Time:** `O(n^2)` for all pairs `i < j`.
+- **Space:** `O(n)` for the dynamic-programming array.

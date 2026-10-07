@@ -9,7 +9,8 @@ space: "O(n + m)"
 
 ## Description
 
-Given a string `s` and a `dictionary` of strings, break `s` into one or more non-overlapping substrings such that each substring is in `dictionary`, and return the minimum number of leftover characters that cannot be covered by any substring.
+Given a string `s` and a dictionary, cover characters with non-overlapping dictionary
+words and return the minimum number of characters left uncovered.
 
 **Example**
 
@@ -18,21 +19,28 @@ Input: s = "leetscode", dictionary = ["leet","code","leetcode"]
 Output: 1
 ```
 
-Explanation: Using "leet" for `s[0:4]` and "code" for `s[5:9]` covers every character except `s[4]` ('s'), leaving 1 extra character.
+Choosing `"leet"` and `"code"` leaves only the `s` at index 4 uncovered.
 
 ## Intuition
 
-Trying every way to cut `s` into dictionary words explodes, but the choice at index `i` only depends on the suffix `s[i:]` — the characters before `i` cannot change which words start at `i`. So `dp[i] = ` minimum extra characters in `s[i:]`, and at each `i` there are just two kinds of move: leave `s[i]` unmatched, or consume a dictionary word starting at `i`. The trie is what makes the second move cheap: instead of slicing `s[i:j]` and hashing it against the dictionary for every `j`, I walk one node per character from `i` and read off every dictionary word starting at `i` in a single scan — and the walk dies the moment the prefix leaves the trie.
+At index `i`, either leave `s[i]` uncovered or consume a dictionary word that starts
+there. The best result after either choice depends only on a later suffix, so compute a
+suffix dynamic program from right to left.
+
+A trie finds all dictionary words beginning at `i` in one forward walk. As soon as a
+character has no trie edge, no longer word can match that start. Adding the same dictionary
+word more than once only rewrites its terminal marker and does not affect the result.
 
 ## Approach
 
-1. Build the trie as nested dicts. For each `w` in `dictionary`, descend from `root` with `node = node.setdefault(ch, {})`, then mark the terminal node with `node['$'] = True`. Using `'$'` as the end marker is safe because `s` and the dictionary are lowercase letters only.
-2. Let `n = len(s)` and allocate `dp = [0] * (n + 1)`. `dp[i]` is the fewest extra characters in `s[i:]`; `dp[n] = 0` since the empty suffix wastes nothing.
-3. Fill `dp` backwards, `i` from `n - 1` down to `0`, so every `dp[j + 1]` a transition needs is already final.
-4. Baseline first: `dp[i] = dp[i + 1] + 1`, meaning `s[i]` is left over. This is always legal, so `dp[i]` is never unset.
-5. Then walk the trie from `root` with `j` running from `i` upward. Break out as soon as `s[j]` is not a key of `node` — no longer word can start at `i` past that point. Otherwise descend, and whenever `'$' in node` the substring `s[i..j]` is a dictionary word, so relax `dp[i] = min(dp[i], dp[j + 1])`.
-6. Return `dp[0]`.
-7. Note the relaxation uses `dp[j + 1]` and not `dp[j]` — `j` is the last index *inside* the matched word, so the untouched suffix begins at `j + 1`. Off-by-one here is the only real trap.
+1. Build a trie of dictionary words and mark terminal nodes with `'$'`.
+2. Define `dp[i]` as the minimum uncovered characters in `s[i:]`, with `dp[n] = 0`.
+3. Fill indices right to left. Start with `dp[i] = 1 + dp[i + 1]`, which leaves
+   `s[i]` uncovered.
+4. Walk the trie along `s[i:]`. At every terminal node ending at `j`, relax with
+   `dp[j + 1]`, because the matched word contributes no extra characters.
+5. Stop when the trie path fails and return `dp[0]` after all suffixes are computed. The
+   empty input returns the initialized value `dp[0] = 0`.
 
 ## Code
 
@@ -62,4 +70,13 @@ class Solution:
 
 ## Why it works
 
-Any optimal partition of `s[i:]` either leaves `s[i]` extra — cost `1 + dp[i + 1]` — or covers `s[i]` with a dictionary word ending at some `j`, cost `dp[j + 1]` since the word itself contributes nothing. Those cases are mutually exhaustive and each recurses on a strictly shorter suffix already computed, so the backwards fill is correct by induction, and the substrings are non-overlapping by construction because each transition jumps past the characters it consumed. The trie walk from each `i` runs at most `n` steps with O(1) dict work per step, giving O(n^2) after the O(m) build over the dictionary's `m` total characters.
+Induct from the empty suffix. Any optimal treatment of `s[i:]` either leaves its first
+character uncovered or covers it with a dictionary word ending at some `j`. These cases
+are exhaustive, with costs `1 + dp[i + 1]` and `dp[j + 1]`, respectively. The trie
+enumerates exactly the valid second-case words, and all referenced suffixes are already
+optimal. Taking their minimum therefore computes the optimum at `i` without overlap.
+
+**Complexity**
+
+- **Time:** `O(m + n^2)` in the worst case, where `m` is the total dictionary length.
+- **Space:** `O(m + n)` for the trie and DP array.

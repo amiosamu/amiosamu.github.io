@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a string of digits that was produced by encoding letters `'A'..'Z'` as `1..26` and
-concatenating them with no delimiter, count how many distinct letter sequences could have
-produced it. A leading zero in any one- or two-digit group makes that grouping invalid.
+Letters `'A'` through `'Z'` are encoded as `1` through `26`. Given a digit string `s`,
+return the number of valid decodings. A group cannot begin with `0`.
 
 **Example**
 
@@ -20,39 +19,29 @@ Input: s = "12"
 Output: 2
 ```
 
-Explanation: `"12"` can be split as `"1", "2"` (decoding to `"AB"`) or as `"12"` (decoding to
-`"L"`), so there are 2 valid decodings.
+`"12"` can be decoded as `"AB"` or `"L"`.
 
 ## Intuition
 
-A decoding is a sequence of cuts, and the branching is only ever two-way: the next letter eats
-one digit or two. Enumerating cut sequences is exponential, but once you have consumed a prefix
-the only thing that matters is *where the cut landed* — the letters already emitted never
-constrain what follows. So there are `n + 1` states, and the count for a suffix is the count
-after taking one digit plus the count after taking two, when each is legal. `'0'` is the whole
-difficulty: it can never start a letter, so it must be swallowed as the second digit of a `10`
-or `20` or the string is undecodable from there.
+At any index, the next letter consumes either one valid digit or two digits in `10..26`.
+Only the current index matters; the letters decoded before it do not affect the remaining
+choices. This gives a suffix dynamic program.
+
+A suffix beginning with `0` has no valid transition, so inputs such as `"06"` cannot treat
+zero as a letter. Otherwise, the count includes the one-digit choice and, when legal, the
+two-digit choice. Only the next two suffix counts are needed.
 
 ## Approach
 
-1. State: `dp[i]` is the number of ways to decode the suffix `s[i:]`, considering only that
+1. Define `dp[i]` as the number of ways to decode `s[i:]`, with `dp[n] = 1` for the empty
    suffix.
-2. Base case: `dp[n] = 1` — the empty suffix has exactly one decoding, the empty one. That `1`,
-   not `0`, is what makes the sums come out right.
-3. Recurrence, for `i` from `n - 1` down to `0`:
-   - if `s[i] == "0"`, then `dp[i] = 0` — no letter starts with a zero digit, so this suffix is
-     dead;
-   - otherwise `dp[i] = dp[i + 1]`, plus `dp[i + 2]` when a two-digit letter fits, which means
-     `i + 1 < n` **and** the pair `s[i:i+2]` is in `10..26`.
-4. Test the two-digit case without building an int: `s[i] == "1"` (any second digit works), or
-   `s[i] == "2" and s[i + 1] <= "6"`.
-5. Iteration direction: **right to left**, so `dp[i + 1]` and `dp[i + 2]` are always final when
-   read.
-6. Answer: `dp[0]`.
-7. Rolling form: keep `after1 = dp[i + 1]` and `after2 = dp[i + 2]`, seeded `1, 0`. The `0` seed
-   is never actually consumed — at `i = n - 1` the guard `i + 1 < n` is false — so any value
-   would do. Slide with `after1, after2 = cur, after1` at the end of each iteration and return
-   `after1`.
+2. Iterate right to left. At each usable transition, `after1` represents `dp[i + 1]` and
+   `after2` represents `dp[i + 2]`.
+3. Set `cur = 0` for a leading zero. Otherwise start with `after1` for the one-digit
+   decoding.
+4. Add `after2` when the next two digits form `10..26`, tested directly from the two
+   characters.
+5. Shift the rolling values with `after1, after2 = cur, after1`, then return `after1`.
 
 ## Code
 
@@ -76,10 +65,13 @@ class Solution:
 
 ## Why it works
 
-Every decoding of `s[i:]` begins with exactly one letter, and that letter is either one digit or
-two — the two branches are disjoint (they differ in the length of the first letter) and
-exhaustive, so summing their counts counts each decoding once. Both branches recurse on a
-strictly shorter suffix, so the right-to-left order makes each `dp[i + 1]` and `dp[i + 2]` final
-before it is read. The zero rule and the `<= 26` rule are exactly the legality conditions on that
-first letter, so no illegal decoding is ever counted. One pass with two integers of state: O(n)
-time, O(1) space.
+By induction from the empty suffix, assume the stored counts for positions after `i` are
+correct. Every decoding of `s[i:]` starts with exactly one valid one-digit or two-digit
+letter. These cases are disjoint and exhaustive, so their suffix counts sum to `dp[i]`.
+The code excludes precisely the leading-zero and out-of-range cases. Therefore the rolling
+value returned for position zero counts every valid decoding exactly once.
+
+**Complexity**
+
+- **Time:** `O(n)` for one right-to-left pass.
+- **Space:** `O(1)` auxiliary space.

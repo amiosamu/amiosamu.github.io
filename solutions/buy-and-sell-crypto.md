@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an array `prices` where `prices[i]` is the stock price on day `i`, choose one day to buy and a later day to sell to maximize profit. If no profitable transaction exists, return 0.
+Given daily stock prices, choose one day to buy and a later day to sell. Return the maximum
+profit, or zero when no profitable transaction exists.
 
 **Example**
 
@@ -18,20 +19,20 @@ Input: prices = [7,1,5,3,6,4]
 Output: 5
 ```
 
-Explanation: buying on day 1 at price 1 and selling on day 4 at price 6 gives profit `6 - 1 == 5`, the best of any buy/sell pair.
+Buying at 1 and later selling at 6 earns the maximum profit, `6 - 1 = 5`.
 
 ## Intuition
 
-Brute force tries every buy/sell pair, O(n²). The insight: when I stand on day `r` as the seller, the only buy day I care about is the cheapest day strictly before `r` — every other earlier day gives less profit. So sweeping left to right while remembering the minimum price seen so far answers each sell day in O(1). It is the degenerate sliding window where the left edge jumps straight to any new low.
+For a fixed sell day, the best buy is the lowest price on an earlier day. A left-to-right scan can
+maintain that minimum and evaluate the best profit ending at each day in constant time.
 
 ## Approach
 
-1. Set `cheapest = prices[0]` (the only buy option before day 1) and `best = 0` — the "do nothing" profit, which is why a strictly falling array returns 0.
-2. Walk `price` over `prices[1:]`; each one is a candidate sell day.
-3. If `price < cheapest`, this day is a better buy day than anything before it, so set `cheapest = price` and sell nothing today — selling on a new minimum can never beat 0.
-4. Otherwise update `best = max(best, price - cheapest)`.
-5. Return `best`. The invariant is that at the top of each iteration `cheapest` is the minimum of all prices strictly left of the current day, and `best` is the best profit over all sell days already seen.
-6. A one-element array skips the loop and returns 0, which is correct.
+1. Initialize `cheapest` with the first price and `best = 0`.
+2. Treat each later `price` as a possible sale. If it is a new minimum, update `cheapest`.
+3. Otherwise update `best` with `price - cheapest`.
+4. Return `best`. A one-day or strictly falling input returns zero; the problem guarantees at
+   least one price.
 
 ## Code
 
@@ -50,4 +51,12 @@ class Solution:
 
 ## Why it works
 
-Every legal transaction is some pair `buy < sell`; when the loop reaches `sell`, `cheapest` is at most `prices[buy]`, so the profit it records is at least `prices[sell] - prices[buy]` — no pair can beat the running maximum. Skipping the update on a new minimum is safe because `price - cheapest` would be 0 there, never better than the initial `best`. One pass over the array with two scalars gives O(n) time and O(1) space.
+Before each candidate sale, `cheapest` is the minimum earlier price and `best` is the maximum
+profit for earlier sale days. The update computes the optimal profit for the current sale day,
+then preserves the best over all processed days. By induction, after the final day `best` is the
+maximum over every legal buy-sell pair, with zero representing no transaction.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(1)`.

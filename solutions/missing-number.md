@@ -19,27 +19,19 @@ Input: nums = [3,0,1]
 Output: 2
 ```
 
-Explanation: nums has 3 elements drawn from [0,3]; 0, 1, and 3 are present, so 2 is the
-missing value.
+Explanation: The range is `[0, 3]`; `0`, `1`, and `3` are present, so `2` is missing.
 
 ## Intuition
 
-The array holds `n` distinct values drawn from `0..n`, so exactly one of those `n + 1` labels is
-absent. A set would find it in O(n) extra space. Instead, XOR every index together with every
-value: each present number `v` shows up once as a value and once as an index, so it cancels
-itself out. Seed the accumulator with `n` — the one index the loop never produces — and the
-survivor is the missing number. The Gauss-sum variant works too, but XOR cannot overflow.
+XOR cancels equal values because `v ^ v == 0`. The indices supply every number from `0` through
+`n - 1`, and an initial seed supplies `n`. XORing that complete range with all array values pairs
+every present number, leaving only the missing one. This avoids a set and does not mutate `nums`.
 
 ## Approach
 
-1. Initialise `res = len(nums)`. This covers the label `n`, which is a legal answer but is never
-   a valid index into the array.
-2. Iterate with `for i, num in enumerate(nums)` and do `res ^= i ^ num`.
-3. Return `res`.
-4. Trace `[3, 0, 1]`: `res` starts at 3; `i=0,num=3` gives `3 ^ 0 ^ 3 = 0`; `i=1,num=0` gives
-   `0 ^ 1 ^ 0 = 1`; `i=2,num=1` gives `1 ^ 2 ^ 1 = 2`. Answer 2.
-5. Trace `[0, 1]`: `res` starts at 2, both rounds XOR a number with itself, so 2 survives.
-6. Nothing here depends on the array being sorted, and it never allocates.
+1. Initialize `res = len(nums)` to include `n`, which is not produced by `enumerate`.
+2. For each `(i, num)`, update `res ^= i ^ num`.
+3. Return the uncancelled value in `res`. Sorting is unnecessary.
 
 ## Code
 
@@ -54,8 +46,12 @@ class Solution:
 
 ## Why it works
 
-The multiset being folded is `{0..n-1}` (the indices) plus `{n}` (the seed) plus the `n` values
-in `nums` — that is, every label in `0..n` twice, except the missing one which appears only once
-via the index/seed side. XOR is commutative and associative with `x ^ x = 0`, so all the paired
-labels vanish and only the missing label remains. One pass, one accumulator: O(n) time, O(1)
-space.
+The seed and indices contain each number in `[0, n]` exactly once. The array contains each number
+in that range except the missing number exactly once. Since XOR is associative and commutative,
+the terms can be paired by value. Every present value cancels with its matching range value, while
+the missing value has no partner and remains in `res`.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through `nums`.
+- **Space:** `O(1)` auxiliary space.

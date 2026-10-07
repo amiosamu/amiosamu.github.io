@@ -9,7 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Given a string `s`, find the length of the longest substring that contains no repeating characters.
+Given a string `s`, return the length of its longest substring with no repeated characters.
 
 **Example**
 
@@ -18,20 +18,22 @@ Input: s = "abcabcbb"
 Output: 3
 ```
 
-Explanation: the longest substring without repeating characters is `"abc"`, which has length 3.
+The substring `"abc"` has no repeated characters and has the maximum length, 3.
 
 ## Intuition
 
-Checking every substring for distinctness is O(n²) or worse. The insight: if `s[l..r]` already contains a duplicate, then no window starting at `l` and ending past `r` can be valid either — so the left edge never needs to move backwards. That makes the answer a single window that only ever grows on the right and shrinks on the left, and the set of characters currently inside it is all the state I need.
+Maintain a window whose characters are all distinct. When the next character is already in the
+window, move the left boundary past its earlier occurrence before extending the window.
+
+Both boundaries move only forward. A set is enough to test membership and to represent exactly
+the characters in the current window.
 
 ## Approach
 
-1. Keep `charSet` (the characters in the current window), a left pointer `l = 0`, and `res = 0`.
-2. Walk `r` over `range(len(s))`, treating `s[r]` as the character being added.
-3. Before adding, while `s[r]` is already in `charSet`, remove `s[l]` from the set and advance `l`. This drops characters from the front until the earlier copy of `s[r]` itself is gone.
-4. Add `s[r]` to `charSet`.
-5. Update `res = max(res, r - l + 1)` — the invariant at this point is that `s[l..r]` has no repeats, so its length is a candidate answer.
-6. Return `res`. Empty string returns 0 because the loop never runs.
+1. Initialize the left boundary `l`, the answer `res`, and `charSet` for the current window.
+2. Advance `r` through `s`. While `s[r]` is already present, remove `s[l]` and increment `l`.
+3. Add `s[r]`; the window `s[l:r + 1]` is now distinct and as long as possible for this `r`.
+4. Update `res` with `r - l + 1`. An empty string leaves `res` at `0`.
 
 ## Code
 
@@ -52,4 +54,13 @@ class Solution:
 
 ## Why it works
 
-The while loop guarantees the invariant "`charSet` is exactly the distinct characters of `s[l..r]`, with no duplicates" holds every time `res` is updated, so every value compared into `res` is a real answer. And for each `r`, `l` is pushed to the smallest index that keeps the window valid, so the longest window ending at `r` is always measured — taking the max over all `r` covers every substring worth considering. Each pointer only moves forward across the whole run, giving O(n) time; the set never holds more than the alphabet size, bounded by O(n).
+Before each answer update, `charSet` contains exactly the characters in `s[l:r + 1]`, with no
+duplicates. This is initially true, and the removal loop restores it before the new character is
+added. The loop stops at the smallest valid `l`, so the resulting window is the longest valid
+window ending at `r`. Every optimal substring has some right endpoint, so taking the maximum over
+all endpoints returns its length.
+
+**Complexity**
+
+- **Time:** `O(n)`, because each character enters and leaves the window at most once.
+- **Space:** `O(n)` in the worst case for the set of distinct window characters.

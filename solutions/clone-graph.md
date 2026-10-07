@@ -24,35 +24,19 @@ Explanation: `adjList[i]` lists the neighbors of node `i + 1`, e.g. node 1 is co
 2 and 4; the cloned graph has the same four nodes and connections, but every node is a newly
 allocated copy rather than the original object.
 
-
 ## Intuition
 
-Here the graph is explicit — `Node` objects with a `neighbors` list, undirected and connected
-— so the traversal is the easy part; the hard part is that the copy has to reproduce *shared
-structure*. The naive "recurse into every neighbour and build a new node" fails twice on a
-cycle: it never terminates, and even on a DAG-shaped diamond it would produce two separate
-copies of the node reachable by two paths.
-
-One dictionary fixes both. `old_to_new` maps each original node to its single clone, and it
-doubles as the visited set — a node is cloned on first sight and looked up on every sight
-after. The critical ordering is that I insert the clone into the map *before* recursing into
-its neighbours, so when the recursion cycles back the clone already exists and the lookup
-terminates it.
+The clone must preserve shared neighbors and cycles, not just node values. Map each original
+node to its one clone. Register a clone before traversing its neighbors so a cycle that returns
+to the node finds the existing object instead of recursing forever.
 
 ## Approach
 
-1. Handle the empty graph: `if not node: return None`.
-2. Create `old_to_new = {}` mapping original `Node` to its copy.
-3. Define `dfs(cur)`:
-   - if `cur in old_to_new`, return `old_to_new[cur]` — this is both the memo hit and the
-     cycle base case;
-   - otherwise build `copy = Node(cur.val)` and store `old_to_new[cur] = copy`
-     **immediately**, before touching `cur.neighbors`;
-   - for each `nei` in `cur.neighbors`, append `dfs(nei)` to `copy.neighbors`;
-   - return `copy`.
-4. Return `dfs(node)`.
-5. Recursion is safe here — the constraints cap the graph at 100 nodes, so the stack depth is
-   at most 100.
+1. Keep `old_to_new`, mapping each original `Node` object to its allocated clone.
+2. In `dfs(cur)`, return the mapped clone immediately if `cur` was already visited.
+3. Otherwise create and register `copy` before recursively cloning each neighbor into
+   `copy.neighbors`.
+4. Return `dfs(node)`, or `None` for an empty graph. The input graph is not mutated.
 
 ## Code
 
@@ -76,10 +60,12 @@ class Solution:
 
 ## Why it works
 
-The map holds the invariant "every original node reached so far has exactly one clone, and it
-is registered before its edges are explored" — registering first is what makes a cycle bottom
-out on a lookup instead of recursing forever, and the one-clone-per-node rule is what keeps
-two paths to the same node from splitting it in the copy. Each original node runs the body of
-`dfs` once and walks its adjacency list once, so every edge is traversed exactly once in each
-direction: `O(V + E)` time, `O(V)` for the map plus recursion stack, on top of the copied
-graph itself.
+Whenever `dfs(cur)` returns, the mapped clone has the same value as `cur` and a corresponding
+clone for every explored neighbor. Registration before recursion guarantees one clone per
+original even across cycles. By induction over DFS completion, every reachable edge is copied
+to the matching cloned endpoints, so the returned graph is a deep structural copy.
+
+**Complexity**
+
+- **Time:** `O(V + E)` because each node and adjacency entry is processed once.
+- **Space:** `O(V)` auxiliary space for the map and recursion stack, plus `O(V + E)` output.

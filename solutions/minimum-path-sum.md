@@ -9,9 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an `m x n` grid of non-negative integers, find a path from the top-left corner to the
-bottom-right corner, moving only down or right at each step, that minimizes the sum of the
-numbers along the path, and return that minimum sum.
+Given an `m x n` grid of non-negative integers, return the minimum sum along a path from the
+top-left cell to the bottom-right cell. Each move must go one cell right or down.
 
 **Example**
 
@@ -20,37 +19,24 @@ Input: grid = [[1,3,1],[1,5,1],[4,2,1]]
 Output: 7
 ```
 
-Explanation: the path `1 -> 3 -> 1 -> 1 -> 1` (right, right, down, down) sums to 7, which is
-lower than any other down/right path through this grid.
+Explanation: The path `1 -> 3 -> 1 -> 1 -> 1` has the minimum sum, `7`.
 
 ## Intuition
 
-Greedily stepping toward the smaller neighbour fails — a cheap first step can dump you into an
-expensive row. But the cost of finishing from `(i, j)` depends only on `(i, j)`, never on which
-route got you there, so the cheapest route *into* `(i, j)` can be summarized by a single
-number. That number is `grid[i][j]` plus the cheaper of the two ways in, and the whole grid
-resolves in one pass.
+A path reaches an interior cell only from above or from the left. Therefore, its minimum path sum
+is the cell value plus the smaller minimum sum of those two predecessors. Once a row has been
+processed, only its values are needed to compute the next row, so the full table can be rolled into
+one array.
 
 ## Approach
 
-1. `dp[i][j]` is the minimum sum of any down/right route from `(0, 0)` to `(i, j)` inclusive,
-   considering only cells on rows `0..i`.
-2. Recurrence: the last move into an interior cell was down from `(i-1, j)` or right from
-   `(i, j-1)`, so `dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])`.
-3. Base cases: `dp[0][0] = grid[0][0]`; the first row can only come from the left,
-   `dp[0][j] = dp[0][j-1] + grid[0][j]`; the first column only from above,
-   `dp[i][0] = dp[i-1][0] + grid[i][0]`.
-4. Roll to a single array `row` of length `n`. Seed it as a virtual row above row 0:
-   `row = [inf] * n` with `row[0] = 0`. The infinities make "no cell above" lose every `min`,
-   so the first-row base case needs no branch; the `0` at `row[0]` starts the column running
-   total.
-5. Sweep `i` from `0` to `m - 1`. First do `row[0] += grid[i][0]`, which handles column 0 (only
-   an above-neighbour exists). Then sweep `j` **left to right** from `1` to `n - 1` with
-   `row[j] = grid[i][j] + min(row[j], row[j - 1])`.
-6. Left to right is required so that at the read, `row[j]` is still `dp[i-1][j]` (the neighbour
-   above, not yet overwritten) while `row[j-1]` is already `dp[i][j-1]` (the neighbour to the
-   left, just written). Any other order would mix rows.
-7. The answer is `dp[m-1][n-1]`, i.e. `row[n - 1]` after the final sweep.
+1. Let `row[j]` hold the minimum sum to column `j` of the previous or current row.
+2. Initialize `row` to infinity and set `row[0] = 0`, representing a virtual predecessor of
+   the starting cell.
+3. For each grid row, first add its column-zero value to `row[0]`.
+4. Scan the remaining columns left to right. Update `row[j]` from the old value above and the
+   new value to its left: `grid[i][j] + min(row[j], row[j - 1])`.
+5. Return the final `row[-1]`. The input grid is read but not mutated.
 
 ## Code
 
@@ -71,10 +57,13 @@ class Solution:
 
 ## Why it works
 
-Every route to `(i, j)` ends with exactly one of two moves, so taking the min over both cases
-considers every route without enumerating any — an optimal route to `(i, j)` must use an
-optimal route to its predecessor, otherwise swapping in the cheaper prefix would beat it. The
-subproblems are path-independent because the remaining decisions and their costs depend only on
-the coordinates, so different prefixes reaching the same cell are interchangeable and only
-their minimum cost matters. One `O(1)` update per cell gives `O(m * n)` time, and keeping only
-the previous row gives `O(n)` space.
+Induct on cells in row-major order. Before updating `(i, j)`, `row[j]` is the minimum path sum to
+the cell above, while `row[j - 1]` is the minimum path sum to the cell on the left. Every valid
+path to `(i, j)` ends at exactly one of those cells. Adding `grid[i][j]` to the smaller value is
+therefore both achievable and no larger than any other valid path. The first row and column obey
+the same invariant because each has only one valid predecessor. Hence the final value is optimal.
+
+**Complexity**
+
+- **Time:** `O(m * n)` for one update per cell.
+- **Space:** `O(n)` auxiliary space for the rolling row.

@@ -9,10 +9,9 @@ space: "O(n)"
 
 ## Description
 
-Given a binary string `s` and integers `minJump` and `maxJump`, describes jumping from index
-`i` to any index `j` with `minJump <= j - i <= maxJump` provided `s[j] == '0'`; determines
-whether it is possible to reach the last index of `s` starting from index `0` (index 0 is
-guaranteed to be `'0'`).
+Given a binary string `s` and integers `minJump` and `maxJump`, return whether the last index
+is reachable from index `0`. A jump from `i` may land on `j` when its length is in the given
+range and `s[j] == '0'`.
 
 **Example**
 
@@ -21,33 +20,22 @@ Input: s = "011010", minJump = 2, maxJump = 3
 Output: true
 ```
 
-Explanation: jump from index 0 to index 3 (`s[3] == '0'`, and 3 is within `[2,3]`), then from
-index 3 to index 5, the last index.
+Jump from index `0` to index `3`, then from index `3` to the final index `5`.
 
 ## Intuition
 
-The greedy reflex from the other Jump Game problems is wrong here, and it is worth saying why: with
-a `minJump` floor the reachable set is no longer a prefix — there is a forbidden gap right after
-every landing — and a landing spot can be a `'1'`, so "jump as far as you can" can strand you.
-Reachability really has to be computed per index. The saving grace is that index `i` is reachable
-iff `s[i] == '0'` and *at least one* index in the fixed window `[i - maxJump, i - minJump]` is
-reachable. That's an "any true in a sliding window" query, which a running count answers in O(1) as
-the window slides, turning an O(n·maxJump) DP into O(n).
+An index `i` is reachable exactly when it contains `0` and some reachable index lies between
+`i - maxJump` and `i - minJump`. A direct dynamic program would scan this entire range for each
+index. Maintaining the number of reachable indices in that sliding range reduces each query to
+constant time.
 
 ## Approach
 
-1. `n = len(s)`. Allocate `dp = [False] * n` and set `dp[0] = True`; `s[0]` is guaranteed `'0'`.
-2. Keep `pre`, the number of `True` entries of `dp` currently inside the window
-   `[i - maxJump, i - minJump]`.
-3. Loop `i` from 1 to `n - 1`, and slide the window *before* reading it:
-   - if `i >= minJump`, the index `i - minJump` just entered the window: `pre += dp[i - minJump]`
-     (a `bool` adds as 0/1).
-   - if `i > maxJump`, the index `i - maxJump - 1` just fell off the left: `pre -= dp[i - maxJump - 1]`.
-4. Then `dp[i] = pre > 0 and s[i] == '0'`. Both conditions are required: something must be able to
-   jump here, and the landing must not be a `'1'`.
-5. The window entries are all `< i`, so `dp` is always read at already-finalised indices — the
-   single left-to-right pass is a valid evaluation order.
-6. Return `dp[n - 1]`.
+1. Create `dp`, where `dp[i]` records whether index `i` is reachable, and set `dp[0] = True`.
+2. Maintain `pre`, the count of reachable indices in `[i - maxJump, i - minJump]`.
+3. Before evaluating each `i`, add the new right endpoint and remove the expired left endpoint.
+4. Set `dp[i]` when `pre > 0` and `s[i] == '0'`; blocked positions remain unreachable.
+5. Return `dp[-1]`. All window positions precede `i`, so their states are already final.
 
 ## Code
 
@@ -71,10 +59,13 @@ class Solution:
 
 ## Why it works
 
-The recurrence is exhaustive because a jump into `i` must originate somewhere in
-`[i - maxJump, i - minJump]` and every such origin is a legal source, so `dp[i]` is true exactly
-when that window contains a reachable index and `s[i] == '0'`. Nothing is discarded, which is the
-point — the plausible greedy of always taking the furthest legal `'0'` fails on inputs where the
-far landing's own window lands entirely on `'1'`s while a nearer landing's does not, so a genuine
-DP is required. The window advances one step per index and `pre` is repaired with one add and one
-subtract, giving O(n) time; the `dp` array is the O(n) space.
+For each `i`, `pre` counts exactly the reachable origins whose jump lengths to `i` are between
+`minJump` and `maxJump`. Thus `dp[i]` is true precisely when a legal origin exists and the landing
+cell is `0`. This is both necessary and sufficient for reaching `i`. Since `dp[0]` is correct and
+the recurrence uses only earlier indices, induction proves every entry, including `dp[-1]`, is
+correct.
+
+**Complexity**
+
+- **Time:** `O(n)`, because each index enters and leaves the window once.
+- **Space:** `O(n)` for the reachability array.

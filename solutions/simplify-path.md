@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an absolute Unix-style file path as a string, possibly containing redundant slashes, `.` segments (current directory), and `..` segments (parent directory), return the simplified canonical path: a single leading slash, directories separated by single slashes, no trailing slash (unless the result is the root), and every `.` and resolvable `..` collapsed away.
+Given an absolute Unix path containing possible repeated slashes, `.` segments, and `..`
+segments, return its canonical form.
 
 **Example**
 
@@ -18,21 +19,20 @@ Input: path = "/a/./b/../../c/"
 Output: "/c"
 ```
 
-Explanation: The `.` is skipped, the first `..` removes `b`, and the second `..` removes `a`, leaving only `c`.
+Explanation: `.` is ignored, and the two `..` segments remove `b` and `a`, leaving `/c`.
 
 ## Intuition
 
-A canonical path is just the list of directories you are actually inside, and `..` is a pop of that list — so the whole problem is a stack of names. Splitting the path on `/` turns every messy case into a single token: repeated slashes and a trailing slash both produce empty strings, `.` produces a token to ignore, and `..` produces a pop. The only subtlety is that popping at the root is a no-op rather than an error, since `/..` stays `/`.
+A stack can represent the directory chain from the root to the current location. A normal name
+pushes one directory, while `..` pops one if possible. Empty segments from repeated slashes and
+`.` do not change the location. Attempts to move above the root are ignored.
 
 ## Approach
 
-1. Keep `stack`, the directory names currently entered, outermost first.
-2. Iterate over `path.split("/")`. Splitting handles `//` and `a/` for free by yielding `""`.
-3. Skip a part that is `""` or `"."` — neither changes the current directory.
-4. On `".."`, pop from `stack` only `if stack`; at the root there is nothing above, so it is silently ignored.
-5. Otherwise the part is a real name (possibly something like `...`, which is a legal directory name, not a special token) — push it.
-6. Join with `"/"` and prepend a leading `"/"`, since the result is always absolute.
-7. An empty stack yields `"/"` exactly, which is the required canonical root.
+1. Split `path` on `/` and keep a stack of active directory names.
+2. Ignore `""` and `"."`; on `".."`, pop only when the stack is nonempty.
+3. Push every other token, including names such as `"..."` that have no special meaning.
+4. Join the stack with `/` and prepend `/`. An empty stack naturally produces the root path.
 
 ## Code
 
@@ -55,4 +55,12 @@ class Solution:
 
 ## Why it works
 
-The stack is the invariant: after processing a prefix of the tokens, it holds exactly the directory chain that prefix walks to, so processing all of them leaves the chain the full path walks to. Canonicity follows from construction rather than from cleanup — nothing empty, no `.`, and no `..` is ever pushed, and there is no trailing slash because the join sits between names. Each token is pushed and popped at most once and the join is linear in the output, so the whole thing is O(n) time and O(n) space for a path of length `n`.
+After each token, the stack is exactly the canonical directory chain reached by the processed
+prefix. Ignored tokens preserve the chain, a normal name extends it, and `..` removes its final
+directory unless already at root. By induction, the final stack represents the full path.
+Joining only stored names creates one leading slash, single separators, and no trailing slash.
+
+**Complexity**
+
+- **Time:** `O(n)` to split, process, and join a path of length `n`.
+- **Space:** `O(n)` for tokens and the directory stack.

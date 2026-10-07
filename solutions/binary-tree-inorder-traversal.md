@@ -9,7 +9,7 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree, return the values of its nodes in inorder traversal order: the left subtree, then the node itself, then the right subtree.
+Given a binary tree, return its values in left-subtree, node, right-subtree order.
 
 **Example**
 
@@ -18,20 +18,20 @@ Input: root = [1,null,2,3]
 Output: [1,3,2]
 ```
 
-Explanation: The tree is 1 with no left child and right child 2, whose left child is 3; visiting left-node-right gives 1 (no left subtree), then descends into 2's left subtree first (3), then 2 itself, for [1,3,2].
+Node `1` is visited first, followed by `3`, the left child of `2`, and then `2`.
 
 ## Intuition
 
-In-order means left subtree, then node, then right subtree — that's the definition, and the three-line recursion writes itself. The interesting version is the follow-up: do it without recursion. The insight is that recursion's call stack is only ever holding *ancestors whose value hasn't been printed yet*, and every one of those was reached by walking left. So I can replicate it with one explicit `stack`: run all the way down the left spine pushing as I go, then pop, emit, and restart the same descent from the popped node's right child.
+An explicit stack can reproduce the recursive traversal. Descending left postpones each ancestor
+on the stack. Once no left child remains, the top node is ready to visit; its right child then
+starts the same process for the next subtree.
 
 ## Approach
 
-1. Keep `res` for the output, `stack` for ancestors not yet emitted, and `cur` for the node I'm currently descending from. Start `cur = root`, `stack = []`.
-2. Loop while `cur` is not None **or** `stack` is non-empty. Both conditions are needed: `cur` non-None means there's more to descend into, a non-empty `stack` means there are ancestors still owing me a visit.
-3. Inner loop: while `cur`, push `cur` onto `stack` and set `cur = cur.left`. This walks the left spine and leaves the deepest left node on top.
-4. `cur = stack.pop()` — this node's entire left subtree has now been emitted, so append `cur.val` to `res`.
-5. Set `cur = cur.right` and let the outer loop repeat. If the right child is None the outer loop falls straight through to another pop, which is exactly "done with this node, go back up".
-6. Return `res`. Empty tree needs no special case: `cur` is None and `stack` is empty, so the loop never runs.
+1. Keep output `res`, ancestor `stack`, and current node `cur = root`.
+2. While work remains, push the entire left path from `cur` onto the stack.
+3. Pop the nearest unvisited ancestor, append its value, and set `cur` to its right child.
+4. Return `res`. For an empty tree, both loop conditions are false immediately.
 
 ## Code
 
@@ -53,4 +53,12 @@ class Solution:
 
 ## Why it works
 
-The invariant is that `stack` holds exactly the ancestors of `cur` whose value hasn't been emitted yet, deepest on top, and that a node is popped only after its whole left subtree has been emitted — which is precisely the in-order rule. Each node is pushed once and popped once, so the work is O(n). The stack is bounded by the length of the current root-to-node path, O(h), which is O(log n) for a balanced tree and O(n) for a fully left-skewed one.
+The stack contains ancestors whose left subtrees have been entered but whose own values have not
+yet been emitted. Reaching `None` proves the top node's left subtree is complete, so popping and
+visiting it is the next inorder action. Moving to its right child restores the invariant for the
+remaining traversal.
+
+**Complexity**
+
+- **Time:** `O(n)` because each node is pushed and popped once.
+- **Space:** `O(h)` auxiliary stack space and `O(n)` output space.

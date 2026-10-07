@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an integer array `nums` and an integer `k`, rotate the array to the right by `k` steps in place, without allocating a second array.
+Given a nonempty integer array `nums` and nonnegative integer `k`, rotate `nums` right by `k`
+positions in place.
 
 **Example**
 
@@ -18,21 +19,22 @@ Input: nums = [1,2,3,4,5,6,7], k = 3
 Output: [5,6,7,1,2,3,4]
 ```
 
-Explanation: The last three elements (`5,6,7`) move to the front, and the remaining elements (`1,2,3,4`) follow in their original order.
+Explanation: The suffix `[5,6,7]` moves before `[1,2,3,4]`, with both blocks retaining order.
 
 ## Intuition
 
-Rotating right by `k` means the last `k` elements come first, in order, followed by the first `n - k`, in order. Reversing the whole array gets both blocks into the right *place* but leaves each one backwards; reversing each block in isolation then fixes the order inside it. So three in-place reversals do what a copy would do, with no extra array. The other thing to notice is that `k` can exceed `n`, and a rotation by `n` is the identity, so only `k % n` matters.
+Write the array as `A B`, where `B` is the final `k` elements. The target is `B A`. Reversing
+the whole array swaps the blocks but reverses each one, producing `reverse(B) reverse(A)`.
+Reversing those two ranges separately restores their internal order. Reducing `k` modulo `n`
+handles rotations longer than the array.
 
 ## Approach
 
-1. Let `n = len(nums)` and reduce `k %= n` — without this, `k >= n` would index past the end.
-2. Write a helper `reverse(l, r)` that swaps `nums[l]` and `nums[r]` while `l < r`, moving `l` up and `r` down.
-3. `reverse(0, n - 1)` — the whole array. Now the block that should end up in front is in front, but reversed, and so is the block behind it.
-4. `reverse(0, k - 1)` — un-reverse the first `k` slots, which hold the old tail.
-5. `reverse(k, n - 1)` — un-reverse the remaining `n - k` slots, which hold the old head.
-6. Mutate in place and return nothing; the signature is `-> None`.
-7. `k = 0` needs no guard: `reverse(0, -1)` starts with `l = 0, r = -1`, fails `l < r` immediately, and steps 3 and 5 undo each other.
+1. Set `n = len(nums)` and reduce `k %= n`.
+2. Define `reverse(l, r)` to swap endpoints and move inward until the range is reversed.
+3. Reverse the full array, then reverse indices `0..k-1` and `k..n-1` separately.
+4. Return nothing; all swaps mutate `nums`. When `k == 0`, the first and third reversals cancel
+   and the empty middle reversal does nothing.
 
 ## Code
 
@@ -55,4 +57,12 @@ class Solution:
 
 ## Why it works
 
-If the array is `A B` with `|B| = k`, the target is `B A`. Reversing the whole thing gives `reverse(B) reverse(A)` — the blocks are already swapped, because reversal maps a suffix to a prefix. Reversing the first `k` positions restores `B`, and reversing the rest restores `A`, yielding `B A` exactly. Each of the three passes touches a disjoint-or-full range once, so the total is under `2n` swaps, O(n) time with only the two loop indices as state, O(1) space.
+Let the original array be `A B`, where `|B| = k`. Reversing all elements gives
+`reverse(B) reverse(A)`. The second reversal transforms the first block back to `B`, and the third
+transforms the remaining block back to `A`. The final array is therefore `B A`, exactly a right
+rotation by `k`; modulo reduction makes this equivalent to the requested number of rotations.
+
+**Complexity**
+
+- **Time:** `O(n)` across the three reversals.
+- **Space:** `O(1)` auxiliary space.

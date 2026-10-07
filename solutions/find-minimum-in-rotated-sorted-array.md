@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-An array of distinct integers, originally sorted in ascending order, has been rotated between 1 and n times at an unknown pivot. Given the rotated array `nums`, return its minimum element in O(log n) time.
+Given a rotated, ascending array `nums` of distinct integers, return its minimum element.
+The required running time is `O(log n)`.
 
 **Example**
 
@@ -18,22 +19,28 @@ Input: nums = [3,4,5,1,2]
 Output: 1
 ```
 
-Explanation: The original sorted array `[1,2,3,4,5]` was rotated so that 1 is the first element of the second run, making it the smallest value present.
+Explanation: Rotation moved the sorted suffix `[1,2]` after `[3,4,5]`, so `1` is the
+minimum.
 
 ## Intuition
 
-A rotated sorted array is two increasing runs, and the minimum is the first element of the second run. The array is not globally sorted, so `nums[mid]` compared to a *target* tells me nothing — but compared to the fixed value `nums[n-1]` it does: every element of the first run is greater than `nums[n-1]`, and every element of the second run is less than or equal to it. That comparison is a monotone predicate over the indices, so the standard boundary search finds the run break directly. If the array was not rotated at all, the predicate is true everywhere and the boundary is index `0`, which is still the minimum.
+A rotation creates two increasing runs. Every value in the left run is greater than the
+last array value, while every value in the right run is less than or equal to it. Therefore,
+`nums[i] <= nums[-1]` changes from false to true exactly at the minimum.
+
+This monotone boundary can be found with binary search. In an unrotated or one-element
+array, the predicate is already true at index `0`, so the same search handles both cases.
 
 ## Approach
 
-1. Fix `pivot = nums[-1]`, the last element, before the loop — comparing against a moving `nums[r]` works too, but a fixed pivot makes the predicate obviously monotone.
-2. Search space: the index interval `[l, r]`, **inclusive on both ends**, with `l = 0`, `r = len(nums) - 1`.
-3. Monotone predicate: `P(i) = nums[i] <= pivot`, i.e. "index `i` belongs to the second run". Values are distinct, so `P` is false on the whole first run and true on the whole second run — false prefix, true suffix. The answer is the first true index.
-4. Invariant: every index `< l` fails `P` (first run), every index `> r` satisfies `P` (second run).
-5. Loop `while l <= r`, `mid = (l + r) // 2`.
-6. If `nums[mid] > pivot`, `mid` is in the first run and the minimum is strictly right: `l = mid + 1`. Otherwise `mid` is in the second run and is a candidate, but maybe not the first: `r = mid - 1`.
-7. On exit `l == r + 1`: `r` is the last index of the first run and `l` is the first index of the second run. Return `nums[l]`.
-8. `P(n-1)` is always true (`pivot <= pivot`), so `l` never exceeds `n - 1` and the return is always in bounds — that also covers the unrotated array, where `l` lands on `0`, and the single-element array.
+1. Save `pivot = nums[-1]` and search the inclusive interval from `l = 0` to
+   `r = len(nums) - 1`.
+2. Compute `mid`. If `nums[mid] > pivot`, `mid` belongs to the left run, so set
+   `l = mid + 1`.
+3. Otherwise, `mid` may be the first index of the right run. Keep earlier candidates by
+   setting `r = mid - 1`.
+4. When the interval is empty, `l` is the first index whose value is at most `pivot`.
+   Return `nums[l]`.
 
 ## Code
 
@@ -53,4 +60,13 @@ class Solution:
 
 ## Why it works
 
-Rotation splits the array into two increasing runs where every value in the first run exceeds every value in the second, so `nums[i] <= nums[n-1]` is false exactly on the first run and true exactly on the second — one clean flip, which is all a binary search needs. The invariant "left of `l` is first run, right of `r` is second run" is preserved by both branches, so when the interval empties `l` sits on the run boundary, and the first element of the second run is the array minimum. The interval halves each iteration, giving `O(log n)` time and `O(1)` space.
+At every iteration, indices below `l` are known to be in the left run, and indices above
+`r` are known to be in the right run. Each branch preserves this invariant by discarding
+only indices on the identified side. Because the final element always satisfies the
+predicate, a valid right-run index remains. When the interval empties, `l` is its first
+index, which is exactly the minimum.
+
+**Complexity**
+
+- **Time:** `O(log n)` because each iteration halves the search interval.
+- **Space:** `O(1)` auxiliary space.

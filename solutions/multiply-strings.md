@@ -19,33 +19,22 @@ Input: num1 = "123", num2 = "456"
 Output: "56088"
 ```
 
-Explanation: 123 multiplied by 456 equals 56088, computed here digit by digit rather than
-via a built-in integer conversion.
+Explanation: `123 * 456 = 56088`.
 
 ## Intuition
 
-Converting both strings to ints and multiplying dodges the point of the problem (and would
-overflow in most other languages), so I need the digit-by-digit multiplication algorithm from
-grade school. The key observation: multiplying the digit at index `i` of `num1` by the digit at
-index `j` of `num2` always lands on positions `i + j` and `i + j + 1` of the result, regardless
-of what other digits are involved - so I can accumulate every partial product into a fixed-size
-int array and resolve carries as I go, instead of juggling carries between intermediate strings.
+An `n1`-digit number times an `n2`-digit number has at most `n1 + n2` digits. The product of
+digits at indices `i` and `j` contributes to result positions `i + j` and `i + j + 1`: the first
+receives the carry and the second receives the ones digit. Processing from right to left lets a
+fixed-size digit array accumulate the same partial products as grade-school multiplication.
 
 ## Approach
 
-1. Handle the trivial case up front: if either `num1` or `num2` is `"0"`, return `"0"`.
-2. Let `n1, n2` be the lengths of `num1`, `num2`; allocate `result`, an int array of size
-   `n1 + n2` filled with zeros - large enough to hold any product of an `n1`-digit by
-   `n2`-digit number.
-3. Iterate `i` from `n1 - 1` down to `0`, and inside it `j` from `n2 - 1` down to `0` (both
-   right to left, least-significant digit first).
-4. For each `(i, j)`, compute `mul = int(num1[i]) * int(num2[j])`, and the two positions it
-   touches: `p1 = i + j` (higher place) and `p2 = i + j + 1` (lower place).
-5. Fold `mul` into whatever is already parked at `p2`: `total = mul + result[p2]`; write
-   `result[p2] = total % 10` and add the carry into the higher place with
-   `result[p1] += total // 10` (never overwrite `p1` - more products can still land there).
-6. After both loops finish, `result` holds every digit of the answer but may have leading
-   zeros in its unused top slot(s) - skip over leading zeros, then join the rest into a string.
+1. Return `"0"` if either input is zero. Otherwise allocate `n1 + n2` result positions.
+2. Visit both strings from right to left. For each digit pair, compute its product and positions
+   `p1 = i + j` and `p2 = i + j + 1`.
+3. Add the product to `result[p2]`, store its ones digit at `p2`, and add its carry to `p1`.
+4. Skip unused leading zeros and join the remaining digits. The input strings are unchanged.
 
 ## Code
 
@@ -69,14 +58,20 @@ class Solution:
         start = 0
         while start < len(result) - 1 and result[start] == 0:
             start += 1
-        return ''.join(map(str, result[start:]))
+        return "".join(map(str, result[start:]))
 ```
 
 ## Why it works
 
-Because `i` and `j` both count down, the digit-sum `i + j` is non-increasing across the whole
-loop, so every carry landing on a position (which happens when that position equals some pair's
-`i + j`) is already folded in before that position is ever read and finalized as a units digit
-(which happens when it equals a *later* pair's `i + j + 1`) - nothing gets finalized too early.
-Every one of the `n1 * n2` digit pairs is visited exactly once, giving `O(n1 * n2)` time and
-`O(n1 + n2)` space for the result array.
+Each digit pair contributes its product at the decimal place determined by `i + j`. Splitting
+`total` between `p2` and `p1` preserves that contribution exactly: `total % 10` stays at the
+lower place and `total // 10` moves one place left. Because both loops run right to left, all
+contributions and carries into a lower position are present before that position is finalized.
+Therefore, after all pairs are processed, `result` is the exact product, apart from harmless
+leading zeros.
+
+**Complexity**
+
+- **Time:** `O(n1 * n2)` for all digit pairs, plus `O(n1 + n2)` to build the string.
+- **Space:** `O(n1 + n2)` for the result digits and returned string; auxiliary space excluding
+  the output is also `O(n1 + n2)`.

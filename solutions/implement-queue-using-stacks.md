@@ -9,7 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Implement a first-in-first-out (FIFO) queue — supporting `push`, `pop`, `peek`, and `empty` — using only the standard operations of a stack as the underlying storage.
+Implement a FIFO queue with `push`, `pop`, `peek`, and `empty` using only stack operations.
 
 **Example**
 
@@ -18,21 +18,24 @@ Input: ["MyQueue", "push", "push", "peek", "pop", "empty"], [[], [1], [2], [], [
 Output: [null, null, null, 1, 1, false]
 ```
 
-Explanation: after pushing 1 then 2, `peek()` and `pop()` both return 1 because it was pushed first (FIFO order); after the pop only 2 remains, so `empty()` is `false`.
+Explanation: `1` was pushed first, so both `peek()` and `pop()` return it. The queue then
+still contains `2`.
 
 ## Intuition
 
-Pouring one stack into another reverses it, and reversing "newest first" gives "oldest first" — which is exactly queue order. So I keep two stacks: `inp` for arrivals and `out` for departures. The important part is *when* to pour: only when `out` runs dry, never on every read. That way each element is moved across exactly once in its lifetime, which makes the cost O(1) amortized instead of O(n) per call.
+Use `inp` for newly pushed values and `out` for values ready to leave. Moving all values
+from `inp` to `out` reverses their order, placing the oldest value on top of `out`.
+
+Transfer only when `out` is empty. Existing values in `out` are older than every value in
+`inp` and must be removed first. Delaying transfers also gives constant amortized cost.
 
 ## Approach
 
-1. Keep two lists: `inp` (push side, newest on top) and `out` (pop side, oldest on top).
-2. `push(x)` — append to `inp`. Nothing else; never touch `out` here.
-3. Helper `_shift()` — if `out` is empty, pop every element off `inp` and push it onto `out`, which reverses the block into queue order. If `out` is *not* empty, do nothing: its contents are all older than anything in `inp`, so they must be served first.
-4. `pop()` — call `_shift()`, then `out.pop()`.
-5. `peek()` — call `_shift()`, then return `out[-1]`.
-6. `empty()` — true only when both stacks are empty.
-7. The guarded refill in step 3 is the whole solution; refilling unconditionally would interleave old and new elements and break FIFO order.
+1. Append every pushed value to `inp`.
+2. In `_shift`, move all values from `inp` to `out` only when `out` is empty.
+3. For `pop` and `peek`, call `_shift` and use the top of `out`, which is the queue front.
+4. Report empty only when both stacks are empty. The problem guarantees `pop` and `peek`
+   are called only on a nonempty queue.
 
 ## Code
 
@@ -65,4 +68,12 @@ class MyQueue:
 
 ## Why it works
 
-The invariant is that the queue's contents, front to back, are `out` read top-to-bottom followed by `inp` read bottom-to-top; every element in `out` arrived before every element in `inp`. Refilling only when `out` is empty preserves that, because a full transfer of a contiguous block of arrivals keeps their relative order after reversal. Each element is pushed to `inp`, popped from `inp`, pushed to `out`, and popped from `out` exactly once — four O(1) steps over its life — so m operations cost O(m) total, i.e. O(1) amortized.
+From front to back, the logical queue is `out` read from top to bottom followed by `inp`
+read from bottom to top. `push` extends the latter sequence. When `out` is empty, moving
+all of `inp` reverses that sequence and restores its oldest value to the top, preserving
+FIFO order. Thus `pop` and `peek` always use the true queue front.
+
+**Complexity**
+
+- **Time:** `O(1)` amortized per operation; one transfer can take `O(n)`.
+- **Space:** `O(n)` for the two stacks.

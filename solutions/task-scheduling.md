@@ -2,14 +2,15 @@
 # Task Scheduler · Medium · Heap / Priority Queue
 # https://leetcode.com/problems/task-scheduler/
 draft: false
-pattern: "Greedy max-heap with cooldown queue"
-time: "O(m * n)"
+pattern: "Frequency lower bound and schedule length"
+time: "O(m)"
 space: "O(1)"
 ---
 
 ## Description
 
-Given an array of CPU tasks, each represented by an uppercase letter, and a non-negative cooldown `n` such that two same-letter tasks must be separated by at least `n` intervals (idling if nothing else is available), return the minimum number of time units needed to finish all tasks.
+Given uppercase CPU tasks and a cooldown `n`, schedule all tasks so equal letters are separated by
+at least `n` intervals. Return the minimum number of intervals, including any required idle time.
 
 **Example**
 
@@ -18,49 +19,48 @@ Input: tasks = ["A","A","A","B","B","B"], n = 2
 Output: 8
 ```
 
-Explanation: one valid schedule is `A -> B -> idle -> A -> B -> idle -> A -> B`, which takes 8 units because each repeat of `A` or `B` needs a gap of at least 2.
+One optimal schedule is `A, B, idle, A, B, idle, A, B`, which uses eight intervals.
 
 ## Intuition
 
-The identity of a task is irrelevant — only how many times each letter still has to run. The bottleneck is the most frequent letter, because it forces gaps of `n` around every one of its runs, and the cheapest way to fill those gaps is with the *next* most frequent letters, since leaving them for later only creates more gaps later. So at every tick I want the largest remaining count that is not still cooling down: a **max-heap** of counts (negated, because `heapq` is a min-heap) for what is runnable, plus a FIFO queue for what is on cooldown, since tasks come off cooldown in exactly the order they went on.
+Let the largest task frequency be `max_freq`. Its first `max_freq - 1` occurrences begin blocks
+that must span at least `n + 1` intervals before the next copy can run. If `max_count` task types
+share that largest frequency, all of their final copies occupy the tail after those blocks.
+
+This forces a lower bound of `(max_freq - 1) * (n + 1) + max_count`. When other tasks fill all
+cooldown slots, the schedule instead needs only `len(tasks)` intervals. The larger bound is exact.
 
 ## Approach
 
-1. Count the tasks with `collections.Counter` and build `heap = [-c for c in counts.values()]`, then `heapify`. Negated counts make `heap[0]` the letter with the most work left.
-2. Keep `queue`, a `deque` of `(remaining, ready_time)` pairs for tasks in cooldown, and a clock `time` starting at 0.
-3. Loop while either structure is non-empty. Advance `time += 1` first — that tick is spent either running a task or idling.
-4. If the heap is non-empty, pop `count` (negative) and add 1 to spend one execution. If it is still non-zero, append `(count, time + n)` to the queue. If the heap is empty this tick is a forced idle and nothing is popped.
-5. Then, if `queue` and `queue[0][1] == time`, `popleft` and push its count back on the heap. Doing this *after* the pop is what enforces the cooldown: a task queued at `time` with `ready_time = time + n` cannot be chosen again until n other ticks have passed.
-6. Because `time` advances by exactly 1 per iteration and ready times are always `time + n`, checking equality on the queue front is enough — no ready task is ever missed.
-7. Return `time` when both the heap and the queue are empty.
+1. Count each task type and compute `max_freq`, the largest count.
+2. Count how many task types have frequency `max_freq`; call this `max_count`.
+3. Compute the forced frame length `(max_freq - 1) * (n + 1) + max_count`.
+4. Return the larger of that frame length and `len(tasks)`.
 
 ## Code
 
 ```python
 import collections
-import heapq
 
 class Solution:
     def leastInterval(self, tasks: List[str], n: int) -> int:
         counts = collections.Counter(tasks)
-        heap = [-c for c in counts.values()]
-        heapq.heapify(heap)
-
-        queue = collections.deque()  # (negated remaining count, time it becomes runnable)
-        time = 0
-
-        while heap or queue:
-            time += 1
-            if heap:
-                count = heapq.heappop(heap) + 1
-                if count:
-                    queue.append((count, time + n))
-            if queue and queue[0][1] == time:
-                heapq.heappush(heap, queue.popleft()[0])
-
-        return time
+        max_freq = max(counts.values())
+        max_count = sum(freq == max_freq for freq in counts.values())
+        frame = (max_freq - 1) * (n + 1) + max_count
+        return max(len(tasks), frame)
 ```
 
 ## Why it works
 
-The greedy choice — always run the runnable task with the most copies left — is safe by an exchange argument: if a schedule ever runs a rarer task while a more frequent one is available, swapping the two never makes any cooldown violated and never lengthens the schedule, because the more frequent task is the one that will still need slots at the end. The queue makes the cooldown exact rather than approximate, so the simulation is a legal schedule, and the greedy guarantees it is a shortest one. The loop body is O(log 26) = O(1), and it runs once per time unit, at most `(maxCount - 1) * (n + 1) + 26` ticks — O(m * n) in the worst case for `m = len(tasks)` — with only 26 counters live, so O(1) space.
+Any schedule must contain all `m` tasks. It must also separate the first `max_freq - 1` copies of
+a most-frequent task into blocks of width at least `n + 1`; the `max_count` tied final copies add
+the tail, proving the frame lower bound. This bound is attainable: place the tied most-frequent
+tasks once in each block, then distribute all other tasks among the open block positions. If they
+fit, the frame length is achieved; if they overflow, they fill every idle position and extend the
+schedule to exactly `m`. Therefore the maximum of the two lower bounds is optimal.
+
+**Complexity**
+
+- **Time:** `O(m)` to count `m = len(tasks)` tasks.
+- **Space:** `O(1)` because the alphabet contains only 26 task types.

@@ -9,7 +9,7 @@ space: "O(1)"
 
 ## Description
 
-Given a character array `s`, reverse it in place so the characters appear in the opposite order, without allocating a second array.
+Given a character array `s`, reverse its elements in place without allocating another array.
 
 **Example**
 
@@ -18,26 +18,22 @@ Input: s = ["h","e","l","l","o"]
 Output: ["o","l","l","e","h"]
 ```
 
-Explanation: The first and last characters swap (`h`/`o`), the second and second-to-last swap (`e`/`l`), and the middle `l` stays put, producing the reversed array.
+Explanation: Swapping mirrored pairs produces `["o","l","l","e","h"]`; the middle element
+does not move.
 
 ## Intuition
 
-Reversing means character `i` and character `n - 1 - i` trade places. The naive move is to build a
-new list and copy it back, but that is O(n) extra memory for something that is just n/2 independent
-swaps. Nothing about swapping the outer pair changes what the inner pairs should do, so I can walk
-one pointer in from each end and swap as they pass each other.
+In a reversal, indices `i` and `n - 1 - i` exchange values. These mirrored pairs are independent,
+so pointers can start at both ends, swap one pair, and move inward. Once the pointers meet or cross,
+every required pair has been handled.
 
 ## Approach
 
-1. Set `l = 0` and `r = len(s) - 1`.
-2. While `l < r`: swap `s[l]` and `s[r]` with a tuple assignment.
-3. Move `l` forward by one and `r` backward by one. `l` only ever increases and `r` only ever
-   decreases — after a swap, that pair is finished forever, so there is no reason to revisit either
-   side, and moving only one pointer would just re-swap a pair already in place.
-4. Stop when `l >= r`. The loop condition is `l < r`, not `l <= r`, because when they land on the
-   same index (odd length) the middle character is already where it belongs and swapping it with
-   itself is wasted work.
-5. Return nothing — the problem wants `s` mutated in place.
+1. Initialize `l = 0` and `r = len(s) - 1`.
+2. While `l < r`, swap `s[l]` with `s[r]`, then increment `l` and decrement `r`.
+3. Stop when the pointers meet or cross. An odd-length array's center already occupies its
+   reversed position.
+4. Return nothing; the caller observes the mutation to `s`.
 
 ## Code
 
@@ -53,7 +49,11 @@ class Solution:
 
 ## Why it works
 
-The invariant is that everything outside `[l, r]` is already final: each iteration puts exactly one
-pair in its permanent position and then shrinks the window from both sides. Since the two pointers
-approach each other by one step each, they meet after n/2 iterations and every index has been
-covered exactly once — O(n) time, and the swap uses only the two index variables, so O(1) space.
+Before each iteration, every position outside `[l, r]` contains its final reversed value. Swapping
+the values at `l` and `r` places both mirrored elements correctly, and moving inward preserves the
+invariant. At termination no unresolved pair remains, so the whole array is reversed.
+
+**Complexity**
+
+- **Time:** `O(n)` for `floor(n / 2)` swaps.
+- **Space:** `O(1)` auxiliary space.

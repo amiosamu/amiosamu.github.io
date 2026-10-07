@@ -9,7 +9,8 @@ space: "O(L)"
 
 ## Description
 
-Given an `m x n` grid of characters `board` and a string `word`, determine whether `word` can be traced out by moving to horizontally or vertically adjacent cells, using each cell at most once.
+Given an `m x n` character grid `board` and a string `word`, determine whether the word can be
+formed from orthogonally adjacent cells without using a cell more than once.
 
 **Example**
 
@@ -18,22 +19,24 @@ Input: board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "
 Output: true
 ```
 
-Explanation: Starting at `board[0][0]` ('A'), the path A -> B -> C -> C -> E -> D moves through adjacent cells without reusing any cell, spelling out "ABCCED".
+Explanation: The path `A -> B -> C -> C -> E -> D` uses adjacent, distinct cells.
 
 ## Intuition
 
-The path is a walk through the grid rather than a list of chosen items, but the shape is identical to every other backtracking problem: one decision per step (which of the four neighbours to move to), a base case that records success, and an undo on the way back up. The only wrinkle is "the same cell may not be used more than once" — which needs a visited marker that is local to the *current* path, not global. Overwriting `board[r][c]` with a sentinel and restoring it on the way out gives exactly that, with no extra visited set: a cell is off-limits only while it sits on the path being explored.
+Backtracking tries each possible next cell and undoes the choice afterward. The visited state
+must apply only to the current path: a cell used by one failed path must remain available to a
+later path. Temporarily replacing its character with `"#"` provides this state without a
+separate set, provided the character is restored before returning.
 
 ## Approach
 
-1. Cache `rows, cols`. Write one recursive `dfs(r, c, k)` meaning "can `word[k:]` be spelled starting at cell `(r, c)`".
-2. Order the base cases carefully: check `k == len(word)` **first** and return `True`. If the bounds/mismatch check came first, a full match ending at the grid edge would be rejected.
-3. Then reject: out of bounds, or `board[r][c] != word[k]`, or the cell is the `'#'` sentinel (which can never equal a letter of `word`, so the same comparison covers it). Return `False`.
-4. The path is implicit — it is the chain of cells currently marked `'#'` on the stack, and `k` is its length. Nothing needs copying because the answer is a boolean, not a list.
-5. Choose: save `board[r][c]` (it equals `word[k]`), overwrite with `'#'`, then recurse into the four neighbours, OR-ing the results. Python's `or` short-circuits, so the first success stops the rest.
-6. Undo: restore `board[r][c] = word[k]` before returning, whether the branch succeeded or failed. Skipping the restore corrupts the grid for every later starting cell — the bug that makes only the first `any(...)` candidate work.
-7. Pruning rule: the character test at the top of `dfs` is the prune. A branch dies the instant a cell disagrees with `word[k]`, so the 4^L blowup is only realised on grids of nearly uniform letters.
-8. Drive it from every cell: `any(dfs(r, c, 0) for r in range(rows) for c in range(cols))`.
+1. Define `dfs(r, c, k)` to test whether `word[k:]` can start at `(r, c)`.
+2. Return `True` when `k == len(word)`. Otherwise reject an out-of-bounds cell or a character
+   that does not equal `word[k]`.
+3. Save the matching character, write `"#"`, and recursively try all four neighbors for
+   `k + 1`. The sentinel prevents reuse on this path.
+4. Restore the saved character before returning, whether the search succeeds or fails.
+5. Call `dfs` with `k = 0` from every cell. `any` stops after the first complete match.
 
 ## Code
 
@@ -47,10 +50,11 @@ class Solution:
                 return True
             if r < 0 or r >= rows or c < 0 or c >= cols or board[r][c] != word[k]:
                 return False
+            ch = board[r][c]
             board[r][c] = "#"
             found = (dfs(r + 1, c, k + 1) or dfs(r - 1, c, k + 1)
                      or dfs(r, c + 1, k + 1) or dfs(r, c - 1, k + 1))
-            board[r][c] = word[k]
+            board[r][c] = ch
             return found
 
         return any(dfs(r, c, 0) for r in range(rows) for c in range(cols))
@@ -58,4 +62,13 @@ class Solution:
 
 ## Why it works
 
-The invariant is that on entry to `dfs(r, c, k)` the cells currently holding `'#'` are exactly the `k` cells already matched on this path, so no cell can be reused, and the restore on exit re-establishes it for every sibling and every later start cell. Any valid placement of `word` starts at some cell and proceeds through adjacent cells, and the search tries all four neighbours at each step from all `m * n` starts, so nothing is missed. Each path is at most `L = len(word)` long with 4 branches per step (really 3 after the first, since you never step back onto a `'#'`), giving the O(m * n * 4^L) bound and O(L) stack space with no auxiliary visited structure.
+At depth `k`, the `"#"` cells are exactly the `k` distinct cells that matched `word[:k]`.
+A matching next cell is marked before recursion, so no path can reuse it; restoration preserves
+the invariant for sibling branches. Every valid word placement has some starting cell and a
+sequence of orthogonal moves, all of which the outer loop and recursion enumerate. Reaching
+`k == len(word)` therefore occurs exactly when a valid placement has been matched.
+
+**Complexity**
+
+- **Time:** `O(m * n * 4^L)` in the stated upper bound for word length `L`.
+- **Space:** `O(L)` for the recursion stack; `board` is temporarily modified in place.

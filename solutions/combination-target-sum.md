@@ -3,13 +3,14 @@
 # https://leetcode.com/problems/combination-sum/
 draft: false
 pattern: "Reusable start index with sorted cutoff"
-time: "O(n^(t/m))"
-space: "O(t/m)"
+time: "O(n log n + (t/m) * n^(t/m))"
+space: "O(n + t/m)"
 ---
 
 ## Description
 
-Given an array of distinct positive integers `candidates` and a target integer `target`, return all unique combinations of `candidates` where the chosen numbers sum to `target`. The same number may be chosen from `candidates` an unlimited number of times.
+Given distinct positive integers `candidates` and `target`, return every unique combination
+whose sum is `target`. Each candidate may be selected any number of times.
 
 **Example**
 
@@ -18,22 +19,24 @@ Input: candidates = [2,3,6,7], target = 7
 Output: [[2,2,3],[7]]
 ```
 
-Explanation: `2 + 2 + 3 == 7` reuses `2` twice, and `7` alone also sums to `7`; both are valid, and no other combination of the candidates reaches 7.
+The combination `[2, 2, 3]` reuses `2`, while `[7]` reaches the target directly.
 
 ## Intuition
 
-Candidates may be reused without limit, so the loop recurses on `i` rather than `i + 1` — that is the only structural difference from Subsets. The start index still does the deduplication work: it forbids ever going *back* to a smaller index, so a combination is only ever assembled in non-decreasing order and `[2,3]` and `[3,2]` cannot both appear. Sorting the candidates buys a real prune on top of that: once `candidates[i] > remain` the rest of the row is even bigger, so I can `break` out of the loop instead of testing each remaining sibling.
+Generate combinations in nondecreasing order by allowing only indices at or after `start`.
+This canonical order prevents permutations of the same values from becoming duplicate answers.
+Recurse with the same index to permit reuse. Sorting also makes it safe to stop as soon as a
+candidate exceeds the remaining target.
 
 ## Approach
 
-1. Sort `candidates` ascending — required for the `break` prune to be valid.
-2. The decision at each node is which candidate index `i >= start` to append next; unlimited reuse means the same `i` may be chosen again at the next depth.
-3. `path` holds the numbers chosen so far in non-decreasing order; `remain` is the target minus their sum, carried down so no re-summing is needed; `res` collects finished combinations.
-4. Base case: `remain == 0` — append `path[:]` and return. There is no separate "overshot" case, because the prune below never lets `remain` go negative.
-5. Pruning rule: inside the loop, `if candidates[i] > remain: break`. Sorted order means every later sibling is at least as large, so all of them overshoot too — `break`, not `continue`.
-6. Body: `path.append(candidates[i])`, then `dfs(i, remain - candidates[i])` — pass `i`, not `i + 1`, so the same candidate can repeat — then `path.pop()` to undo before the next sibling.
-7. Append `path[:]`, a copy: `path` is one list mutated throughout the traversal, so a stored reference would be aliased and eventually empty.
-8. No sort-then-skip-equal-siblings step here: the problem states the candidates are distinct, and repeats within one combination are wanted, not filtered.
+1. Sort `candidates` in place, mutating its order so an oversized value ends the current loop.
+2. In `dfs(start, remain)`, try each index `i >= start`. `path` holds the current nondecreasing
+   combination and `remain` is the amount still needed.
+3. Append `candidates[i]`, recurse with `i` to allow reuse, then pop to restore `path` for the
+   next sibling. Break when the current value exceeds `remain`.
+4. When `remain == 0`, append `path[:]` so the result keeps a snapshot rather than the mutable
+   working list.
 
 ## Code
 
@@ -60,4 +63,15 @@ class Solution:
 
 ## Why it works
 
-Every multiset of candidates summing to `target` has exactly one non-decreasing arrangement, and the traversal generates precisely the non-decreasing sequences — the non-decreasing start index gives uniqueness, and allowing `i` again gives completeness for repeats. The `break` is safe because sorted order makes `candidates[i] > remain` imply the same for all `j > i`, so nothing reachable is cut. Depth is bounded by `t/m` where `t` is the target and `m` the smallest candidate (every level subtracts at least `m`), and each node branches at most `n` ways, giving the O(n^(t/m)) bound; the auxiliary space is `path` plus a stack of that same depth.
+Every valid multiset has exactly one nondecreasing ordering. The `start` index permits precisely
+those orderings, and recursing with `i` permits every multiplicity, so each valid answer has one
+branch. Each branch records an answer only when its sum is exactly `target`; sorted pruning
+removes only choices that already exceed the remainder. The traversal is therefore complete,
+unique, and sound.
+
+**Complexity**
+
+- **Time:** `O(n log n + (t / m) * n^(t / m))` as a loose worst-case bound, where `t`
+  is `target`, `m` is the smallest candidate, and `n = len(candidates)`; sorting and output
+  copies are included.
+- **Space:** `O(n + t / m)` auxiliary space for sorting, `path`, and recursion, plus the output.

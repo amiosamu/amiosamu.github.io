@@ -20,32 +20,23 @@ Input: s = "(*)"
 Output: true
 ```
 
-Explanation: Reading `'*'` as an empty string leaves `"()"`, a matched pair, so `s` is valid.
+Interpreting `'*'` as empty leaves the valid string `"()"`.
 
 ## Intuition
 
-Trying every interpretation of each `*` is exponential in the number of wildcards. Instead of
-tracking one exact open-paren count, track the whole range of counts reachable by some choice of
-interpretation for the `*`s seen so far — `lo` and `hi`. `(` shifts the range up by one, `)`
-shifts it down by one, and `*` can be either or empty, so it widens the range by one on each end.
-A negative `lo` just means some `*` must be read as not-`)` to stay non-negative, which is always
-possible as long as `hi` hasn't gone negative too — so `lo` gets clamped to 0 rather than failing.
+Track the minimum and maximum possible numbers of unmatched opening parentheses after each prefix.
+An opening parenthesis increases both bounds, a closing one decreases both, and `'*'` widens the
+range. Negative counts are invalid prefixes, so clamp the lower bound to zero and fail if even the
+upper bound becomes negative.
 
 ## Approach
 
-1. Initialize `lo = hi = 0` — the min and max number of unmatched `(` consistent with some
-   choice of interpretation for every `*` processed so far.
-2. For each character `c` in `s`:
-   - if `c == '('`: `lo += 1`, `hi += 1`.
-   - if `c == ')'`: `lo -= 1`, `hi -= 1`.
-   - otherwise (`c == '*'`): `lo -= 1`, `hi += 1` — spanning the three interpretations
-     `)`, empty, `(`.
-3. If `hi < 0` at this point, return `False` immediately: even reading every `*` as `(` can't
-   keep the open count non-negative up to here, so the string is unsalvageable.
-4. Clamp `lo = max(lo, 0)` — a negative low end is not a real constraint violation, since `hi`
-   is still `>= 0` there's always a way to reinterpret enough `*`s to land on 0 instead.
-5. After the loop, return `lo == 0` — the string is valid only if zero unmatched `(` is one of
-   the counts still reachable at the very end.
+1. Initialize `lo = hi = 0` as the range of reachable unmatched-open counts.
+2. Update both bounds by `+1` for `'('`, by `-1` for `')'`, and update them by `-1` and `+1`
+   respectively for `'*'`.
+3. Return `False` if `hi < 0`; every interpretation has closed more parentheses than it opened.
+4. Clamp `lo` to zero because negative open counts are unusable but zero remains reachable.
+5. After all characters, return whether `lo == 0`.
 
 ## Code
 
@@ -74,11 +65,13 @@ class Solution:
 
 ## Why it works
 
-`[lo, hi]` is always exactly the set of open-paren counts reachable by some assignment of the
-`*`s seen so far, and it stays a contiguous interval because `(` and `)` shift every reachable
-value by the same amount while `*` fans each reachable value out to three consecutive ones —
-never skipping a value in between. Clamping `lo` to 0 is sound because whenever `lo` would go
-negative, `hi` is still `>= 0`, so 0 itself is reachable and can be carried forward in place of
-the negative value. `hi < 0` is unrecoverable because it means even the most generous reading of
-every `*` overshoots `)`. Requiring `lo == 0` at the end is exactly the definition of a fully
-matched string. Single linear pass with two scalars gives O(n) time and O(1) space.
+After each prefix, the invariant is that every feasible unmatched-open count lies in `[lo, hi]`
+and every integer in that interval is reachable. Each character shifts or widens this contiguous
+set exactly as the updates specify. Clamping removes only invalid negative prefix counts. If `hi`
+is negative, no interpretation can repair the prefix; otherwise the invariant continues. At the
+end, a valid interpretation exists exactly when zero is reachable, which is equivalent to `lo == 0`.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through the string.
+- **Space:** `O(1)` auxiliary space.

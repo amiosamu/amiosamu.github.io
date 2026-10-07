@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Packages, given as an array `weights`, must be shipped in the given order over exactly `days` days, loading each day's ship consecutively from the front of the array without exceeding its weight capacity. Return the least such capacity that still ships every package within `days` days.
+Ship packages in their given order within `days` days. Return the smallest daily capacity that
+can carry every package without exceeding the capacity on any day.
 
 **Example**
 
@@ -18,22 +19,25 @@ Input: weights = [1,2,3,4,5,6,7,8,9,10], days = 5
 Output: 15
 ```
 
-Explanation: With capacity 15 the packages split into the five days `[1,2,3,4,5]`, `[6,7]`, `[8]`, `[9]`, `[10]`, and no smaller capacity can ship them all within 5 days.
+Capacity 15 permits loads `[1,2,3,4,5]`, `[6,7]`, `[8]`, `[9]`, and `[10]`. A smaller capacity
+cannot meet the deadline.
 
 ## Intuition
 
-Same shape as Koko: the thing being searched is the answer space, the capacities `[max(weights), sum(weights)]`, and the predicate "can I ship in `days` days with this capacity" is monotone — a bigger boat never needs more days. The second half of the insight is that for a *fixed* capacity the optimal packing is forced: order must be preserved, so greedily loading each package onto the current day until it would overflow is provably the minimum number of days. That makes the feasibility check a single linear pass.
+For a fixed capacity, filling each day until the next package would overflow uses the fewest days
+while preserving order. Feasibility is monotone: if a capacity meets the deadline, every larger
+capacity does too. Binary search can therefore find the first feasible capacity between the
+heaviest package and the total weight.
 
 ## Approach
 
-1. Write `days_needed(cap)`: start `d = 1`, `load = 0`; for each weight `w`, if `load + w > cap` open a new day (`d += 1`, `load = 0`), then `load += w`. Return `d`.
-2. Search space: the capacity interval `[l, r]`, **inclusive on both ends**, with `l = max(weights)` (any smaller boat can never carry the heaviest package, so those capacities are not merely infeasible but ill-defined) and `r = sum(weights)` (ships everything in one day, feasible for any `days >= 1`).
-3. Monotone predicate: `P(cap) = days_needed(cap) <= days`. False on a prefix of the interval, true on the suffix beginning at the answer.
-4. Invariant: every capacity `< l` fails `P`, every capacity `> r` satisfies `P`.
-5. Loop `while l <= r`, `mid = (l + r) // 2`.
-6. If `days_needed(mid) <= days`, `mid` works but a smaller boat might too: `r = mid - 1`. Otherwise `l = mid + 1`.
-7. On exit `l == r + 1`: `r` is the largest capacity that misses the deadline and `l` is the smallest that meets it — return `l`.
-8. Because `l` starts at `max(weights)`, `days_needed` never loops forever on a package that cannot fit, and `P(sum(weights))` is always true, so `l` stays inside the interval.
+1. `days_needed(cap)` greedily fills a day's load and starts a new day before a package would
+   exceed `cap`.
+2. Search inclusive capacities from `max(weights)`, which fits every package, through
+   `sum(weights)`, which ships everything in one day.
+3. For `mid`, move `r` left when `days_needed(mid) <= days`; otherwise move `l` right.
+4. When the interval empties, return `l`, the first feasible capacity. The valid input is
+   non-empty, so both initial bounds exist.
 
 ## Code
 
@@ -61,4 +65,14 @@ class Solution:
 
 ## Why it works
 
-The greedy split is optimal by an exchange argument: after `i` packages, the greedy day-count is minimal and its current `load` is maximal among all minimal-day packings, so it can never be beaten by deferring a package to the next day. Given that, `days_needed` is non-increasing in `cap`, the predicate flips exactly once, and the loop invariant "left of `l` infeasible, right of `r` feasible" makes `l` the smallest feasible capacity when the interval empties. The search does `O(log(sum(weights)))` iterations of an `O(n)` check with `O(1)` extra space.
+For a fixed capacity, the greedy first day contains the longest prefix that fits. Any valid
+schedule's first day can contain no more packages; removing that prefix and applying the same
+argument inductively proves `days_needed` is minimal. Increasing capacity cannot increase this
+count, so feasibility changes from false to true once. Binary search maintains that capacities
+below `l` are infeasible and capacities above `r` are feasible, making `l` the minimum feasible
+capacity when the interval closes.
+
+**Complexity**
+
+- **Time:** `O(n log S)`, where `S = sum(weights) - max(weights) + 1` is the searched range.
+- **Space:** `O(1)`.

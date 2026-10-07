@@ -9,7 +9,8 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree, count the good nodes: a node X is good if no node on the path from the root down to X holds a value greater than X's own value.
+Given a binary tree, count nodes whose value is at least every value on the path from the root
+to that node.
 
 **Example**
 
@@ -18,20 +19,23 @@ Input: root = [3,1,4,3,null,1,5]
 Output: 4
 ```
 
-Explanation: The root 3, the 3 nested under it, the 4, and the 5 are each at least as large as every value on their own path from the root, while the two nodes valued 1 are smaller than an ancestor, so exactly 4 nodes qualify.
+The root, the descendant valued 3, the node valued 4, and the node valued 5 are good. Both nodes
+valued 1 have a larger ancestor.
 
 ## Intuition
 
-"No node on the path from root to X has a value greater than X" is a statement about X's ancestors only, and I don't need the whole list of them — I only need their maximum. That maximum is a single number I can carry down as a parameter, updated at each step. So one pre-order DFS threading `best` (the largest value seen on the path so far, root included) answers every node in O(1) as I arrive at it.
+Only the maximum ancestor value matters. Carry that value down during DFS, compare each node
+against it, then include the current value in the maximum passed to the children. Each branch
+receives its own scalar value, so sibling paths do not affect one another.
 
 ## Approach
 
-1. Write a helper `dfs(node, best)` where `best` is the maximum value on the path from the root down to `node`'s parent, and which returns the number of good nodes in `node`'s subtree.
-2. Base case: `node` is None, return 0.
-3. `node` is good iff `node.val >= best` — note the `>=`, since "no ancestor is *greater*" allows ties. Score 1 or 0 accordingly.
-4. Update `best = max(best, node.val)` **before** recursing, so children see a maximum that includes this node.
-5. Return that score plus `dfs(node.left, best)` plus `dfs(node.right, best)`.
-6. Kick off with `dfs(root, float('-inf'))`. Seeding with negative infinity rather than `root.val` means the root is counted by the same rule as everything else and no separate case is needed, and it also makes the empty-tree call return 0 for free.
+1. Define `dfs(node, best)`, where `best` is the maximum value from the root through the
+   parent, and return zero for a null node.
+2. Count the current node when `node.val >= best`; equality qualifies.
+3. Update `best = max(best, node.val)` and add the recursive counts from both children.
+4. Start with negative infinity so the root uses the same rule. An empty tree naturally returns
+   zero, and the tree is not mutated.
 
 ## Code
 
@@ -50,4 +54,12 @@ class Solution:
 
 ## Why it works
 
-`best` is passed by value down each branch, so a sibling's values never leak across — each node is tested against the maximum of its own root-to-parent path and nothing else, which is precisely the definition of good. Because the sets of good nodes in the left and right subtrees are disjoint and together with the current node cover the whole subtree, summing the two recursive counts is exact. Every node is visited once for O(n), and the only extra memory is the call stack, O(h), which degrades to O(n) on a skewed tree.
+For every call, `best` equals the maximum on that node's root-to-parent path. The initial call
+establishes this, and updating with `node.val` preserves it for both children. Therefore the
+comparison counts exactly the good current nodes. The current node and the two subtrees are
+disjoint and exhaustive, so summing their counts returns the exact subtree total by induction.
+
+**Complexity**
+
+- **Time:** `O(n)` because every node is visited once.
+- **Space:** `O(h)` recursion space, where `h` is the tree height and can be `n`.

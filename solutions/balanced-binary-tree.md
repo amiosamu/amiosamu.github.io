@@ -9,7 +9,8 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree, determine whether it is height-balanced: for every node in the tree, the heights of its left and right subtrees differ by no more than 1.
+Given a binary tree, determine whether every node's left and right subtree heights differ by at
+most one.
 
 **Example**
 
@@ -18,22 +19,23 @@ Input: root = [3,9,20,null,null,15,7]
 Output: true
 ```
 
-Explanation: Node 3's two subtrees have heights 1 (just node 9) and 2 (20 with children 15 and 7), a difference of 1, and every other node's subtrees differ by at most 1 as well, so the whole tree is balanced.
+The root's subtree heights differ by one, and all other nodes also satisfy the condition.
 
 ## Intuition
 
-The naive reading — "for every node, compute both subtree heights and compare" — is O(n²), because each height call re-walks a whole subtree that its parent will walk again. But the height computation *already* visits every node in the right order, so the balance check can ride along inside it: a node checks `abs(left - right) <= 1` at the moment it has both heights in hand. To also propagate failure upward without a second return value, I overload the height with a sentinel: `-1` means "somewhere below me the tree is unbalanced", and a real height is always ≥ 0, so the two can never be confused.
+A postorder traversal obtains both child heights before checking a node. Returning `-1` when a
+subtree is unbalanced combines the height and validity results: valid heights are non-negative,
+so the sentinel cannot be mistaken for a height and can propagate immediately to the root.
 
 ## Approach
 
-1. Write `height(node)` with an explicit contract: **it returns the subtree's height in nodes if that subtree is balanced, and `-1` if it is not**. The problem returns a bool; the helper returns an int. That mismatch is the point — the int carries the information the parent needs, the `-1` carries the failure.
-2. Base case: `node is None` returns 0 (an empty tree is balanced with height 0).
-3. `left = height(node.left)`; if `left == -1`, return `-1` immediately — no reason to look at the right subtree once the answer is settled.
-4. `right = height(node.right)`; if `right == -1`, return `-1`.
-5. Both subtrees are balanced, so now check *this* node: if `abs(left - right) > 1`, return `-1`.
-6. Otherwise return `1 + max(left, right)`, the normal height.
-7. Top level: return `height(root) != -1`.
-8. Post-order is forced — the check at a node needs both children's heights, so the verdict is formed on the way back up, never on the way down.
+1. Define `height(node)` to return a balanced subtree's height, or `-1` if it is unbalanced.
+2. Return `0` for an empty subtree. Recursively obtain `left` and `right`, returning `-1`
+   early if either child is already unbalanced.
+3. Return `-1` when `abs(left - right) > 1`; otherwise return
+   `1 + max(left, right)`.
+4. The tree is balanced exactly when `height(root) != -1`. An empty tree correctly returns
+   true.
 
 ## Code
 
@@ -58,4 +60,12 @@ class Solution:
 
 ## Why it works
 
-The tree is balanced exactly when every node satisfies the height condition, and the helper checks that condition once per node, so no node is missed; the `-1` is sticky — once returned it propagates up through every ancestor untouched — so a single violation anywhere makes the top-level call return `-1`. When no violation exists the return value is a genuine height, which is what the parent's own check consumes, so the two meanings never overlap. Because heights are computed bottom-up and reused instead of recomputed, each node is touched once: O(n) time, and O(h) stack space, which is O(n) for a degenerate chain (and note a chain of more than 2 nodes bails early anyway).
+By induction on subtree size, `height(node)` returns the true height exactly when every node in
+that subtree is balanced. The base case is empty. For a non-empty subtree, the recursive results
+validate both children; the local height comparison then validates the root and computes its
+height. Any failure returns `-1` through every ancestor, so the final test is correct.
+
+**Complexity**
+
+- **Time:** `O(n)` because each visited node performs constant work.
+- **Space:** `O(h)` for the recursion stack, where `h` is the tree height.

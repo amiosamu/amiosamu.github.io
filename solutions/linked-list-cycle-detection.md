@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given the head of a linked list, determine whether it contains a cycle, i.e. some node's `next` pointer eventually leads back to a node already visited, so a traversal would never reach the end.
+Given the head of a linked list, return whether repeatedly following `next` eventually revisits
+a node instead of reaching `None`.
 
 **Example**
 
@@ -18,28 +19,22 @@ Input: head = [3,2,0,-4], with the last node's next pointing back to the node ho
 Output: true
 ```
 
-Explanation: Following `next` from -4 lands back on the node with value 2 instead of on null, so the list loops forever and the function returns true.
+The last node points back to the node containing `2`, so traversal enters a cycle.
 
 ## Intuition
 
-The obvious solution is a set of visited nodes, which costs O(n) memory. The trick that kills
-it: put two runners on the track, one moving one node per step and one moving two. If the list
-ends, the fast runner falls off. If it loops, the fast runner keeps lapping the track and closes
-the gap on the slow one by exactly one node per step, so a collision is guaranteed — no
-bookkeeping required.
+Use a slow pointer that advances one node and a fast pointer that advances two. In an acyclic
+list, the fast pointer reaches the end. In a cycle, both pointers eventually enter the loop, where
+the fast pointer gains one position per iteration and must meet the slow pointer.
 
 ## Approach
 
-1. Start `slow = fast = head`.
-2. Loop while `fast` and `fast.next` are both non-`None`. Both checks are needed: `fast.next.next`
-   dereferences two links, so a single guard would blow up on an even-length acyclic list.
-3. Inside the loop advance `slow = slow.next` and `fast = fast.next.next`, then test
-   `slow is fast` and return `True` on a match.
-4. Test *after* moving, not before — testing first would fire immediately since both start at
-   `head`.
-5. Compare with `is` (identity), not `==` on values; two distinct nodes can hold the same value.
-6. Falling out of the loop means `fast` reached the end, so there is no cycle — return `False`.
-   An empty list returns `False` on the first guard.
+1. Initialize `slow` and `fast` to `head`.
+2. While `fast` and `fast.next` exist, move `slow` once and `fast` twice.
+3. Compare node identity after moving; equal values in different nodes do not indicate a cycle.
+4. Return `True` when the pointers meet.
+5. Return `False` if the fast pointer reaches the end. Empty and one-node acyclic lists take this
+   path without dereferencing a missing node.
 
 ## Code
 
@@ -57,8 +52,13 @@ class Solution:
 
 ## Why it works
 
-Once both pointers are inside the cycle, the distance from `fast` to `slow` measured forward
-around the loop shrinks by exactly one each step (fast gains two, slow gains one), so it must
-hit zero — it can never jump over. That bounds the meeting at O(n) steps: at most n steps to get
-`slow` into the cycle, then at most one cycle length more. Two pointers is all the memory used,
-hence O(1) space.
+If the list is acyclic, following `next` must reach `None`, so the loop ends and returns `False`.
+If the list has a cycle, the fast pointer enters it no later than the slow pointer. Once both are
+inside, their positions modulo the cycle length differ by one less on every iteration because fast
+moves one extra step. That difference must become zero, so the pointers meet and the algorithm
+returns `True`.
+
+**Complexity**
+
+- **Time:** `O(n)` before reaching the end or detecting a cycle.
+- **Space:** `O(1)` auxiliary space.

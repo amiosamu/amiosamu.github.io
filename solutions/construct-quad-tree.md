@@ -9,30 +9,41 @@ space: "O(log n)"
 
 ## Description
 
-Given an n x n grid of 0s and 1s, where n is a power of two, build the equivalent quad-tree: recursively split the grid into four equal quadrants, representing any quadrant whose cells are all the same value as a single leaf node holding that value, and splitting a mixed quadrant into four further quadrants otherwise.
+Given an `n x n` binary grid, where `n` is a power of two, build its quad tree. A uniform
+square becomes one leaf; a mixed square is divided into four equal quadrants recursively.
 
 **Example**
 
 ```
 Input: grid = [[0,1],[1,0]]
-Output: Node(val=True, isLeaf=False, topLeft=Node(0,True), topRight=Node(1,True), bottomLeft=Node(1,True), bottomRight=Node(0,True))
+Output: Node(
+  val=True,
+  isLeaf=False,
+  topLeft=Node(0,True),
+  topRight=Node(1,True),
+  bottomLeft=Node(1,True),
+  bottomRight=Node(0,True)
+)
 ```
 
-Explanation: The four cells 0, 1, 1, 0 are not all equal, so the root cannot collapse into one leaf; each 1x1 quadrant is trivially uniform, so topLeft, topRight, bottomLeft, and bottomRight each become a leaf carrying their own cell's value.
+The grid is mixed, so its root is internal. Each `1 x 1` quadrant is a leaf containing that
+cell's value.
 
 ## Intuition
 
-The obvious version scans a whole sub-grid to ask "is it all the same value?", and if it isn't, splits into four and repeats — that re-reads every cell at every level, O(n² log n). But the question "is this square uniform?" is answerable from the children instead of from the cells: a square is uniform exactly when all four quadrants came back as leaves carrying the same value. So I build bottom-up, and the merge test is four field reads instead of a scan.
+Build from the cells upward. A larger square is uniform exactly when all four quadrant results
+are leaves with the same value. This avoids rescanning each square to test uniformity and lets
+the recursive results provide the answer in constant time per node.
 
 ## Approach
 
-1. `grid` is n × n with n a power of two, so every quadrant is again a square of even size until size 1.
-2. Write `build(r, c, size)` returning the quad-tree `Node` for the square whose top-left corner is `(r, c)`.
-3. Base case `size == 1`: return a leaf, `Node(grid[r][c] == 1, True, None, None, None, None)`. LeetCode's `Node` constructor takes all six arguments with no defaults — `val, isLeaf, topLeft, topRight, bottomLeft, bottomRight` — so the four Nones must be passed explicitly.
-4. Otherwise `half = size // 2`, and recurse in the order the constructor wants them: `tl = build(r, c, half)`, `tr = build(r, c + half, half)`, `bl = build(r + half, c, half)`, `br = build(r + half, c + half, half)`. Getting these four offsets right is the only fiddly part: the column shifts for the right pair, the row shifts for the bottom pair.
-5. Merge test: if all four are leaves **and** their `val` fields are all equal, the whole square is uniform — throw the four children away and return a single leaf `Node(tl.val, True, None, None, None, None)`.
-6. Otherwise return an internal node `Node(True, False, tl, tr, bl, br)`. `val` is ignored for internal nodes, so `True` is just the conventional filler.
-7. Return `build(0, 0, len(grid))`.
+1. Define `build(r, c, size)` for the square with top-left cell `(r, c)`.
+2. For `size == 1`, return a leaf whose value is the cell value.
+3. Otherwise recursively build the top-left, top-right, bottom-left, and bottom-right squares
+   of size `size // 2`.
+4. If all children are leaves with one value, replace them with a leaf of that value. Otherwise
+   return an internal node containing the four children. Internal-node `val` is ignored.
+5. Build the full grid from `(0, 0)`. The grid is never mutated.
 
 ## Code
 
@@ -57,4 +68,12 @@ class Solution:
 
 ## Why it works
 
-By induction, `build` returns a leaf for a square exactly when that square is uniform: true at size 1, and at larger sizes a square is uniform iff all four quadrants are uniform with the same value, which is precisely the merge test on already-correct children. Non-uniform squares therefore keep all four children, matching the problem's rule that you only stop splitting when the cells agree. The recursion makes 1 + 4 + 16 + … + n² = O(n²) calls, each doing O(1) work outside the recursion, so it is O(n²) — one constant-time visit per cell rather than a rescan — with recursion depth log n and hence O(log n) auxiliary space beyond the returned tree.
+A `1 x 1` result is correctly a uniform leaf. Assume the four recursive quadrant results are
+correct. Their parent square is uniform exactly when all four are uniform and share one value,
+which is precisely the merge condition. Otherwise retaining them under an internal node is the
+required subdivision. Induction on `size` proves the full tree correct.
+
+**Complexity**
+
+- **Time:** `O(n^2)`; the full recursion tree has `O(n^2)` nodes.
+- **Space:** `O(log n)` auxiliary stack space and up to `O(n^2)` space for the returned tree.

@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a `grid` of 0s (water) and 1s (land) representing a single island with no lakes, return the perimeter of that island, treating each land cell as a unit square.
+Given a grid of water cells (`0`) and land cells (`1`) representing one island without lakes,
+return the island's perimeter. Each land cell is a unit square.
 
 **Example**
 
@@ -18,30 +19,21 @@ Input: grid = [[0,1,0,0],[1,1,1,0],[0,1,0,0],[1,1,0,0]]
 Output: 16
 ```
 
-Explanation: Summing, over every land cell, the sides that border water or the grid edge (4 minus 1 for each land-to-land adjacency) totals 16.
+The land cells have 16 sides exposed to water or the grid boundary.
 
 ## Intuition
 
-The graph is the land: every `1` is a node, and two land cells are joined by an edge when
-they share a side. Each land cell brings 4 unit sides to the outline, and each edge of that
-graph hides exactly 2 of them — one from each endpoint. So the perimeter is
-`4 * (land cells) - 2 * (adjacent land pairs)`, and I never have to traverse anything.
-
-Both counts fall out of a single sweep if, at each land cell, I only look *up* and *left*:
-every adjacent pair then gets seen exactly once, from its lower/right member. No visited
-set, no queue, `O(1)` extra space.
+Every land cell contributes four sides before neighboring cells are considered. A side shared by
+two land cells is internal, so that adjacency removes two sides from the perimeter. Looking only
+up and left while scanning row by row counts every shared side exactly once.
 
 ## Approach
 
-1. `perimeter = 0`; grab `rows, cols`.
-2. Sweep `r` over `range(rows)` and `c` over `range(cols)`. Skip the cell if `grid[r][c] == 0`.
-3. For a land cell, add `4` — its four unit sides, provisionally all exposed.
-4. If `r > 0` and `grid[r - 1][c] == 1`, subtract `2`: that shared border removes one side
-   from this cell and one from the neighbour above.
-5. If `c > 0` and `grid[r][c - 1] == 1`, subtract `2` for the same reason.
-6. Do **not** also check down and right — those pairs are already accounted for when the
-   sweep reaches the other member. Checking all four directions would double-count.
-7. Return `perimeter`.
+1. Initialize `perimeter` to zero and scan every cell in row-major order.
+2. Skip water cells because they contribute no island boundary.
+3. Add four for each land cell, provisionally counting all of its sides.
+4. Subtract two when the cell above is land, and two when the cell to the left is land.
+5. Return the resulting perimeter. Down and right are omitted so each adjacency is counted once.
 
 ## Code
 
@@ -66,9 +58,13 @@ class Solution:
 
 ## Why it works
 
-Every unit side of a land cell is either on the outline or shared with another land cell,
-and there is no third case — so counting all `4L` sides and removing the `2E` shared ones is
-exact. Looking only up and left is what makes each shared border contribute a single
-subtraction, since a pair is scanned once from its second member in row-major order. The
-formula is oblivious to connectivity, so it stays correct even without the problem's
-one-island guarantee, and the whole thing is one pass: `O(m * n)` time, `O(1)` space.
+Let `L` be the number of land cells and `E` the number of side-sharing land pairs. Counting each
+cell separately gives `4L` sides. Every shared border contributes two of those sides, neither of
+which belongs to the perimeter, so the correct result is `4L - 2E`. In row-major order, every
+shared pair has exactly one lower or right-hand cell, and that cell detects the pair by looking up
+or left. Thus the algorithm subtracts exactly once for every shared border.
+
+**Complexity**
+
+- **Time:** `O(m * n)` for an `m` by `n` grid.
+- **Space:** `O(1)` auxiliary space.

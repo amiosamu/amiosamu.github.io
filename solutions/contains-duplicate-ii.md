@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an integer array `nums` and an integer `k`, return whether there exist two distinct indices `i` and `j` such that `nums[i] == nums[j]` and `abs(i - j) <= k`.
+Given `nums` and `k`, return whether two distinct indices contain equal values and differ by at
+most `k`.
 
 **Example**
 
@@ -18,34 +19,43 @@ Input: nums = [1,2,3,1], k = 3
 Output: true
 ```
 
-Explanation: `nums[0] == nums[3] == 1` and `abs(0 - 3) == 3 <= 3`, so a qualifying pair exists.
+The equal values at indices 0 and 3 have distance 3, which is within `k`.
 
 ## Intuition
 
-The brute force compares every pair `(i, j)` and checks `nums[i] == nums[j] and j - i <= k`, which is O(n²). The observation that kills it: for the current index `i`, only the *most recent* earlier occurrence of `nums[i]` can matter — if that one is already further than `k` away, every occurrence before it is further still. So one map from value to its last seen index is enough, and each index only ever looks backwards once.
+For the current index, only the most recent earlier occurrence of the same value matters. It
+has the smallest possible distance; if it is too far away, every older occurrence is also too
+far. Store that latest index in a hash map.
 
 ## Approach
 
-1. Keep a hashmap `mp` from value to the last index where that value appeared.
-2. Iterate `i` over `range(len(nums))`.
-3. Check if `nums[i]` is in `mp` and the difference between `i` and `mp[nums[i]]` is within `k`. If that's true return `True`.
-4. Otherwise put the current index in the map: `mp[nums[i]] = i`. This overwrite is the whole trick — the older index is worthless once a nearer one exists.
-5. Return `False` if after the for loop we could not return `True`.
-6. Edge cases fall out for free: `k = 0` never satisfies `i - mp[...] <= k` for two distinct indices, and a single-element array never enters the `if`.
+1. Maintain `last`, mapping each value to its greatest processed index.
+2. At index `i`, return `True` if `nums[i]` is in `last` and `i - last[nums[i]] <= k`.
+3. Otherwise overwrite the value's entry with `i`; any older index can no longer produce a
+   smaller gap for a future occurrence.
+4. Return `False` after the scan. With `k == 0`, distinct indices can never qualify.
 
 ## Code
 
 ```python
 class Solution:
     def containsNearbyDuplicate(self, nums: List[int], k: int) -> bool:
-        mp = {}
-        for i in range(len(nums)):
-            if nums[i] in mp and i - mp[nums[i]] <= k:
+        last = {}
+        for i, value in enumerate(nums):
+            if value in last and i - last[value] <= k:
                 return True
-            mp[nums[i]] = i
+            last[value] = i
         return False
 ```
 
 ## Why it works
 
-The invariant is that when `i` is processed, `mp[v]` holds the largest index `j < i` with `nums[j] == v`, so `i - mp[nums[i]]` is the smallest possible gap ending at `i`. Any valid pair `(j, i)` has some rightmost such `j`, and that pair is tested exactly when the loop reaches `i` — so no answer is missed. One pass with O(1) hash operations gives O(n) time, and the map holds at most one entry per distinct value, O(n) space.
+Before index `i` is processed, `last[v]` is the greatest earlier index containing `v`.
+Therefore `i - last[nums[i]]` is the minimum gap from `i` to an equal earlier value. Any valid
+pair is detected when its right endpoint is processed. Updating the entry preserves the
+invariant, so returning `False` means no qualifying pair exists.
+
+**Complexity**
+
+- **Time:** `O(n)` expected time for hash-map operations.
+- **Space:** `O(n)` in the worst case for distinct values.

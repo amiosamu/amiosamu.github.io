@@ -17,7 +17,9 @@ points plus the query point as the fourth corner.
 **Example**
 
 ```
-Input: ["DetectSquares", "add", "add", "add", "count"], [[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]]]
+Input:
+["DetectSquares", "add", "add", "add", "count"]
+[[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]]]
 Output: [null, null, null, null, 1]
 ```
 
@@ -26,28 +28,20 @@ one square with those three points as the other corners, all side length 8, so i
 
 ## Intuition
 
-Brute force would store every point and, on each `count` query, scan all pairs looking for
-two more points that close off an axis-aligned square - too slow and awkward once duplicate
-points are allowed. The fix: an axis-aligned square is pinned down by any point sharing the
-query's x-coordinate (a candidate corner in the same column) - once I pick that second corner,
-the side length and the other column are fixed, so the remaining two corners are just lookups.
-Counting duplicates matters here since two points sitting on the exact same coordinate each
-close off their own square.
+Choose an added point in the query's column as the other endpoint of a vertical side. Its
+vertical distance from the query fixes the side length, leaving only two possible columns for
+the square's opposite side. The other corners can then be counted by coordinate lookup.
+Coordinate frequencies are necessary because repeated points create distinct choices.
 
 ## Approach
 
-1. Maintain `points`, a `Counter` keyed by `(x, y)` tuples, tracking how many times each exact
-   coordinate has been added.
-2. Maintain `col`, a dict mapping `x -> Counter of y values`, so I can enumerate every distinct
-   point sharing a column with a query point without scanning everything.
-3. `add(point)`: unpack `x, y`; increment `points[(x, y)]` and `col[x][y]`.
-4. `count(point)`: unpack `x, y` from the query point; if `x` isn't a key in `col`, return 0.
-5. For every other `y3` in `col[x]` (skip `y3 == y`), let `d = y3 - y` - this fixes the square's
-   side length to `|d|`, with the query point and `(x, y3)` forming one vertical edge.
-6. For each candidate opposite column `x3` in `(x + d, x - d)`, the two remaining corners must
-   sit at `(x3, y)` and `(x3, y3)`; add `cnt3 * points[(x3, y)] * points[(x3, y3)]` to the
-   running total, where `cnt3 = col[x][y3]` is how many duplicates sit at `(x, y3)`.
-7. Sum contributions over every `y3` and both choices of `x3`, and return the total.
+1. Store every coordinate frequency in `points`. Also group frequencies by x-coordinate in
+   `col`, allowing a query to enumerate only points in its own column.
+2. In `add`, increment both counters; repeated additions remain separate choices.
+3. In `count`, iterate each `y3 != y` in column `x`. Let `d = y3 - y`, so the possible opposite
+   columns are `x + d` and `x - d`.
+4. For each opposite column `x3`, multiply the frequencies at `(x, y3)`, `(x3, y)`, and
+   `(x3, y3)`. Sum these products and return the result.
 
 ## Code
 
@@ -80,10 +74,14 @@ class DetectSquares:
 
 ## Why it works
 
-For any axis-aligned square, the query point plus any other point in its column fixes one
-vertical edge, and squares are rigid - that pins the edge length to `|d|` and forces the other
-two corners to lie at exactly `x ± d` on rows `y` and `y3`, with no other placement possible.
-Multiplying the counts at those three other corners together counts every combination of
-duplicate points as a distinct square, and checking both `x + d` and `x - d` covers squares on
-either side of the shared column. `count` only touches points sharing the query's column, so
-it's `O(k)` for `k` such points rather than scanning every point added.
+Every axis-aligned square containing the query has exactly one other corner in the query's
+column. Choosing that corner fixes a nonzero side length and exactly two possible opposite-side
+locations, both checked by the loop. Conversely, three existing points at one such location
+complete a valid square. Multiplying their frequencies counts every duplicate choice exactly
+once, establishing a bijection between loop contributions and squares.
+
+**Complexity**
+
+- **Time:** `O(1)` expected per `add`; `O(k)` per `count`, where `k` is the number of distinct
+  y-coordinates stored in the query's column.
+- **Space:** `O(p)` for `p` distinct added coordinates.

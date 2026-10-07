@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a non-empty array `nums` where every integer appears exactly twice except for one,
-which appears exactly once, find and return that single integer. The intended solution runs
-in linear time using only constant extra space, ruling out a hash-set/counting approach.
+Given a nonempty array `nums` in which every integer appears twice except for one integer that
+appears once, return the single integer using linear time and constant extra space.
 
 **Example**
 
@@ -20,23 +19,19 @@ Input: nums = [2,2,1]
 Output: 1
 ```
 
-Explanation: 2 appears twice and cancels itself out under XOR, leaving 1 as the only value
-that survives.
+Explanation: The two copies of `2` cancel under XOR, leaving `1`.
 
 ## Intuition
 
-The obvious solve is a counter dict, but that costs O(n) memory and the problem asks for
-constant space. The one property that kills it: XOR is associative and commutative, and
-`a ^ a == 0`. So if I fold the whole array with XOR, order stops mattering and every value
-that appears twice annihilates itself. What survives is `0 ^ single`, which is the answer.
+XOR is associative and commutative, `x ^ x == 0`, and `x ^ 0 == x`. Folding the array with
+XOR therefore cancels every duplicate pair regardless of order. Only the unpaired value
+remains, without a hash table or sorting.
 
 ## Approach
 
-1. Start `res = 0` — the identity for XOR, so an empty fold is harmless.
-2. Walk every `n` in `nums` and do `res ^= n`.
-3. Return `res`.
-4. No sorting, no dict, no second pass. The array is guaranteed to have exactly one element
-   appearing once and all others exactly twice, which is what makes the fold collapse cleanly.
+1. Initialize `res = 0`, the identity value for XOR.
+2. For each `n` in `nums`, update `res ^= n`.
+3. Return `res`, which contains the only value without a matching copy.
 
 ## Code
 
@@ -51,7 +46,12 @@ class Solution:
 
 ## Why it works
 
-Because XOR is commutative and associative, I can mentally reorder the fold so each duplicated
-pair sits next to itself; every pair contributes `x ^ x = 0`, and `0` is the XOR identity, so
-the accumulator ends at exactly the unpaired value. One pass over `n` elements with a single
-integer of state gives O(n) time and O(1) space.
+After processing any prefix, `res` equals the XOR of exactly that prefix; this follows directly
+by induction from the update. For the complete array, associativity and commutativity allow
+equal values to be paired. Every pair contributes zero, and XOR with zero changes nothing, so
+the final accumulator is exactly the single unpaired value.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through `nums`.
+- **Space:** `O(1)` auxiliary space.

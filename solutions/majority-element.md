@@ -9,8 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an array `nums` of size `n`, return the majority element — the value that appears
-more than `n // 2` times. The array is guaranteed to always contain a majority element.
+Given an integer array `nums`, return the value that appears more than `floor(n / 2)` times.
+The input is guaranteed to contain such a value.
 
 **Example**
 
@@ -19,28 +19,22 @@ Input: nums = [3,2,3]
 Output: 3
 ```
 
-Explanation: `n = 3`, so a majority element must appear more than once; `3` appears twice
-(at indices 0 and 2), more than any other value, so it is the answer.
+The value `3` appears twice, which is more than `floor(3 / 2) == 1`.
 
 ## Intuition
 
-Counting with a dict is the obvious `O(n)` answer but costs `O(n)` space, and sorting and
-taking `nums[n // 2]` costs `O(n log n)`. The insight that gets both to constant space:
-pair off each occurrence of the majority element with one occurrence of something else and
-throw both away. Since the majority strictly exceeds `n / 2`, it cannot be fully cancelled,
-so whatever survives the pairing is the answer. `count` tracks the size of the surviving
-run and `candidate` its value.
+Cancel pairs of different values. Because the majority occupies more than half of the array, it
+cannot be completely canceled by all non-majority values.
+
+Boyer-Moore voting performs this cancellation with a `candidate` and a `count`. A zero count means
+the processed prefix has canceled completely, so the current value can become the next candidate.
 
 ## Approach
 
-1. Start with `candidate = None` and `count = 0`.
-2. For each `x`: if `count == 0`, adopt `x` as the new `candidate` (everything before it has
-   cancelled out and no longer matters).
-3. Then vote: `count += 1` if `x == candidate`, else `count -= 1`.
-4. Return `candidate` after the pass — no verification loop is needed because the problem
-   guarantees a majority element exists.
-5. If that guarantee were dropped (the Majority Element II style setup), add a second pass
-   counting occurrences of `candidate` and check it exceeds `n // 2`.
+1. Initialize `candidate = None` and `count = 0`.
+2. When `count` is zero, adopt the current value as `candidate`.
+3. Increment `count` for a matching value; otherwise decrement it to cancel a pair.
+4. Return the final candidate. The existence guarantee makes a verification pass unnecessary.
 
 ## Code
 
@@ -60,9 +54,12 @@ class Solution:
 
 ## Why it works
 
-Every time `count` drops to zero, the prefix just consumed splits into pairs of one
-`candidate` and one non-`candidate`, so it contained at most half of any single value's
-occurrences — discarding it cannot destroy a majority in the whole array, since a value
-appearing more than half the time in the total must still appear more than half the time
-in the remainder. By induction the final survivor is the majority element, if one exists.
-One pass with two scalars: `O(n)` time, `O(1)` space.
+Whenever `count` returns to zero, the processed block can be partitioned into pairs of distinct
+values. Removing such pairs preserves the identity of any majority in the remaining multiset:
+each pair removes at most one occurrence of the majority and exactly one other value. Repeating
+this cancellation leaves the guaranteed majority as the final candidate.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through `nums`.
+- **Space:** `O(1)` auxiliary space.

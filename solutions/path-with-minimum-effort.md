@@ -10,9 +10,8 @@ space: "O(V) with V = m * n"
 ## Description
 
 Given a grid of cell heights, find a path from the top-left cell to the bottom-right cell
-(moving up/down/left/right) that minimizes the effort of the path, where the effort of a
-path is the maximum absolute height difference between two consecutive cells on it — not
-the sum of the differences.
+using four-directional moves. A path's effort is the maximum absolute height difference
+between consecutive cells; return the minimum possible effort.
 
 **Example**
 
@@ -21,36 +20,26 @@ Input: heights = [[1,2,2],[3,8,2],[5,3,5]]
 Output: 2
 ```
 
-Explanation: The route (0,0) -> (0,1) -> (0,2) -> (1,2) -> (2,2) has consecutive height
-differences 1, 0, 1, 2, so its effort is the largest of those, 2, and no route to the
-corner achieves a smaller maximum difference.
+Explanation: The path `(0,0) -> (1,0) -> (2,0) -> (2,1) -> (2,2)` has jumps
+`2, 2, 2, 2`, so its effort is `2`, and no path has a smaller maximum jump.
 
 ## Intuition
 
-The cost of a path is not the sum of its steps, it is the single worst step — the
-largest height jump anywhere along it. So I want the path whose *maximum* edge is
-smallest, the bottleneck path.
-
-That one change is what rules out plain BFS: BFS finds the fewest cells, and the
-fewest cells is unrelated to the gentlest climb. But Dijkstra never actually needs
-addition — all it needs is that extending a path can only make it worse, and
-`max(cost_so_far, new_jump) >= cost_so_far` is just as monotone as `+`. So I run
-Dijkstra with `max` in place of `+`.
+This is a bottleneck path: path cost is its largest edge weight, not the sum of edge weights.
+Extending a path changes its effort to `max(current_effort, next_jump)`, which can never decrease.
+That monotonicity allows Dijkstra's algorithm to work with `max` in place of addition. Plain BFS
+cannot work because fewer steps do not imply a smaller height jump.
 
 ## Approach
 
-1. `effort[r][c]` = the smallest possible "worst jump" over all paths from `(0,0)` to
-   `(r, c)`. Initialize everything to infinity, `effort[0][0] = 0`.
-2. Push `(0, 0, 0)` — `(effort, row, col)` — onto a min-heap keyed by effort.
-3. Pop the cell with the smallest effort. If it is the bottom-right corner, that value
-   is the answer: nothing still in the heap can reach it more cheaply.
-4. Skip a stale pop (`e > effort[r][c]`) — a cell can sit in the heap several times
-   with outdated values.
-5. For each of the four neighbours in bounds, the candidate effort is
-   `ne = max(e, abs(heights[nr][nc] - heights[r][c]))`. Relax only if `ne < effort[nr][nc]`,
-   then push.
-6. The `return 0` at the end is unreachable for a valid grid (the grid is always
-   connected); a 1x1 grid returns 0 on the very first pop.
+1. Let `effort[r][c]` be the best known bottleneck cost from `(0, 0)` to `(r, c)`. Initialize
+   all values to infinity except `effort[0][0] = 0`.
+2. Pop `(e, r, c)` from a min-heap and skip it if `e` exceeds the current recorded effort.
+3. Return `e` when the destination is popped. A `1 x 1` grid therefore returns zero.
+4. For each valid neighbor, compute
+   `ne = max(e, abs(heights[nr][nc] - heights[r][c]))`.
+5. If `ne` improves the neighbor, update its effort and push the new entry. The grid is not
+   mutated; the final fallback is unreachable because every valid grid is connected.
 
 ## Code
 
@@ -60,16 +49,16 @@ import heapq
 class Solution:
     def minimumEffortPath(self, heights: List[List[int]]) -> int:
         rows, cols = len(heights), len(heights[0])
-        effort = [[float('inf')] * cols for _ in range(rows)]
+        effort = [[float("inf")] * cols for _ in range(rows)]
         effort[0][0] = 0
         heap = [(0, 0, 0)]
 
         while heap:
             e, r, c = heapq.heappop(heap)
-            if r == rows - 1 and c == cols - 1:
-                return e
             if e > effort[r][c]:
                 continue
+            if r == rows - 1 and c == cols - 1:
+                return e
             for nr, nc in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
                 if 0 <= nr < rows and 0 <= nc < cols:
                     ne = max(e, abs(heights[nr][nc] - heights[r][c]))
@@ -82,9 +71,13 @@ class Solution:
 
 ## Why it works
 
-Dijkstra's correctness rests on one property of the combining operator, not on
-addition: extending a path must never decrease its cost. `max` satisfies that, so when
-a cell is popped with value `e`, every unpopped cell already has cost `>= e` and any
-route through them into this cell would have bottleneck `>= e` — the popped value is
-final. The graph has `V = m * n` cells and `E = 4V` edges, and each edge causes at most
-one push, giving `O(E log V) = O(V log V)`.
+Consider a cell popped with the smallest non-stale effort `e`. If a path with effort below `e`
+existed, take the first cell on that path not yet finalized. Its predecessor was finalized and
+would have inserted that cell with effort below `e`, contradicting the heap minimum. Thus every
+non-stale pop is optimal. In particular, the destination's first non-stale pop is the minimum
+possible path effort, so returning it is correct.
+
+**Complexity**
+
+- **Time:** `O(V log V)` for `V = m * n`; the grid graph has `O(V)` edges.
+- **Space:** `O(V)` auxiliary space for the effort table and heap.

@@ -9,9 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a list `intervals` where `intervals[i] = [starti, endi]`, return the minimum number of
-intervals that must be removed so that the remaining intervals are pairwise non-overlapping (two
-intervals that only touch at an endpoint are not considered overlapping).
+Given a list of intervals, return the minimum number to remove so that the remaining intervals
+do not overlap. Intervals that only touch at an endpoint do not overlap.
 
 **Example**
 
@@ -20,31 +19,23 @@ Input: intervals = [[1,2],[2,3],[3,4],[1,3]]
 Output: 1
 ```
 
-Explanation: `[1,3]` overlaps both `[1,2]` and `[2,3]`; removing `[1,3]` leaves `[1,2],[2,3],[3,4]`,
-which only touch at endpoints, so one removal suffices.
+Explanation: Removing `[1, 3]` leaves three intervals that only touch at endpoints.
 
 ## Intuition
 
-Removing the fewest intervals is the same problem as keeping the most, which is classic activity
-selection. The insight is that when two intervals conflict, the one that ends later is never the
-better keep: it blocks at least everything the earlier-ending one blocks, and possibly more. So I
-sort by end time and greedily keep an interval whenever it starts at or after the end of the last
-one I kept; everything else gets counted as a removal.
+Minimizing removals is equivalent to maximizing the number kept. Among available intervals, the
+one ending earliest leaves the most room for every later choice. Sort by end time, keep each
+compatible interval, and count every conflicting interval as a removal.
 
 ## Approach
 
-1. Sort `intervals` by end time — `key=lambda interval: interval[1]`. Sorting by start is a
-   different (also workable) variant; this one makes the greedy choice obvious.
-2. Track `prevEnd`, the end of the last interval I decided to keep, seeded with `intervals[0][1]`.
-   The constraints guarantee a non-empty list.
-3. Track `removed`, the answer, starting at 0.
-4. Walk the rest of the sorted list as `start, end`. If `start < prevEnd` the interval genuinely
-   overlaps the one I kept, so increment `removed` and leave `prevEnd` alone — I am discarding this
-   one, not the earlier-ending keeper.
-5. Otherwise keep it: set `prevEnd = end`.
-6. Use strict `<`, not `<=`: intervals like `[1,2]` and `[2,3]` merely touch at an endpoint and the
-   problem does not count that as overlapping.
-7. Return `removed`.
+1. Sort `intervals` in place by end time and keep the first interval.
+2. Track its end in `prev_end` and initialize `removed = 0`.
+3. For each later interval, count a removal when `start < prev_end`; the earlier-ending interval
+   remains the better choice.
+4. Otherwise keep the interval and update `prev_end = end`. Equality is allowed because touching
+   endpoints do not overlap.
+5. Return `removed`.
 
 ## Code
 
@@ -54,22 +45,27 @@ class Solution:
         intervals.sort(key=lambda interval: interval[1])
 
         removed = 0
-        prevEnd = intervals[0][1]
+        prev_end = intervals[0][1]
 
         for start, end in intervals[1:]:
-            if start < prevEnd:
+            if start < prev_end:
                 removed += 1
             else:
-                prevEnd = end
+                prev_end = end
 
         return removed
 ```
 
 ## Why it works
 
-The exchange argument: take any optimal set of kept intervals and let `x` be its earliest-ending
-member. The globally earliest-ending interval `g` ends no later than `x`, so swapping `x` for `g`
-keeps the set disjoint and the same size — the greedy first pick is safe, and induction on the rest
-of the timeline extends it to the whole answer. Keeping the maximum number is exactly minimising the
-removals, so `removed` is optimal. The sort is O(n log n) and dominates the single O(n) scan; the
-O(n) space is the sort's buffer.
+Take an optimal compatible set and compare its first interval with the globally earliest-ending
+interval chosen greedily. Replacing the optimal set's first interval with the greedy interval
+cannot invalidate any later interval, because the replacement ends no later. Thus an optimal set
+exists with the greedy first choice. Applying the same exchange argument after that endpoint proves
+all greedy choices retain the maximum possible number, so the number removed is minimal.
+
+**Complexity**
+
+- **Time:** `O(n log n)` for sorting, followed by an `O(n)` scan.
+- **Space:** `O(n)` auxiliary space in the worst case for Python's in-place sort. The input order
+  is mutated.

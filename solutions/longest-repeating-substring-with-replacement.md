@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a string `s` of uppercase letters and an integer `k`, find the length of the longest substring that can be turned into a single repeated character by changing at most `k` of its characters.
+Given an uppercase string `s` and an integer `k`, return the maximum length of a substring that
+can be made uniform by replacing at most `k` characters.
 
 **Example**
 
@@ -18,20 +19,22 @@ Input: s = "ABAB", k = 2
 Output: 4
 ```
 
-Explanation: replacing the two `'A'`s with `'B'`s (or vice versa) uses exactly `k = 2` replacements and turns the whole string into `"BBBB"`, so the answer is the full length, 4.
+Replacing either pair of letters makes the full string uniform using two replacements.
 
 ## Intuition
 
-The final string is all one character, so fix that character `c` up front and the problem collapses: the best window for `c` is the longest window containing at most `k` characters that aren't `c`. That condition is monotone — cutting the window can only reduce the number of non-`c` characters — so a single grow/shrink pass finds the best window for one `c`. There are only 26 candidates, so just run it 26 times and take the max, which avoids the trickier "max frequency in the window" bookkeeping of the single-pass version.
+Fix the target character `c`. A window can become all `c` exactly when it contains at most `k`
+other characters. This condition supports a sliding window: extend its right edge, then move the
+left edge only when too many replacements are required. Repeating for each character present in
+the input covers every possible uniform result.
 
 ## Approach
 
-1. `res = 0`, and `charSet = set(s)` — the only characters worth being the final one are those already in `s`.
-2. For each candidate `c` in `charSet`, reset `count = l = 0`. `count` is the number of `c`s inside the window `s[l..r]`, and `l` restarts because the windows for different candidates are unrelated.
-3. Walk `r` over `range(len(s))`; if `s[r] == c`, increment `count`.
-4. The number of characters that would need replacing is `(r - l + 1) - count`. While that exceeds `k`, shrink from the left: if `s[l] == c` decrement `count`, then advance `l`.
-5. After shrinking, the window is legal, so update `res = max(res, r - l + 1)`.
-6. Return `res` after all candidates. Note the shrink is a `while`, not an `if`, though with one character added per step it fires at most once.
+1. Build `charSet` from `s`; no absent character can improve a non-empty target window.
+2. For each target `c`, reset `l` and `count`, where `count` is the number of `c`s in the window.
+3. Extend `r`, incrementing `count` when `s[r] == c`.
+4. While `window length - count > k`, remove `s[l]` from the count when needed and advance `l`.
+5. Update `res` with every valid window and return it after all targets. Empty input leaves zero.
 
 ## Code
 
@@ -55,4 +58,13 @@ class Solution:
 
 ## Why it works
 
-Any valid answer is a substring that becomes all `c` for exactly one character `c`, and that substring costs `length - count(c)` replacements; the loop for that particular `c` considers, for every right end `r`, the leftmost `l` keeping the cost within `k`, which is the longest legal window ending at `r`. So the optimal substring is examined during the pass for its own `c` and cannot be missed. Each pass moves `l` and `r` forward only, so it is O(n), and there are at most 26 passes — O(26 * n) time with O(1) extra space for the 26-element set.
+For a fixed target `c`, a window needs exactly its length minus its number of `c` characters in
+replacements. After shrinking, `l` is the earliest left boundary that keeps this cost at most `k`,
+so the algorithm records the longest valid window ending at each `r`. Any optimal substring has
+some final character present in that substring; during that character's pass, its right endpoint
+is considered and a window at least as long is recorded. Therefore `res` is globally optimal.
+
+**Complexity**
+
+- **Time:** `O(26 * n)`, which is `O(n)` for the fixed uppercase alphabet.
+- **Space:** `O(1)` because the character set contains at most 26 entries.

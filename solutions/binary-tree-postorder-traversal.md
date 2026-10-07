@@ -9,7 +9,7 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree, return the values of its nodes in postorder traversal order: the left subtree, then the right subtree, then the node itself.
+Given a binary tree, return its values in left-subtree, right-subtree, node order.
 
 **Example**
 
@@ -18,20 +18,21 @@ Input: root = [1,null,2,3]
 Output: [3,2,1]
 ```
 
-Explanation: Visiting left-right-node means 1's (empty) left subtree contributes nothing, then its right subtree rooted at 2 is fully processed first (2's left child 3, then 2 itself), and only then is 1 emitted, giving [3,2,1].
+The subtree rooted at `2` produces `[3,2]`, and the root `1` is visited last.
 
 ## Intuition
 
-Post-order is left subtree, right subtree, then node — the node comes *last*, which is what makes the honest iterative version painful: when you pop a node off the stack you can't tell whether you're arriving at it for the first time or coming back from its right child, so you need a `last_visited` pointer to disambiguate. The trick that avoids all of it: run the easy pre-order loop but push left before right, which emits `node, right, left`, and then reverse the result. `node, right, left` reversed is exactly `left, right, node`.
+It is simple to generate reverse postorder: visit each node before its right subtree and then its
+left subtree. Reversing that `node-right-left` sequence gives `left-right-node`, including the
+correct internal order within every subtree.
 
 ## Approach
 
-1. Return `[]` if `root` is None so the stack never holds a None.
-2. Initialise `res = []` and `stack = [root]`. Invariant: `stack` holds subtree roots still to be visited, top first, in *reverse* post-order sequence.
-3. While `stack` is non-empty, pop `node` and append `node.val` to `res`.
-4. Push `node.left` first if it exists, **then** `node.right`. This is the one line that differs from pre-order: the last push pops first, so the right child is processed before the left, giving `node, right, left`.
-5. Return `res[::-1]`. Reversing turns `node, right, left` into `left, right, node`, which is post-order.
-6. If the interviewer bans the reversal: recurse instead — `postorder(left)`, `postorder(right)`, then append `node.val` — same O(h) stack, just implicit.
+1. Return an empty list for an empty tree; otherwise initialize `stack = [root]` and `res = []`.
+2. Pop a node, append its value, then push its left child followed by its right child.
+3. Because the right child is popped first, `res` is produced in node-right-left order.
+4. Reverse `res` in place and return it to obtain left-right-node postorder without allocating
+   another result list.
 
 ## Code
 
@@ -49,9 +50,18 @@ class Solution:
                 stack.append(node.left)
             if node.right:
                 stack.append(node.right)
-        return res[::-1]
+        res.reverse()
+        return res
 ```
 
 ## Why it works
 
-Reverse-post-order of a tree is "node, then the right subtree's reverse-post-order, then the left subtree's" — that is a pre-order with the children swapped, and the loop produces it because popping a node and pushing `[left, right]` (so `right` sits on top) keeps the stack equal to the remaining sequence at every step. Reversing a sequence that is `node, R…, L…` yields `…L, …R, node`, and the same reversal applies recursively inside each subtree, so the whole output is genuine post-order. Each node is pushed and popped once, so O(n); the stack holds at most one node per level of the current path plus their siblings, so O(h) — O(log n) balanced, O(n) for a skewed tree.
+The loop invariant is that popping the stack next produces the reverse-postorder sequence. After
+a node, pushing left and then right schedules the right subtree before the left, preserving
+node-right-left order recursively. Reversing the completed sequence reverses both subtree order
+and each subtree's internal order, yielding left-right-node postorder.
+
+**Complexity**
+
+- **Time:** `O(n)` including the final reversal.
+- **Space:** `O(h)` auxiliary stack space and `O(n)` output space. The reversal is in place.

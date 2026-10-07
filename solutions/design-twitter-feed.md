@@ -4,35 +4,48 @@
 draft: false
 pattern: "K-way merge with a max-heap"
 time: "O(f) per feed, O(1) per post/follow"
-space: "O(tweets + follows)"
+space: "O(T + F + U)"
 ---
 
 ## Description
 
-Design a simplified Twitter where users can post tweets, follow and unfollow other users, and retrieve the 10 most recent tweet ids in their news feed — their own tweets plus those of everyone they follow, newest first.
+Design a simplified Twitter that supports posting, following, unfollowing, and retrieving
+the 10 newest tweet IDs from a user and everyone that user follows.
 
 **Example**
 
 ```
-Input: ["Twitter","postTweet","getNewsFeed","follow","postTweet","getNewsFeed","unfollow","getNewsFeed"], [[],[1,5],[1],[1,2],[2,6],[1],[1,2],[1]]
-Output: [null,null,[5],null,null,[6,5],null,[5]]
+Input:
+operations = ["Twitter", "postTweet", "getNewsFeed", "follow", "postTweet",
+              "getNewsFeed", "unfollow", "getNewsFeed"]
+arguments = [[], [1, 5], [1], [1, 2], [2, 6], [1], [1, 2], [1]]
+Output: [null, null, [5], null, null, [6, 5], null, [5]]
 ```
 
-Explanation: user 1 posts tweet 5, so their feed is `[5]`; after user 1 follows user 2 and user 2 posts tweet 6, user 1's feed becomes `[6,5]` (tweet 6 is newer); after user 1 unfollows user 2, the feed drops back to `[5]`.
+User 1 initially sees tweet 5. Following user 2 adds newer tweet 6 to the feed, and
+unfollowing user 2 removes it again.
 
 ## Intuition
 
-Each user's own tweet list is already sorted by time — appended in order — so a news feed is a **k-way merge of f sorted lists**, and I only want the first 10 items of the merge. Merging all of them and sorting would cost O(total tweets log total tweets) per call; instead I seed a max-heap with the newest tweet of each followee and pop 10 times, refilling from whichever list the winner came from. A global counter stamped on every tweet gives the ordering, so I never depend on wall-clock time and never get a tie.
+Each user's tweets are already ordered by a global increasing timestamp. A news feed is
+therefore a merge of sorted tweet lists, but only its first 10 results are needed. Seed a
+heap with the newest tweet from each relevant user, then replace each emitted tweet with
+the next older tweet from the same user.
+
+Python's heap is a min-heap, so negated timestamps expose the globally newest candidate.
+Sets make repeated follows harmless and `discard` makes an absent unfollow a no-op.
 
 ## Approach
 
-1. State: `self.time`, an ever-increasing stamp; `self.tweets`, a `defaultdict(list)` mapping user to a list of `(time, tweetId)` in post order; `self.following`, a `defaultdict(set)`.
-2. `postTweet`: append `(self.time, tweetId)` to that user's list and increment `self.time`. O(1).
-3. `getNewsFeed`: for each `uid` in `self.following[userId] | {userId}` — the user always sees their own tweets — take the *last* entry of their list, if any, and collect `(-t, tweetId, uid, i - 1)` where `i` is the index of that entry. Negating `t` makes `heapq` behave as a max-heap on time; `i - 1` is the cursor into the rest of that user's list.
-4. `heapify` the collected tuples, then pop up to 10 times, appending the `tweetId` to `feed`. Each time a tuple from user `uid` is popped, if its cursor `i >= 0` push that user's next-older tweet with the cursor decremented.
-5. The stamps are globally unique, so the heap never has to compare the later tuple fields — the ordering is fully decided by `-t`.
-6. `follow` adds to the set; `unfollow` uses `discard`, not `remove`, so unfollowing someone you never followed (or yourself) is a no-op rather than a `KeyError`.
-7. Return `feed` — at most 10 ids, newest first.
+1. Store each user's `(time, tweetId)` pairs in append order and each follower's followees
+   in a set. Increment the global `time` after every post.
+2. For a feed, consider the followee set union `{userId}` so users always see their own
+   tweets. The set also prevents a self-follow from duplicating those tweets.
+3. Put each relevant user's newest tweet in `heap` as
+   `(-time, tweetId, userId, next_older_index)`, then heapify once.
+4. Pop at most 10 tweets. After each pop, push the next older tweet from the same user's
+   list when one exists.
+5. Implement `follow` with set `add` and `unfollow` with `discard`.
 
 ## Code
 
@@ -53,8 +66,8 @@ class Twitter:
 
     def getNewsFeed(self, userId: int) -> List[int]:
         heap = []
-        for uid in self.following[userId] | {userId}:
-            posts = self.tweets[uid]
+        for uid in self.following.get(userId, set()) | {userId}:
+            posts = self.tweets.get(uid)
             if posts:
                 i = len(posts) - 1
                 t, tweetId = posts[i]
@@ -80,4 +93,16 @@ class Twitter:
 
 ## Why it works
 
-The heap invariant is that it always holds the newest not-yet-emitted tweet from every followee, so its root is the newest tweet in the whole union — that is exactly the merge step, and popping it 10 times yields the 10 most recent in order. Refilling only from the list that just lost an element keeps the invariant with one push. Building the heap is O(f) for f followees and each of the at most ten pops is O(log f), so a feed costs O(f) — dominated by walking the followee set, not by the merge — while posting and following are O(1).
+The heap invariant is that it contains the newest unreported tweet from every relevant user
+whose list still has candidates. Its smallest tuple has the most negative timestamp and is
+therefore the newest remaining tweet overall. Emitting it and advancing only that user's
+cursor restores the invariant. Repeating at most 10 times returns exactly the newest feed
+items in order.
+
+**Complexity**
+
+- **Time:** `O(1)` amortized for `postTweet` and expected `O(1)` for `follow` and
+  `unfollow`. `getNewsFeed` is `O(f + 10 log f)`, or `O(f)`, for `f` relevant users.
+- **Space:** `O(T + F + U)` persistent space for `T` tweets, `F` relationships, and `U`
+  users retained by the maps, plus `O(f)` temporary space for one feed request.
+- **Output:** `O(1)` because a feed contains at most 10 tweet IDs.

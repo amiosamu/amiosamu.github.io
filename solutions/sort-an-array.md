@@ -9,8 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Given an array of integers `nums`, sort it in ascending order and return it, without
-calling a built-in sort function.
+Given an integer array `nums`, sort it in ascending order without a built-in sort and return it.
 
 **Example**
 
@@ -19,32 +18,24 @@ Input: nums = [5,2,3,1]
 Output: [1,2,3,5]
 ```
 
-Explanation: Reordering the four values from smallest to largest gives `1, 2, 3, 5`.
+Explanation: Ascending order is `1, 2, 3, 5`.
 
 ## Intuition
 
-The point of the problem is that `nums.sort()` is banned, so I have to write an
-`O(n log n)` sort myself. Merge sort is the right pick over quicksort here: its bound is
-worst-case, not expected, and LeetCode's test set for this problem includes the adversarial
-inputs that make naive pivot choice quadratic. Merging is the only real work — two sorted
-halves become one sorted whole by repeatedly taking the smaller front element.
+Merge sort provides deterministic `O(n log n)` time regardless of input order. Recursively sort
+two halves, then merge them by repeatedly taking the smaller unconsumed front value. Using `<=`
+for ties also keeps equal values in their original relative order.
 
 ## Approach
 
-1. Write a recursive helper `merge_sort(lo, hi)` that sorts the half-open range
-   `nums[lo:hi]` in place; call it with `(0, len(nums))`.
-2. Base case: `hi - lo <= 1` means zero or one element, already sorted, return.
-3. Split at `mid = (lo + hi) // 2` and recurse on `[lo, mid)` and `[mid, hi)`.
-4. Merge: with `i = lo` walking the left half and `j = mid` the right, append the smaller
-   of `nums[i]` and `nums[j]` to a fresh `merged` list; use `<=` so equal elements keep
-   left-half-first order (stability).
-5. When one side is exhausted, `extend` `merged` with the leftovers of both ranges —
-   `nums[i:mid]` and `nums[j:hi]`. One of those slices is always empty, so extending both
-   is safe and avoids a second while loop.
-6. Write back with the slice assignment `nums[lo:hi] = merged`, then return `nums` from the
-   outer method.
-7. Edge cases: an empty or single-element array hits the base case immediately; recursion
-   depth is `log n`, far under Python's limit.
+1. Let `merge_sort(lo, hi)` sort the half-open range `nums[lo:hi]`; ranges of length at most
+   one are already sorted.
+2. Split at `mid`, then recursively sort `[lo, mid)` and `[mid, hi)`.
+3. Compare the two ranges with pointers `i` and `j`, appending the smaller value to `merged`.
+4. Append the unconsumed suffixes. These slices allocate additional temporary lists before
+   `merged` is written back to `nums[lo:hi]`.
+5. Sort the full range and return the mutated `nums`. Empty and one-element inputs stop at the
+   base case.
 
 ## Code
 
@@ -79,10 +70,14 @@ class Solution:
 
 ## Why it works
 
-The merge step is correct because both halves are sorted, so the smallest unplaced element
-is always at the front of one of them — taking it maintains the invariant that `merged` is
-sorted and holds exactly the smallest elements seen so far. Induction on range length then
-gives the whole sort: the base case is trivially sorted and each level assembles a sorted
-range from two sorted children. Splitting in half gives `log n` levels with `O(n)` merging
-work each, so `O(n log n)` time regardless of input order, and the scratch `merged` list
-plus `O(log n)` stack frames make it `O(n)` space.
+During a merge, `merged` is sorted and contains exactly the consumed elements from both halves.
+Because each half is sorted, the smaller front is the smallest remaining element, so appending
+it preserves the invariant; appending the sole remaining suffix completes the sorted range.
+By induction on range length, singleton ranges are sorted and every larger range is correctly
+assembled from two sorted children. Therefore the full range is sorted.
+
+**Complexity**
+
+- **Time:** `O(n log n)` because each of `O(log n)` levels merges `O(n)` elements.
+- **Space:** `O(n)` peak auxiliary space for `merged`, leftover slices, slice assignment, and
+  `O(log n)` recursion. The temporary slicing does not change the linear bound.

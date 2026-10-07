@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a collection of integers `nums` that may contain duplicates, return all possible unique permutations, in any order.
+Given an integer array `nums` that may contain duplicates, return every distinct permutation in
+any order.
 
 **Example**
 
@@ -18,22 +19,27 @@ Input: nums = [1,1,2]
 Output: [[1,1,2],[1,2,1],[2,1,1]]
 ```
 
-Explanation: Swapping the two equal 1s would otherwise produce the same arrangement twice, so only 3 distinct orderings are returned instead of 3! = 6.
+Explanation: Exchanging the two equal `1`s does not create a new value sequence, so only three
+distinct permutations exist.
 
 ## Intuition
 
-With repeats in `nums`, the `used` array still stops a position being consumed twice, but it no longer stops the *same permutation* being produced twice: swapping which of two equal 1s goes first yields an identical output list. The rule that kills it is the same "skip equal siblings" idea as Subsets II, adapted to the fact that permutations have no start index. Sort `nums`, then among equal values force them to be consumed left to right: a value may be placed only if its identical left neighbour has already been placed. That elects one canonical index ordering per duplicate group and discards the rest.
+Tracking used indices prevents index reuse, but equal values at different indices can still create
+the same permutation. Sorting places duplicates together. At any recursion depth, allowing the
+leftmost unused copy and skipping later unused copies chooses one canonical index order for each
+value sequence.
 
 ## Approach
 
-1. Sort `nums` so equal values are adjacent — the skip test compares `nums[i]` with `nums[i - 1]` and is meaningless otherwise.
-2. The decision at each node is which index to place next; `path` holds the values placed so far in output order; `used[i]` marks index `i` as consumed; `res` collects finished permutations.
-3. Base case: `len(path) == len(nums)` — append `path[:]` and return.
-4. First filter, same as Permutations: `if used[i]: continue`, so no position is reused.
-5. Duplicate rule: `if i > 0 and nums[i] == nums[i - 1] and not used[i - 1]: continue`. Read it as "I am about to place the second of two equal values while the first is still unplaced" — that is the non-canonical branch, so skip it. The `not used[i - 1]` clause is what confines the skip to sibling choices at this node; when the left twin *is* in `path`, placing this one is exactly how a permutation gets both copies.
-6. Using `used[i - 1]` (instead of `not used[i - 1]`) also deduplicates but prunes far later in the tree; the `not` version cuts the branch at the top and is the one to remember.
-7. Choose `used[i] = True` and `path.append(nums[i])`, recurse with `dfs()`, then undo in reverse: `path.pop()`, `used[i] = False`.
-8. Append `path[:]`, a copy — `path` is mutated in place throughout, so a stored reference would alias every recorded answer.
+1. Sort `nums` in place so equal values are adjacent. This mutates the input array but does not
+   affect which permutations are returned.
+2. Maintain `path`, the current value sequence, and `used[i]`, which records whether sorted
+   index `i` is already in `path`.
+3. At each depth, skip used indices. Also skip index `i` when it equals its left neighbor and
+   that neighbor is unused; the left copy must be selected first among sibling choices.
+4. Choose an index, recurse, and undo both `path` and `used`. When `path` has length `n`, append
+   a copy because the working list continues to mutate.
+5. Return all completed paths in `res`.
 
 ## Code
 
@@ -65,4 +71,14 @@ class Solution:
 
 ## Why it works
 
-Among all index orderings that spell the same output sequence, exactly one consumes every run of equal values in increasing index order, and the skip admits precisely that one: a duplicate is blocked only while its left twin is still free, so the canonical ordering is never cut and every non-canonical one is. Completeness therefore holds alongside uniqueness, and the `used` array still guarantees each position is placed once. The bound stays O(n * n!) since that is the size of the unpruned tree — the skip only makes the real work proportional to the number of *distinct* permutations, which is smaller whenever repeats exist.
+Every emitted path uses each index once because `used` blocks reuse. For any target permutation,
+assign equal values to their sorted indices from left to right. That canonical assignment is never
+skipped, so every distinct permutation is produced. Any noncanonical assignment must select a
+duplicate while its equal left neighbor is still unused; the skip rule rejects it at the first
+such choice. Therefore no value sequence is emitted twice.
+
+**Complexity**
+
+- **Time:** `O(n * n!)` in the worst case, including copying each completed permutation.
+- **Space:** `O(n)` auxiliary space for `path`, `used`, and recursion; output uses
+  `O(n * P)` for `P` distinct permutations.

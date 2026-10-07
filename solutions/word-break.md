@@ -9,9 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a string and a dictionary of words, determine whether the string can be segmented into
-a sequence of one or more dictionary words placed back to back with no gaps or overlaps. A
-dictionary word may be reused any number of times.
+Given a string and a dictionary, determine whether the entire string can be segmented into one or
+more dictionary words. Words may be reused.
 
 **Example**
 
@@ -20,32 +19,22 @@ Input: s = "leetcode", wordDict = ["leet","code"]
 Output: true
 ```
 
-Explanation: `"leetcode"` splits cleanly into `"leet"` followed by `"code"`, both of which are
-in the dictionary.
+`"leetcode"` is the concatenation of the dictionary words `"leet"` and `"code"`.
 
 ## Intuition
 
-Greedily matching the longest word fails — `"aaaaaab"` with `["aaaa", "aaa", "b"]` needs
-`aaa + aaa + b`, but grabbing `aaaa` first strands `"aab"`. The fix is that the only thing that matters after consuming a prefix is
-*where the cut landed*, not which words got you there. So there are only `n + 1` distinct
-states, and `s` is breakable from position `i` if some dictionary word sits at `i` and the
-rest of the string is breakable from where that word ends.
+A greedy word choice can strand a suffix even when another choice succeeds. The relevant state is
+only the next string index. A suffix is segmentable if some dictionary word matches its prefix and
+the suffix after that word is also segmentable.
 
 ## Approach
 
-1. Let `n = len(s)`. Build `dp` of length `n + 1`, where `dp[i]` is `True` iff the suffix
-   `s[i:]` can be segmented entirely into dictionary words.
-2. Base case: `dp[n] = True` — the empty suffix is trivially segmented. Everything else starts
-   `False`.
-3. Recurrence: `dp[i] = OR over words w of (s[i:i+len(w)] == w and dp[i + len(w)])`.
-4. Iteration order is **right to left**, `i` from `n - 1` down to `0`, so `dp[i + len(w)]` is
-   always already computed when it is read.
-5. Inside, loop over every `w` in `wordDict`, guard with `i + len(w) <= n` before slicing, and
-   `break` on the first success — one witness is enough.
-6. Return `dp[0]`.
-7. If the dictionary is large, hoist it into a `set` and instead loop `j` from `i + 1` to `n`
-   testing `s[i:j] in words`; same recurrence, the cost just shifts from word count to
-   substring length.
+1. Let `dp[i]` mean that suffix `s[i:]` can be segmented.
+2. Set `dp[n] = True` because consuming the whole string is a successful base case.
+3. Fill indices from right to left so every later suffix state is already final.
+4. For each dictionary word `w`, set `dp[i]` when `w` matches at `i` and `dp[i + len(w)]`
+   is true; stop after the first witness.
+5. Return `dp[0]`, the state for the complete string.
 
 ## Code
 
@@ -67,9 +56,12 @@ class Solution:
 
 ## Why it works
 
-Any valid segmentation of `s[i:]` starts with exactly one dictionary word, so the recurrence
-enumerates every possible first word and defers the rest to a strictly shorter suffix — the
-cases are exhaustive and non-overlapping, and the recursion is well-founded because every word
-has positive length. The right-to-left order guarantees each `dp[i + len(w)]` is final when
-read. There are `n` states, each scanning `m = len(wordDict)` words with an `O(k)` comparison
-for `k` the longest word: `O(n * m * k)` time, `O(n)` space.
+Use backward induction on `i`. The empty suffix at `n` is segmentable. For an earlier suffix, any
+valid segmentation begins with one dictionary word and leaves a segmentable later suffix; the
+recurrence tests every possible first word. Conversely, any matching word followed by a true DP
+state constructs a valid segmentation. Thus every state, including `dp[0]`, is correct.
+
+**Complexity**
+
+- **Time:** `O(n * m * k)` for `m` words of maximum length `k`.
+- **Space:** `O(n)` for the DP array.

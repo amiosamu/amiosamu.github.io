@@ -9,10 +9,9 @@ space: "O(S)"
 
 ## Description
 
-Given an array of stone weights, repeatedly pick any two stones and smash them together: if
-their weights are equal both are destroyed, otherwise the lighter one is destroyed and the
-heavier one's weight is reduced by the lighter one's weight. Return the smallest possible
-weight of the last remaining stone (0 if none remains).
+Given stone weights, repeatedly choose two stones to smash. Equal stones both disappear;
+otherwise the lighter stone disappears and the heavier becomes their weight difference.
+Return the smallest possible final weight, or `0` if no stone remains.
 
 **Example**
 
@@ -21,36 +20,24 @@ Input: stones = [2,7,4,1,8,1]
 Output: 1
 ```
 
-Explanation: combining `2` and `4` gives `2`, combining that `2` with `1` and `1` gives `0`,
-combining `7` and `8` gives `1`, and finally smashing the two remaining stones `0` and `1`
-leaves a stone of weight `1`.
+Partitioning the stones into sums `11` (`2 + 8 + 1`) and `12` (`7 + 4 + 1`) leaves a
+difference of `1`, and no partition can produce `0` because the total weight is odd.
 
 ## Intuition
 
-Smashing `x` and `y` leaves `|x - y|`, which is the same as putting one on the plus side and
-one on the minus side of a running expression. Chain the smashes and the final stone is
-`|sum of ±stone[i]|` for some choice of signs — every sign assignment is achievable and every
-smash sequence produces one. So the task is to split the stones into two groups and minimize
-`|A - B|`. With `A + B = total`, minimizing the gap means pushing the smaller group's sum `t`
-as close to `total // 2` as possible, and the answer is `total - 2 * t`.
+Each smash replaces two weights by their absolute difference. Repeated smashes therefore assign
+each original stone to one of two sides of a subtraction, making the final weight the difference
+between two subset sums. To minimize that difference, find the largest achievable subset sum no
+greater than half of the total weight.
 
 ## Approach
 
-1. Compute `total = sum(stones)` and `target = total // 2`.
-2. `dp[i][t]` is `True` iff some subset of the first `i` stones sums to exactly `t`, considering
-   only those `i` stones — which stones were chosen does not matter, only the sum.
-3. Recurrence, two cases: stone `i` is skipped (`dp[i-1][t]`) or used once
-   (`dp[i-1][t - stones[i]]`, valid only when `t >= stones[i]`), so
-   `dp[i][t] = dp[i-1][t] or dp[i-1][t - stones[i]]`.
-4. Base case: the padding row `dp[0][0] = True` (empty subset sums to zero), `dp[0][t] = False`
-   for `t > 0`.
-5. Roll to a single boolean array `dp` of length `target + 1` with `dp[0] = True`. For each
-   stone `s`, sweep `t` **downward** through `range(target, s - 1, -1)`. Descending guarantees
-   `dp[t - s]` still holds the previous row's value, so each stone is used at most once; an
-   ascending sweep would let a stone be reused and turn this into unbounded knapsack.
-6. After all stones, scan `t` from `target` down to `0` and return `total - 2 * t` for the first
-   reachable `t`. That is the largest achievable sum not exceeding half.
-7. The loop always terminates because `dp[0]` is `True`, so no fallback return is needed.
+1. Compute `total` and set `target = total // 2`.
+2. Let `dp[t]` mean that a subset of the processed stones has sum `t`; initialize `dp[0]`.
+3. For each stone `s`, scan `t` downward and set `dp[t]` when `dp[t - s]` was reachable.
+4. The descending order prevents one stone from being reused during its own iteration.
+5. Find the greatest reachable `t <= target` and return `total - 2 * t`. Since `dp[0]` is true,
+   such a sum always exists.
 
 ## Code
 
@@ -74,10 +61,14 @@ class Solution:
 
 ## Why it works
 
-Any smash order is an assignment of `+`/`-` signs to the stones and vice versa, so the reachable
-final weights are exactly `|total - 2t|` over reachable subset sums `t`; restricting the search
-to `t <= total // 2` loses nothing because the two groups are symmetric. `dp` is maintained as
-the exact set of subset sums of the prefix processed so far, and the descending sweep keeps the
-read `dp[t - s]` on the previous prefix so no stone is double counted. The state is just the
-running sum, independent of which subset produced it, giving `O(n * S)` time and `O(S)` space
-for `S = total // 2` — pseudo-polynomial, fine because the constraints cap `total` at 3000.
+A sequence of differences expands to an absolute signed sum of the original weights, so its final
+weight equals `|total - 2t|` for one subset sum `t`. Conversely, stones on each side can be reduced
+within their groups and then smashed across groups, realizing that difference. The descending
+update makes `dp` contain exactly the subset sums using each processed stone at most once. By
+symmetry, an optimal side has sum at most `total / 2`; choosing the greatest reachable such sum
+minimizes `total - 2t`.
+
+**Complexity**
+
+- **Time:** `O(n * S)`, where `S = floor(sum(stones) / 2)`.
+- **Space:** `O(S)` for the subset-sum array.

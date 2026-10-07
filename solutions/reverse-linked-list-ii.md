@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given the head of a linked list and two 1-indexed positions `left` and `right` with `left <= right`, reverse only the nodes from position `left` to position `right`, leaving the rest of the list untouched, and return the head.
+Given a linked list and 1-indexed positions `left <= right`, reverse the nodes in that inclusive
+range and return the head. Nodes outside the range must retain their order.
 
 **Example**
 
@@ -18,36 +19,25 @@ Input: head = [1,2,3,4,5], left = 2, right = 4
 Output: [1,4,3,2,5]
 ```
 
-Explanation: Positions 2 through 4 hold 2, 3, 4; reversing just that segment gives 4, 3, 2 while positions 1 and 5 (values 1 and 5) stay in place.
+Explanation: Reversing the values at positions `2..4` changes `[2,3,4]` to `[4,3,2]`.
 
 ## Intuition
 
-The sublist reversal itself is easy; the stitching around it is what breaks. Instead of
-reversing the segment separately and then reattaching three loose ends, keep `prev` — the node
-just before position `left` — pinned and repeatedly yank the node *after* `cur` out of the chain
-and re-insert it directly behind `prev`. Each such splice pushes one more node to the front of
-the segment, so after `right - left` splices the segment is reversed and it never became
-detached, which means there is nothing to reattach.
+Keep `prev` fixed immediately before the range and `cur` fixed at its original first node. Move
+each node after `cur` to the front of the range. Every head insertion grows the reversed prefix,
+while `cur` becomes the range's tail. The segment remains connected to both surrounding portions
+throughout the operation.
 
 ## Approach
 
-1. `dummy = ListNode(0, head)`; the dummy exists because `left` can be 1, and then the node
-   being moved has no predecessor — the dummy manufactures one so the loop body needs no
-   special case.
-2. Walk `prev = dummy` forward `left - 1` times. `prev` now sits immediately before position
-   `left` and stays there for the entire rest of the routine.
-3. `cur = prev.next`. This is the node currently at position `left`; it will end up as the *last*
-   node of the reversed segment and it also stays put as a variable — it just drifts backwards
-   through the list.
-4. Repeat `right - left` times, in exactly this order:
-   - `nxt = cur.next` — the node to move,
-   - `cur.next = nxt.next` — unhook it, closing the gap,
-   - `nxt.next = prev.next` — point it at the current front of the segment,
-   - `prev.next = nxt` — make it the new front.
-   Assigning `nxt.next` before `prev.next` matters: reversing those two lines makes `nxt` point
-   at itself and the list turns into a self-loop.
-5. Do not re-read `cur` inside the loop; it is deliberately never advanced.
-6. Return `dummy.next`, not `head` — when `left == 1` the original head is no longer first.
+1. Create a dummy node and advance `prev` `left - 1` links, leaving it immediately before the
+   range. Set `cur = prev.next`.
+2. Repeat `right - left` times. Save `nxt = cur.next`, unlink it with
+   `cur.next = nxt.next`, and insert it after `prev` with the remaining two assignments.
+3. Keep both `prev` and `cur` fixed. The former marks the insertion point; the latter becomes
+   the reversed range's tail and remains connected to the untouched suffix.
+4. Return `dummy.next`, which handles `left == 1`. The original list links are mutated in place;
+   when `left == right`, no splice is performed.
 
 ## Code
 
@@ -70,10 +60,13 @@ class Solution:
 
 ## Why it works
 
-The invariant after `i` splices is that positions `left..left+i` of the list hold the original
-nodes `left..left+i` in reverse order, with `cur` still the tail of that run and `prev.next`
-its head; moving the node right after `cur` to the front extends the run by one while
-preserving it. After `right - left` iterations the run covers the whole requested range, and
-because `prev.next` and `cur.next` were rewritten in place, the prefix and suffix were never
-disconnected. One walk of at most `right` links plus `right - left` constant-time splices gives
-O(n) time and O(1) space.
+After `i` splices, `prev.next` heads the reverse of the first `i + 1` original range nodes, and
+`cur` is its tail. The next original range node is `cur.next`; moving it after `prev` extends the
+reversed sequence by one and leaves `cur.next` pointing to the unprocessed remainder. After
+`right - left` splices, that sequence covers the entire requested range, while its prefix and
+suffix links remain intact.
+
+**Complexity**
+
+- **Time:** `O(n)` in the worst case.
+- **Space:** `O(1)` auxiliary space.

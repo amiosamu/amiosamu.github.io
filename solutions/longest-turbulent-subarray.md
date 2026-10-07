@@ -9,7 +9,7 @@ space: "O(1)"
 
 ## Description
 
-Given an integer array `arr`, returns the length of the longest turbulent subarray, one where
+Given an integer array `arr`, return the length of the longest turbulent subarray, one where
 the comparison sign between each pair of adjacent elements strictly alternates between
 greater-than and less-than at every step.
 
@@ -20,31 +20,23 @@ Input: arr = [9,4,2,10,7,8,8,1,9]
 Output: 5
 ```
 
-Explanation: the subarray `[4,2,10,7,8]` alternates `4>2<10>7<8`, flipping direction at every
-step, giving a turbulent run of length 5.
+The subarray `[4,2,10,7,8]` alternates as `4 > 2 < 10 > 7 < 8`, so its length is 5.
 
 ## Intuition
 
-Turbulence is a purely local property: a window is turbulent iff every adjacent comparison flips
-sign from the one before it. So a turbulent run ending at index `i` is determined entirely by the
-comparison `arr[i]` vs `arr[i-1]` and whether that comparison is the opposite of the previous one.
-That means I only need two numbers as I scan — the length of the best turbulent run ending at `i`
-whose last step went *up*, and the one whose last step went *down*. Each extends the *other* one by
-1, which is what encodes the alternation.
+A turbulent run ending at `i` is determined by its final comparison. An upward comparison can
+extend only a run whose previous comparison was downward, and a downward comparison can extend
+only an upward run.
+
+Track the best ending length for each final direction. Equal adjacent values break both kinds of
+run, so both lengths reset to one.
 
 ## Approach
 
-1. Keep `up` = length of the longest turbulent run ending at the current index with
-   `arr[i] > arr[i-1]`, and `down` = same with `arr[i] < arr[i-1]`. Both start at 1, and `best`
-   starts at 1 (a single element is turbulent by definition).
-2. Loop `i` from 1 to `len(arr) - 1`.
-3. If `arr[i] > arr[i-1]`: the previous step must have been a descent, so `up, down = down + 1, 1`.
-   Write it as a tuple assignment so `down + 1` reads the *old* `down`; `down` resets to 1 because
-   no run ending here goes down.
-4. If `arr[i] < arr[i-1]`: mirror it — `down, up = up + 1, 1`.
-5. If they are equal: turbulence is broken at this boundary, so `up = down = 1`.
-6. `best = max(best, up, down)` each iteration.
-7. Return `best`. A single-element array never enters the loop and returns 1, which is correct.
+1. Initialize `up = down = best = 1`; one element is a valid turbulent subarray.
+2. For an increase, set `up` to the previous `down + 1` and reset `down` to `1`.
+3. For a decrease, set `down` to the previous `up + 1` and reset `up` to `1`.
+4. For equal neighbors, reset both lengths to `1`, then update `best` from both states.
 
 ## Code
 
@@ -68,11 +60,14 @@ class Solution:
 
 ## Why it works
 
-There is no exchange argument here because there is nothing to choose — this is a two-state DP
-collapsed into two scalars. The invariant is that after processing index `i`, `up` and `down` are the exact lengths of the
-longest turbulent runs ending at `i` in each of the two possible last-step directions. It holds by
-induction: a run ending at `i` with an upward last step must have had a downward step at `i-1`, and
-the longest such is `down + 1` by the hypothesis, with 1 (just the pair `arr[i-1], arr[i]`) already
-covered because `down` is never below 1. Equal neighbours kill both states, since no turbulent run
-can straddle a flat boundary. Every turbulent subarray has a last index and a last direction, so
-maximising over both states at every index in one O(n) pass with O(1) scalars finds the longest.
+After processing index `i`, `up` and `down` are the longest turbulent subarrays ending at `i` with
+an upward or downward final comparison, respectively. The claim holds at index `0`. For an upward
+step, only a downward-ending run can be extended, giving the old `down + 1`; the downward state
+cannot cross that step and resets. The other case is symmetric, and equality resets both states.
+Thus the invariant holds by induction. Every turbulent subarray ends at some index in one of these
+states, so `best` sees the global optimum.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through `arr`.
+- **Space:** `O(1)` auxiliary space.

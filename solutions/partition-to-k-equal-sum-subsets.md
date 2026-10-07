@@ -9,7 +9,8 @@ space: "O(n + k)"
 
 ## Description
 
-Given an integer array `nums` and an integer `k`, determine whether the array can be divided into `k` non-empty subsets with equal sums, using every element exactly once.
+Given an integer array `nums` and an integer `k`, determine whether all elements can be divided
+into `k` non-empty subsets with equal sums.
 
 **Example**
 
@@ -18,23 +19,23 @@ Input: nums = [4,3,2,3,5,2,1], k = 4
 Output: true
 ```
 
-Explanation: The elements sum to 20, so each subset must total 5; one valid split is {5}, {1,4}, {2,3}, {2,3}, four subsets each summing to 5.
+Explanation: One valid split is `{5}`, `{1, 4}`, `{2, 3}`, and `{2, 3}`; each sums to `5`.
 
 ## Intuition
 
-This generalizes Matchsticks to Square from 4 fixed buckets to `k`: I need `k` groups each summing to `total / k`, and only the multiset of values in a bucket matters, not their order. Sorting descending lets the largest numbers commit or fail first, and treating all-empty buckets as interchangeable kills the redundant branches where a number gets tried against several buckets that are all still at 0.
+Each subset must sum to `sum(nums) / k`. Assign numbers to `k` bucket sums without allowing any
+bucket to exceed that target. Sorting numbers from largest to smallest exposes impossible choices
+early. Empty buckets are interchangeable, so after a failed placement into one empty bucket there
+is no reason to try the same number in another.
 
 ## Approach
 
-1. Compute `total = sum(nums)`. If `total % k != 0`, return `False` — the sum can't split evenly into `k` equal parts.
-2. Set `target = total // k`. Sort `nums` descending; if `nums[0] > target`, the largest number alone can't fit in any bucket, so return `False`.
-3. Keep a length-`k` list `buckets`, all zeros — the running sum currently assigned to each bucket.
-4. `backtrack(i)`: if `i == len(nums)`, every number has been placed without any bucket exceeding `target`, and since the total divides evenly, all `k` buckets must equal `target` — return `True`.
-5. Otherwise try each bucket index `j` in `0..k-1`: if `buckets[j] + nums[i] <= target`, add `nums[i]` to `buckets[j]` and recurse on `i + 1`.
-6. Propagate `True` immediately on success; otherwise remove `nums[i]` from `buckets[j]` before moving to the next `j`.
-7. Prune duplicate empty buckets: after handling bucket `j`, if `buckets[j] == 0`, stop — every other still-empty bucket would behave identically for this number.
-8. If no bucket accepts `nums[i]`, return `False`.
-9. Return `backtrack(0)`.
+1. Reject totals not divisible by `k`; otherwise compute the common `target`.
+2. Sort `nums` in place from largest to smallest and reject a largest value above `target`.
+3. In `backtrack(i)`, try `nums[i]` in each bucket that would not exceed `target`.
+4. Recurse after adding the value, then subtract it on failure to restore the bucket state.
+5. Stop after a failed empty bucket because all other empty buckets are symmetric. When every
+   number is placed, return `True`; the fixed total forces every bucket to equal `target`.
 
 ## Code
 
@@ -70,4 +71,14 @@ class Solution:
 
 ## Why it works
 
-The recursion assigns every number to some bucket that doesn't overflow `target`, covering every way to distribute `nums` into `k` bounded groups, and once all numbers are placed, the bucket sums must hit `target` exactly since they can't exceed it and their total is fixed at `k * target`. Skipping repeat trials against empty buckets is safe because those buckets are indistinguishable before anything is placed in them, so it only cuts symmetric duplicate work, never a correct assignment. Branching over `k` buckets for each of the `n` numbers gives the O(k^n) time bound, with O(n) recursion depth plus the O(k) `buckets` array as auxiliary space.
+Without pruning, the recursion tries every assignment of each number to one of `k` buckets, while
+rejecting only assignments that exceed `target`. Restoring a bucket after a failed branch keeps
+these assignments independent. Empty-bucket pruning removes only permutations of bucket labels,
+not distinct partitions. If all numbers are placed, all bucket sums are at most `target` and sum
+to `k * target`, so each must equal `target`; conversely, any valid partition appears in the
+search. The returned result is therefore exact.
+
+**Complexity**
+
+- **Time:** `O(k^n)` in the worst case for `n = len(nums)`.
+- **Space:** `O(n + k)` auxiliary space for recursion and bucket sums. Sorting mutates `nums`.

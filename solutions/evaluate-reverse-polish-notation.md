@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an array of strings `tokens` representing an arithmetic expression in Reverse Polish (postfix) Notation, evaluate the expression and return the resulting integer.
+Given tokens for a valid Reverse Polish notation expression, evaluate it and return the
+integer result. Division truncates toward zero.
 
 **Example**
 
@@ -18,20 +19,25 @@ Input: tokens = ["2","1","+","3","*"]
 Output: 9
 ```
 
-Explanation: `"+"` combines the two preceding operands `2` and `1` into `3`, then `"*"` combines that `3` with the next operand `3` to give `3 * 3 == 9`.
+The first operator produces `2 + 1 = 3`, and the final operator produces `3 * 3 = 9`.
 
 ## Intuition
 
-Postfix notation is designed so that an operator's arguments are always the two most recently completed results — that is what removes the need for parentheses. So a stack of pending operands is all the state required: numbers get pushed, an operator pops two, combines them, and pushes the single result back. The only trap is order and rounding: the *first* pop is the right operand, and division truncates toward zero, not toward negative infinity like Python's `//`.
+In postfix notation, an operator follows both operand expressions. Their completed values
+are therefore the top two stack entries. Replacing those values with the operation result
+collapses one expression subtree at a time.
+
+The first popped value is the right operand, which matters for subtraction and division.
+For exact truncation toward zero, divide the absolute values and then restore the sign;
+Python's `//` alone would incorrectly round a negative quotient downward.
 
 ## Approach
 
-1. Keep `stack` of integer operands.
-2. For each token `t` in `tokens`:
-3. If `t` is one of `+ - * /`, pop twice as `b, a = stack.pop(), stack.pop()` — `b` is the right operand because it was pushed last — compute, and push the result.
-4. For `/`, push `int(a / b)`. `int()` on a float truncates toward zero, which matches the problem's rule; `a // b` would floor and give `-3` instead of `-2` for `-7 / 3`. Values stay inside 32-bit range so the float division is exact.
-5. Otherwise `t` is an integer literal, possibly with a leading `-`; push `int(t)`.
-6. The expression is guaranteed valid, so at the end exactly one value remains — return `stack[0]`.
+1. Keep a stack of completed operand values.
+2. Push integer tokens directly.
+3. For an operator, pop `b` and then `a`, compute `a operator b`, and push the result.
+   For division, apply the sign of `a * b` to `abs(a) // abs(b)`.
+4. Return the only value remaining after all tokens are consumed.
 
 ## Code
 
@@ -51,7 +57,8 @@ class Solution:
                 stack.append(a * b)
             elif t == "/":
                 b, a = stack.pop(), stack.pop()
-                stack.append(int(a / b))
+                quotient = abs(a) // abs(b)
+                stack.append(quotient if a * b >= 0 else -quotient)
             else:
                 stack.append(int(t))
         return stack[0]
@@ -59,4 +66,14 @@ class Solution:
 
 ## Why it works
 
-The invariant is that `stack` holds the values of all fully-evaluated subexpressions so far, in left-to-right order. A valid RPN expression guarantees that when an operator appears, its two operand subtrees are exactly the top two entries, so popping them and pushing the result is the same as collapsing that node of the expression tree. Each token is handled with O(1) work, giving O(n) time and a stack of at most n operands.
+After every token, the stack contains the values of all completed subexpressions that have
+not yet been consumed, in their original order. A number creates one such expression. An
+operator consumes exactly the last two in left-right order and pushes their combined value,
+preserving the invariant. The division branch changes only the sign after integer magnitude
+division, so it truncates exactly toward zero. A valid expression leaves one value, which
+is therefore the result.
+
+**Complexity**
+
+- **Time:** `O(n)` for `n` tokens.
+- **Space:** `O(n)` for the operand stack.

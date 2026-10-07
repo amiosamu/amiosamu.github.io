@@ -9,8 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an integer `n` of at least 2, split it into a sum of two or more positive integers and
-return the maximum possible product of those integers.
+Given an integer `n >= 2`, split it into at least two positive integers and return the
+maximum possible product of those parts.
 
 **Example**
 
@@ -19,33 +19,25 @@ Input: n = 10
 Output: 36
 ```
 
-Explanation: splitting `10` as `3 + 3 + 4` gives a product of `3 * 3 * 4 == 36`, the best
-achievable over every way of breaking 10 into two or more positive integers.
+Explanation: The split `3 + 3 + 4` has product `36`, which is maximal.
 
 ## Intuition
 
-Fix the first piece `j`. What is left is `i - j`, and I have a choice: stop there and keep
-`i - j` whole, or break it further into its own best product. Those two options are exactly
-`j * (i - j)` and `j * dp[i - j]`, and neither dominates the other — for `i = 4`, `2 * 2` beats
-`2 * dp[2] = 2`, but for `i = 7`, `2 * dp[5] = 12` beats `2 * 5 = 10`. Taking the max over both
-options and over every first piece is the whole solution.
+Choose one part `j` from a break of `i`. The remainder `i - j` may stay whole or be split
+further. These choices produce `j * (i - j)` and `j * dp[i - j]`.
+
+Taking the maximum over possible `j` covers every break. Testing only through `i // 2` is
+sufficient because each split has at least one side no larger than half of `i`.
 
 ## Approach
 
-1. Let `dp[i]` = the maximum product obtainable by breaking `i` into **two or more** positive
-   integers, for `i >= 2`.
-2. Base case: `dp[1] = 1`. This entry is a convenience, not a real break — it means "a leftover
-   of 1 contributes a factor of 1". `dp[0]` stays 0 and is never read.
-3. Recurrence: `dp[i] = max over j in 1..i//2 of max(j * (i - j), j * dp[i - j])`. The first
-   term leaves the remainder whole (a genuine two-part split, which is what keeps `dp[i]` legal
-   for the "at least two parts" rule); the second term breaks the remainder recursively.
-4. Iteration order: `i` ascending from `2` to `n`, inner `j` ascending from `1` to `i // 2`.
-   Ascending `i` means `dp[i - j]` is already final. Capping `j` at `i // 2` is just a symmetry
-   optimization — the split `(j, i - j)` is the same as `(i - j, j)`.
-5. Return `dp[n]`. `n >= 2` by constraint, so `dp[1]` is always in range and `dp[n]` is always
-   a real break.
-6. Sanity anchors while tracing: `dp[2] = 1`, `dp[3] = 2`, `dp[4] = 4`, `dp[7] = 12`,
-   `dp[10] = 36`.
+1. Let `dp[i]` be the best product from splitting `i` into at least two positive parts.
+   Set `dp[1] = 1` as a recurrence convenience.
+2. Process each total `i` from `2` through `n`, so every smaller state is available.
+3. For each `j` from `1` through `i // 2`, compare leaving `i - j` whole with using its
+   best further split: `j * (i - j)` versus `j * dp[i - j]`.
+4. Store the largest candidate in `dp[i]` and return `dp[n]`. The direct product term
+   ensures every stored answer represents a real split.
 
 ## Code
 
@@ -64,11 +56,13 @@ class Solution:
 
 ## Why it works
 
-Every valid break of `i` has a smallest-indexed first part `j`, and the rest of the parts form
-either a single number `i - j` or a valid break of `i - j` — the two terms in the recurrence
-cover exactly those two cases, so nothing is missed and the product factorizes cleanly as
-`j` times the best value of the remainder. The `max(j * (i - j), ...)` term is what makes
-`dp[i]` correspond to at least two parts, so the answer at `dp[n]` never degenerates to `n`
-itself. Two nested loops over `n` values give `O(n^2)` time and `O(n)` space. (The closed form
-is to split into as many 3s as possible, using 2s for a remainder of 1 or 2 — but the DP is
-what I want to write under pressure since it needs no proof at the whiteboard.)
+Assume smaller DP states are optimal. Any break of `i` has some part `j <= i / 2`; the
+remaining parts sum to `i - j`. They are either one whole part, covered by
+`j * (i - j)`, or multiple parts whose product is at most `dp[i - j]`, covered by the
+second term. Conversely, every candidate describes a valid break of `i`. Maximizing them
+therefore yields exactly the optimum, completing induction through `n`.
+
+**Complexity**
+
+- **Time:** `O(n^2)` for the nested total-and-part loops.
+- **Space:** `O(n)` for the DP array.

@@ -9,42 +9,40 @@ space: "O(k)"
 
 ## Description
 
-Design a fixed-capacity circular queue supporting `enQueue(value)` and `deQueue()` (add/remove, both returning whether they succeeded), `Front()`/`Rear()` (peek the first/last element, or -1 if empty), and `isEmpty()`/`isFull()`, all in O(1), by reusing a fixed-size buffer and wrapping indices instead of shifting elements.
+Design a fixed-capacity circular queue. It must enqueue, dequeue, inspect both ends, and
+report empty or full status without shifting stored values.
 
 **Example**
 
 ```
-Input: ["MyCircularQueue", "enQueue", "enQueue", "enQueue", "enQueue", "Rear", "isFull", "deQueue", "enQueue", "Rear"], [[3], [1], [2], [3], [4], [], [], [], [4], []]
+Input:
+operations = ["MyCircularQueue", "enQueue", "enQueue", "enQueue", "enQueue",
+              "Rear", "isFull", "deQueue", "enQueue", "Rear"]
+arguments = [[3], [1], [2], [3], [4], [], [], [], [4], []]
 Output: [null, true, true, true, false, 3, true, true, true, 4]
 ```
 
-Explanation: With capacity 3, the first three enQueues (1, 2, 3) succeed and fill the queue, so enQueue(4) fails (false); Rear() reports 3 and isFull() is true; deQueue() frees a slot so enQueue(4) then succeeds, making Rear() report 4.
+The first three values fill the queue. Enqueuing 4 then fails, but succeeds after one
+dequeue frees a slot; 4 becomes the rear value.
 
 ## Intuition
 
-A queue on a plain list makes `deQueue` O(k) because everything shifts left. Since the capacity
-is fixed, nothing needs to move: keep the buffer still and move the *window* instead, wrapping
-indices with `% capacity`. The classic head/tail pair has the ambiguity that head == tail means
-both empty and full, so I store `head` and `count` instead — the tail is derived, and emptiness
-and fullness are just `count == 0` and `count == capacity`.
+A fixed array can be reused by wrapping logical positions modulo its capacity. `head`
+identifies the front slot, while `count` distinguishes an empty queue from a full one and
+determines the next free slot. Dequeue advances the logical window rather than shifting
+elements; stale array values remain inaccessible outside that window.
 
 ## Approach
 
-1. `__init__(k)`: `self.q = [0] * k`, `self.capacity = k`, `self.head = 0`, `self.count = 0`.
-   The buffer is allocated once and never resized.
-2. `enQueue(value)`: return `False` if `self.count == self.capacity`. Otherwise the free slot is
-   `(self.head + self.count) % self.capacity` — write `value` there, `self.count += 1`, return
-   `True`. Note that the write index is computed from head plus length, so no separate tail
-   variable can drift out of sync.
-3. `deQueue()`: return `False` if `self.count == 0`. Otherwise
-   `self.head = (self.head + 1) % self.capacity` and `self.count -= 1`, return `True`. The stale
-   value is left in the array on purpose; it is unreachable because it is outside the window.
-4. `Front()`: `-1` if empty, else `self.q[self.head]`.
-5. `Rear()`: `-1` if empty, else `self.q[(self.head + self.count - 1) % self.capacity]` — the
-   last written slot, one before the free one.
-6. `isEmpty()` / `isFull()` are direct reads of `count`.
-7. Every method that can fail checks `count` first; that check, not the modulo, is what keeps
-   the window from overlapping itself.
+1. Allocate a `k`-element buffer and initialize `head = 0` and `count = 0`.
+2. To enqueue, reject a full queue; otherwise write at
+   `(head + count) % capacity` and increment `count`.
+3. To dequeue, reject an empty queue; otherwise advance `head` modulo `capacity` and
+   decrement `count`. The old value need not be erased.
+4. Read the front at `head` and the rear at `(head + count - 1) % capacity`, returning
+   `-1` when empty. Empty and full checks compare `count` with `0` and `capacity`.
+5. Leave dequeued values in the buffer: `count` excludes those stale slots, so clearing
+   them would not change any observable result.
 
 ## Code
 
@@ -85,9 +83,13 @@ class MyCircularQueue:
 
 ## Why it works
 
-The invariant is that the live elements occupy exactly the `count` slots starting at `head`,
-read modulo `capacity`, oldest first. `enQueue` only writes the slot one past that run and only
-when `count < capacity`, so it can never overwrite a live element; `deQueue` only shrinks the
-run from the front. Storing the length rather than a tail index removes the empty/full collision
-entirely, and since every operation is a couple of arithmetic ops on fixed state, all of them
-are O(1) with O(k) space for the buffer.
+The queue's live values occupy exactly `count` consecutive logical slots beginning at
+`head`, interpreted modulo `capacity`. Enqueue writes immediately after that range only
+when space exists, so it cannot overwrite a live value. Dequeue excludes the first slot by
+advancing `head`. Both operations preserve order and the invariant, which makes the front,
+rear, empty, and full formulas exact.
+
+**Complexity**
+
+- **Time:** `O(1)` for every operation.
+- **Space:** `O(k)` for a queue of capacity `k`.

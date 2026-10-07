@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an integer array `nums` of size `n`, return all the distinct elements that appear more than `⌊n/3⌋` times. There can be at most two such elements, and the result may be returned in any order.
+Given an integer array `nums`, return every distinct value that appears more than `floor(n / 3)`
+times. The answer contains at most two values and may be returned in any order.
 
 **Example**
 
@@ -18,21 +19,23 @@ Input: nums = [3,2,3]
 Output: [3]
 ```
 
-Explanation: `n == 3`, so an element must occur more than 1 time to qualify; 3 occurs twice and qualifies, while 2 occurs only once and does not.
+Here `floor(n / 3) == 1`; only `3`, which occurs twice, exceeds that threshold.
 
 ## Intuition
 
-At most two values can appear more than `n/3` times, since three such values would already need more than `n` slots. That caps the number of candidates I have to carry, which is what makes O(1) space possible without a counting map. Boyer-Moore generalises: keep two candidates with counters, and whenever a third distinct value shows up while both counters are non-zero, cancel one occurrence of each of the three. Cancelling three distinct values at a time can never wipe out a value with frequency above `n/3`, so any real answer survives to the end as a candidate — though the survivors are not guaranteed to be answers, hence the verification pass.
+At most two values can exceed `n / 3`; three such values would require more than `n` positions.
+Generalized Boyer-Moore voting therefore tracks two candidates.
+
+When a different value appears while both counters are positive, cancel one occurrence from each
+candidate against it. True majorities survive this cancellation, but other values can also survive,
+so a second pass must verify the candidates' actual frequencies.
 
 ## Approach
 
-1. Keep `cand1, cand2 = None, None` and `count1 = count2 = 0`.
-2. For each `n` in `nums`, test the branches strictly in this order, since a later branch would otherwise steal a value that already has a slot:
-3. If `n == cand1`, `count1 += 1`. Else if `n == cand2`, `count2 += 1`.
-4. Else if `count1 == 0`, adopt: `cand1, count1 = n, 1`. Else if `count2 == 0`, adopt into slot two the same way.
-5. Otherwise `n` differs from both live candidates, so cancel: `count1 -= 1` and `count2 -= 1`.
-6. The order in steps 3-4 also guarantees `cand1 != cand2`, so the result can never contain a duplicate.
-7. Verify at the end — the counters are a survival mechanism, not a frequency. Return the candidates whose real `nums.count(c)` exceeds `len(nums) // 3`. `None` survives when fewer than two distinct values were ever adopted, and its count is `0`, so it filters itself out.
+1. Initialize two candidate slots and their counters to empty and zero.
+2. For each value, increment its matching candidate's counter before considering empty slots.
+3. If it matches neither candidate, fill a zero-count slot or decrement both live counters.
+4. Count each surviving candidate in `nums` and return only those above `len(nums) // 3`.
 
 ## Code
 
@@ -60,4 +63,13 @@ class Solution:
 
 ## Why it works
 
-Think of the cancel branch as deleting one copy each of three pairwise-distinct values from the multiset. A value `v` occurring more than `n/3` times can be removed by at most the number of cancellations, which is under `n/3`, so its copies cannot all be consumed — some occurrence of `v` must still be held by a counter at the end, meaning `v` is one of the two candidates. The converse fails (a candidate can be spurious), which is exactly why the explicit `nums.count` check is required rather than optional. The main loop is one pass and the verification is two more, so O(n) time with four scalars of state, O(1) space.
+Each cancellation removes three pairwise-distinct values from consideration. If `k` cancellations
+occur, then `3k <= n`, while a value occurring more than `n / 3` times has more than `k`
+occurrences. It cannot be completely canceled, so every valid answer remains as one of the two
+candidates. The verification pass removes surviving candidates that did not actually exceed the
+threshold, making the returned set both complete and sound.
+
+**Complexity**
+
+- **Time:** `O(n)`; verification checks at most two candidates.
+- **Space:** `O(1)` auxiliary space, excluding the result of at most two values.

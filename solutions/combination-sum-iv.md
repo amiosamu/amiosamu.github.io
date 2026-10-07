@@ -25,29 +25,19 @@ Explanation: the 7 ordered sequences summing to 4 are `(1,1,1,1)`, `(1,1,2)`, `(
 
 ## Intuition
 
-Despite the name, this counts **permutations**: `(1,2,1)` and `(1,1,2)` are different answers.
-That is what makes it a one-dimensional DP rather than a real combination problem — I never
-need to remember which numbers I already used or in what order, only how much of the target is
-left. So group every sequence by its *first* element: the number of ways to build `t` is the
-sum, over each `num <= t`, of the ways to build `t - num`.
+Order matters: `(1, 2, 1)` and `(1, 1, 2)` are different sequences. Group sequences totaling
+`t` by their last number `num`. Removing that final number leaves any sequence totaling
+`t - num`, so summing those counts gives the count for `t`.
 
 ## Approach
 
-1. Let `dp[t]` = the number of ordered sequences from `nums` that sum to exactly `t`. Allocate
-   `dp` of length `target + 1`, all zeros.
-2. Base case: `dp[0] = 1` — the empty sequence is the one way to make 0. This is the seed that
-   every count ultimately traces back to.
-3. Recurrence: `dp[t] = sum(dp[t - n] for n in nums if n <= t)`.
-4. Iteration order: **target on the outside, numbers on the inside**, `t` ascending from `1` to
-   `target`. This is the whole trick — the outer loop over `t` lets every number appear at every
-   position, which counts orderings. Swapping the loops (numbers outside) would count each
-   multiset once instead, i.e. true combinations.
-5. Inside the inner loop, guard `n <= t` before indexing `dp[t - n]`.
-6. Return `dp[target]`. The values are `nums` distinct positive integers, so no dedup is needed
-   and nothing can loop forever on a zero.
-7. Follow-up (negatives allowed): the state stops being well-founded — `[1, -1]` gives infinitely
-   many sequences — so you would have to bound the sequence length and add that as a second
-   dimension.
+1. Let `dp[t]` count ordered sequences totaling `t`, and set `dp[0] = 1` for the empty prefix.
+2. Process totals `t` from 1 through `target`; positivity guarantees every `t - num` is a
+   smaller, already-computed state.
+3. For every `num <= t`, add `dp[t - num]` to `dp[t]`. Keeping totals outside the number loop
+   allows every number at every final position, so orderings remain distinct.
+4. Return `dp[target]`. Distinct positive input values require no deduplication, and the input
+   is not mutated.
 
 ## Code
 
@@ -67,8 +57,12 @@ class Solution:
 
 ## Why it works
 
-Every nonempty sequence summing to `t` has exactly one first element `n`, and deleting it
-leaves a sequence summing to `t - n` — a bijection, so the sum over `n` counts each sequence
-once and only once. Since all `nums` are positive, `t - n < t` and the ascending sweep has
-`dp[t - n]` finalized before it is used. Filling `target` cells with an `O(n)` scan each is
-`O(target * n)` time and `O(target)` space.
+Every nonempty sequence totaling `t` has one final value `num`. Removing it gives a unique
+sequence counted by `dp[t - num]`, while appending `num` reverses that operation. These groups
+are disjoint for different final values and cover every sequence. Induction on `t`, starting
+from the empty sequence at zero, proves that each `dp[t]` is exact.
+
+**Complexity**
+
+- **Time:** `O(target * n)`, where `n = len(nums)`.
+- **Space:** `O(target)`.

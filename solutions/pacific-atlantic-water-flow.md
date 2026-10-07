@@ -21,23 +21,22 @@ Input: heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]
 Output: [[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]
 ```
 
-Explanation: the cell at `(0, 4)` sits directly on both the top edge (Pacific) and the right
-edge (Atlantic), so it trivially reaches both oceans and appears in the output.
-
+Explanation: `(0, 4)` touches both the Pacific top edge and the Atlantic right edge.
 
 ## Intuition
 
-Checking, for each cell, whether water can reach both oceans means tracing every downhill path out of that cell — exponential blowup. Flip the direction instead: start at the ocean and walk backward, from a border cell into any neighbor whose height is >= the current cell's (forward flow needs non-increasing height, so the reverse walk needs non-decreasing). Two DFS sweeps, one per ocean, mark every cell that ocean can reach; the answer is the intersection of the two marked sets.
+Searching downhill from every cell repeats the same work. Reverse the edges instead: start from an
+ocean border and move to neighbors of equal or greater height. Every reached cell can flow back to
+that ocean in the original direction. Two iterative depth-first traversals mark cells that reach
+each ocean, and their intersection is the answer.
 
 ## Approach
 
-1. Handle the empty-grid edge case; read `rows`, `cols` from `heights`.
-2. Allocate two `rows x cols` boolean grids, `pacific` and `atlantic`, both initially `False`.
-3. Write `dfs(r, c, visited)`: mark `visited[r][c] = True`, then for each of the 4 neighbors `(nr, nc)`, recurse if it's in bounds, not yet visited, and `heights[nr][nc] >= heights[r][c]`.
-4. Seed the Pacific DFS from every cell in row 0 and column 0 — the borders the Pacific touches.
-5. Seed the Atlantic DFS from every cell in row `rows - 1` and column `cols - 1` — the borders the Atlantic touches.
-6. After both sweeps finish, scan every `(r, c)` and collect it into the result if `pacific[r][c]` and `atlantic[r][c]` are both `True`.
-7. Return the collected list of `[r, c]` pairs; order doesn't matter.
+1. Return an empty list for an empty grid. Build the Pacific and Atlantic border start lists.
+2. In `reach(starts)`, mark all starts and traverse with a stack.
+3. From `(r, c)`, add each unseen in-bounds neighbor whose height is at least `heights[r][c]`.
+4. Run `reach` for both oceans and return every coordinate present in both visited grids.
+5. The grid is read only. An explicit stack avoids Python recursion-depth failures on large grids.
 
 ## Code
 
@@ -48,27 +47,35 @@ class Solution:
             return []
 
         rows, cols = len(heights), len(heights[0])
-        pacific = [[False] * cols for _ in range(rows)]
-        atlantic = [[False] * cols for _ in range(rows)]
 
-        def dfs(r: int, c: int, visited: List[List[bool]]) -> None:
-            visited[r][c] = True
-            for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                nr, nc = r + dr, c + dc
-                if (
-                    0 <= nr < rows
-                    and 0 <= nc < cols
-                    and not visited[nr][nc]
-                    and heights[nr][nc] >= heights[r][c]
-                ):
-                    dfs(nr, nc, visited)
+        def reach(starts):
+            visited = [[False] * cols for _ in range(rows)]
+            stack = list(starts)
+            for r, c in starts:
+                visited[r][c] = True
 
-        for c in range(cols):
-            dfs(0, c, pacific)
-            dfs(rows - 1, c, atlantic)
-        for r in range(rows):
-            dfs(r, 0, pacific)
-            dfs(r, cols - 1, atlantic)
+            while stack:
+                r, c = stack.pop()
+                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nr, nc = r + dr, c + dc
+                    if (
+                        0 <= nr < rows
+                        and 0 <= nc < cols
+                        and not visited[nr][nc]
+                        and heights[nr][nc] >= heights[r][c]
+                    ):
+                        visited[nr][nc] = True
+                        stack.append((nr, nc))
+            return visited
+
+        pacific_starts = [(0, c) for c in range(cols)] + [
+            (r, 0) for r in range(rows)
+        ]
+        atlantic_starts = [(rows - 1, c) for c in range(cols)] + [
+            (r, cols - 1) for r in range(rows)
+        ]
+        pacific = reach(pacific_starts)
+        atlantic = reach(atlantic_starts)
 
         return [
             [r, c]
@@ -80,4 +87,14 @@ class Solution:
 
 ## Why it works
 
-Water flows from a cell to a neighbor only when the neighbor's height is <= the cell's, so walking from an ocean border into a neighbor with height >= the current cell exactly retraces a valid flow path in reverse — anything reached this way can genuinely drain into that ocean. Seeding the DFS from all border cells at once, guarded by a visited grid, means every cell is expanded at most once per ocean, so the two sweeps together cost O(rows * cols) time; the two boolean grids plus the DFS call stack cost O(rows * cols) space in the worst case.
+A forward water-flow edge goes from a cell to a neighbor of no greater height. `reach` traverses
+exactly the reverse of those edges, beginning at every cell adjacent to its ocean. Thus a cell is
+marked precisely when it has a valid forward path to that ocean. A coordinate marked by both
+traversals has paths to both oceans, and any cell with both paths is reached by reversing them.
+Therefore, the returned intersection is exact.
+
+**Complexity**
+
+- **Time:** `O(rows * cols)` because each cell is processed at most once per ocean.
+- **Space:** `O(rows * cols)` auxiliary space for visited grids, start lists, and traversal stacks,
+  plus up to `O(rows * cols)` for the output.

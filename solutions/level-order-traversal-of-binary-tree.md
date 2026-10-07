@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given the root of a binary tree, return the values of its nodes grouped level by level from the root downward, with each level's values listed left to right.
+Given a binary tree root, return node values grouped by depth from top to bottom, with each
+level listed from left to right.
 
 **Example**
 
@@ -18,21 +19,23 @@ Input: root = [3,9,20,null,null,15,7]
 Output: [[3],[9,20],[15,7]]
 ```
 
-Explanation: The root 3 forms the first level on its own, its children 9 and 20 form the second level, and 20's children 15 and 7 form the third level, giving [[3],[9,20],[15,7]].
+The root forms the first level, its children form the second, and the children of `20` form
+the third.
 
 ## Intuition
 
-A plain BFS with a queue already visits nodes in level order, but it hands me one flat stream and I can't tell where one level ends and the next begins. The fix is one line of bookkeeping: at the top of each round, the queue contains *exactly* the current level and nothing else, because I haven't pushed any of its children yet. So I snapshot `len(queue)` first and pop precisely that many nodes — those are one level, and everything I push during the round is the next one.
+Breadth-first search visits nodes by increasing depth. At the start of each outer iteration, the
+queue contains exactly one level. Capturing its size before adding children separates that level
+from the next one without storing depths on individual nodes.
 
 ## Approach
 
-1. Return `[]` if `root` is None; the queue must never be seeded with a None.
-2. Set `res = []` and `queue = collections.deque([root])`.
-3. Outer loop while `queue` is non-empty. Invariant at the top of each iteration: `queue` holds every node of the current level, left to right, and nothing else.
-4. Read `len(queue)` **before** the inner loop and freeze it — that count is the width of this level. Reading it inside the loop would keep sliding as children are appended and the levels would smear together.
-5. Inner loop, that many times: `popleft` a node, append `node.val` to a fresh `level` list, then append `node.left` and `node.right` if they exist. Children go to the back, so they can't be reached by this round's counter.
-6. After the inner loop, append `level` to `res`. The queue now holds exactly the next level, restoring the invariant.
-7. Return `res`.
+1. Return an empty list for an empty tree; otherwise enqueue `root`.
+2. At each outer iteration, create `level` and snapshot the current queue length.
+3. Remove exactly that many nodes, append their values, and enqueue each left child before its
+   right child.
+4. Append the completed `level` to `res`; the queue now contains only the next level.
+5. Return `res` after the queue is empty.
 
 ## Code
 
@@ -60,4 +63,12 @@ class Solution:
 
 ## Why it works
 
-A FIFO queue seeded with the root visits nodes in non-decreasing depth order, and since every node of depth `d+1` is pushed by some node of depth `d`, the queue is at all times a run of depth-`d` nodes followed by a run of depth-`d+1` nodes — freezing the count at the boundary cuts it exactly at the level break. Each node is enqueued and dequeued once, so the time is O(n). The queue never holds more than two adjacent levels, and the widest level of a complete tree is about n/2 nodes, so auxiliary space is O(n).
+Initially the queue contains exactly the depth-zero level. If it contains one complete level in
+left-to-right order, removing its saved number of nodes records that level exactly once. Enqueuing
+each node's left child before its right child constructs the next level in left-to-right order.
+Thus the invariant holds by induction, and every list appended to `res` is the correct level.
+
+**Complexity**
+
+- **Time:** `O(n)`, because each node is enqueued and removed once.
+- **Space:** `O(n)` auxiliary queue space in the worst case, plus `O(n)` for the output.

@@ -4,12 +4,13 @@
 draft: false
 pattern: "Sort, fix an anchor, two pointers"
 time: "O(n^2)"
-space: "O(1)"
+space: "O(n)"
 ---
 
 ## Description
 
-Given an integer array `nums`, return all unique triplets `[nums[i], nums[j], nums[k]]` with distinct indices `i`, `j`, `k` whose values sum to 0. The result must not contain duplicate triplets.
+Given `nums`, return every unique triplet of values at distinct indices whose sum is zero. The
+result must not contain duplicate triplets.
 
 **Example**
 
@@ -18,34 +19,22 @@ Input: nums = [-1,0,1,2,-1,-4]
 Output: [[-1,-1,2],[-1,0,1]]
 ```
 
-Explanation: `-1 + -1 + 2 == 0` and `-1 + 0 + 1 == 0`; every other combination of three values either repeats one of these triplets or does not sum to zero.
+Both listed triplets sum to zero, and no other distinct value triplet does.
 
 ## Intuition
 
-Fixing the first number turns 3Sum into "find two numbers summing to `-nums[i]`" — and once the
-array is sorted, that inner problem is the O(n) two-pointer walk from Two Sum II. That is O(n²)
-total instead of O(n³). Sorting also solves the harder half of this problem, which is deduplicating
-the *triplets*: equal values become adjacent, so a duplicate triplet can only come from re-picking a
-value that is identical to the one just used at the same position. Skip those and no set of tuples
-is needed.
+After sorting, fix one value and find the other two with inward-moving pointers. A sum that is too
+small can only be increased by moving the left pointer; a sum that is too large can only be
+decreased by moving the right pointer. Adjacent equal values can be skipped to avoid duplicate
+triplets without a result set.
 
 ## Approach
 
-1. Sort `nums` in place and let `n = len(nums)`, `res = []`.
-2. Loop the anchor `i` over `range(n - 2)`. If `nums[i] > 0`, `break` — the array is sorted, so all
-   three picks are positive and no later anchor can sum to zero.
-3. Skip a duplicate anchor: `if i > 0 and nums[i] == nums[i - 1]: continue`. The guard `i > 0` is
-   essential; without it the first element is compared against `nums[-1]`.
-4. Set `l = i + 1`, `r = n - 1` and walk inward while `l < r`, computing
-   `total = nums[i] + nums[l] + nums[r]`.
-5. If `total < 0` move `l` right — `nums[r]` is already the largest partner left for `l`, so `l` is
-   too small for anything in the window and moving `r` left would only shrink the sum further. If
-   `total > 0` move `r` left by the mirror argument.
-6. On `total == 0`, append `[nums[i], nums[l], nums[r]]`, then move **both** pointers (moving only
-   one can never give another zero with the same anchor), then skip duplicates on the left:
-   `while l < r and nums[l] == nums[l - 1]: l += 1`. Skipping on one side is enough — a repeated
-   left value with a fresh right value would not sum to zero anyway.
-7. Return `res`.
+1. Sort `nums` in place and iterate each possible anchor `i`.
+2. Skip repeated anchors, and stop once `nums[i] > 0` because all later values are positive.
+3. Search to the right of `i` with pointers `l` and `r`.
+4. Move `l` right when the sum is too small and `r` left when it is too large.
+5. On a zero sum, append the triplet, move both pointers, and skip repeated left values.
 
 ## Code
 
@@ -81,11 +70,14 @@ class Solution:
 
 ## Why it works
 
-Every triplet has a smallest element, so anchoring on each distinct value of `nums[i]` and searching
-only to its right covers all of them exactly once, with no ordering ambiguity. Inside, the
-two-pointer scan is complete for the same exchange reason as Two Sum II: each move eliminates an
-index that has been proven to fail against every partner remaining in the window. The two skip rules
-mean each distinct triplet is emitted once — the anchor skip kills duplicate first elements, the
-inner skip kills duplicate second elements, and the third is then determined. Sorting is O(n log n),
-dominated by n anchors times an O(n) scan, so O(n²) time with only index variables beyond the
-in-place sort and the output.
+For a fixed anchor, if the current sum is too small, its left value cannot pair with any remaining
+right value because the current right value is the largest available; the symmetric argument
+justifies moving the right pointer for a large sum. Thus each move discards only impossible pairs,
+so the scan finds every zero-sum pair for that anchor. Every sorted triplet has one first value,
+and skipping repeated first and second values emits each value triplet exactly once.
+
+**Complexity**
+
+- **Time:** `O(n^2)`; the `O(n log n)` sort is dominated by the pointer scans.
+- **Space:** `O(n)` worst-case auxiliary space for Python's in-place sort, excluding output.
+- **Output:** Up to `O(n^2)` triplets.

@@ -10,9 +10,8 @@ space: "O(10^4 + d)"
 ## Description
 
 Given a 4-wheel combination lock starting at `"0000"`, where each wheel can be turned one
-step up or down (wrapping between `9` and `0`), a list of `deadends` states that lock the
-wheel permanently if reached, and a `target` combination, return the minimum number of turns
-needed to reach `target` without ever passing through a deadend, or `-1` if it's impossible.
+step up or down with wraparound, return the minimum turns needed to reach `target` without
+entering a state in `deadends`. Return `-1` if the target is unreachable.
 
 **Example**
 
@@ -21,38 +20,22 @@ Input: deadends = ["0201","0101","0102","1212","2002"], target = "0202"
 Output: 6
 ```
 
-Explanation: the shortest sequence of single-wheel turns from `"0000"` to `"0202"` that
-avoids every listed deadend takes 6 moves.
-
+Explanation: The shortest legal sequence from `"0000"` to `"0202"` takes six turns.
 
 ## Intuition
 
-The graph is not given — I have to see it. A node is one of the `10^4` four-character states
-the wheels can show, and two states are joined by an edge when they differ in a single wheel
-by a single notch, with `0` and `9` adjacent. That is 8 neighbours per state. Deadends are
-nodes deleted from the graph.
-
-Every move costs one turn, so "minimum turns" is a shortest-hop count on an unweighted graph,
-which means BFS from `"0000"` — no heap, no DP. Marking a state visited on *enqueue* matters
-more here than in a grid: with 8 neighbours in a dense state space, marking on dequeue would
-let a state be queued many times before it is first popped, and the queue would blow up.
+Treat each four-digit combination as a graph node. Turning one of four wheels in either direction
+creates its eight neighbors, while deadends are removed nodes. Every edge costs one turn, so BFS
+finds a shortest legal route. Marking states when enqueued prevents duplicate queue entries.
 
 ## Approach
 
-1. `dead = set(deadends)` for `O(1)` membership. If `"0000" in dead`, the lock is stuck before
-   the first turn — return `-1`.
-2. `q = collections.deque([("0000", 0)])` carrying `(state, turns)`, and
-   `visited = {"0000"}`.
-3. Pop `(state, turns)`. If `state == target`, return `turns` — checking at pop is fine
-   because BFS pops in non-decreasing `turns` order, and it also handles `target == "0000"`
-   returning `0`.
-4. Generate neighbours: for each wheel `i` in `range(4)` and each `delta` in `(1, -1)`,
-   compute `d = (int(state[i]) + delta) % 10` and splice
-   `nxt = state[:i] + str(d) + state[i + 1:]`. The `% 10` is what wraps `9 -> 0` and
-   `0 -> 9`.
-5. Push `nxt` with `turns + 1` only when it is not in `visited` and not in `dead`, adding it
-   to `visited` at that moment.
-6. If the queue drains without hitting `target`, the target is unreachable — return `-1`.
+1. Convert `deadends` to a set. Return `-1` if the starting state is dead.
+2. Initialize a queue with `("0000", 0)` and mark `"0000"` visited.
+3. Pop a state and return its turn count if it is `target`.
+4. Generate both wrapped turns for each wheel. Enqueue unseen, non-dead neighbors with one more
+   turn, marking them immediately.
+5. Return `-1` if the queue empties. A target of `"0000"` returns zero on the first pop.
 
 ## Code
 
@@ -86,10 +69,13 @@ class Solution:
 
 ## Why it works
 
-All edges have weight `1`, so BFS's level-by-level expansion pops states in non-decreasing
-distance from `"0000"`, and the first time `target` comes off the queue its `turns` is the
-minimum number of moves — no later path can be shorter. Excluding deadends at push time is
-the same as deleting those nodes from the graph, so no path through them is ever considered,
-and the search still explores every legal route around them. The state space is bounded at
-`10^4`, each state is enqueued once and expanded into 8 neighbours each built in `O(4)`,
-which caps the whole search at `O(10^4 * 4)` plus `O(d)` to hash the `d` deadends.
+BFS processes states in nondecreasing distance from `"0000"`. Every generated edge represents
+one legal wheel turn, and dead states are never enqueued, so the queue contains exactly reachable
+legal states. Consequently, the first pop of `target` has the fewest possible turns. If no such
+pop occurs, every reachable legal state has been exhausted and the target is impossible.
+
+**Complexity**
+
+- **Time:** `O(10^4 * 4 + d)` for all lock states and `d` deadends; each state has eight
+  constant-width neighbor constructions.
+- **Space:** `O(10^4 + d)` auxiliary space for the queue, visited set, and deadend set.

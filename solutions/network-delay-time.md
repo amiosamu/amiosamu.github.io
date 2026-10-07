@@ -10,8 +10,8 @@ space: "O(V + E)"
 ## Description
 
 Given `n` nodes labeled `1` to `n`, a list `times` of directed edges `(u, v, w)` meaning a
-signal takes `w` time to travel from `u` to `v`, and a source node `k`, return the minimum
-time for a signal sent from `k` to reach every node, or `-1` if some node is unreachable.
+signal takes `w` time to travel from `u` to `v`, and a source `k`, return the time at which
+every node has received the signal. Return `-1` if any node is unreachable.
 
 **Example**
 
@@ -20,34 +20,23 @@ Input: times = [[2,1,1],[2,3,1],[3,4,1]], n = 4, k = 2
 Output: 2
 ```
 
-Explanation: From node 2, nodes 1 and 3 receive the signal at time 1, and node 3 then
-relays it to node 4, which arrives at time 2 — the last node to receive it, so 2 is the
-answer.
+Explanation: Nodes `1` and `3` receive the signal at time `1`; node `4` receives it at time `2`.
 
 ## Intuition
 
-The signal floods every outgoing edge at once, so a node lights up at the *earliest*
-arrival time over all paths into it, and the network is done when the last node lights
-up. That makes the answer `max(shortest_dist[v])` over all `v`, with `-1` if any node
-is unreachable.
-
-BFS would be wrong here because the edges carry travel times: a two-hop route can beat
-a one-hop one, so hop count and arrival time are different orderings. Weights are
-positive, so Dijkstra applies — process nodes in increasing arrival time and the first
-time a node comes off the heap that time is final.
+The arrival time at a node is the shortest weighted-path distance from `k`. Since all edge
+weights are positive, Dijkstra's algorithm can finalize nodes in increasing arrival time. The
+network delay is the largest finalized distance, because signals can travel concurrently. A
+missing finalized node is unreachable.
 
 ## Approach
 
-1. Build `adj[u] = [(v, w), ...]` from `times` with a `collections.defaultdict(list)`.
-2. `dist` is a dict of finalized nodes only — a node is in it iff it has been popped.
-3. Seed the heap with `(0, k)`.
-4. Pop `(d, node)`. If `node` is already in `dist`, this is a stale duplicate entry —
-   `continue`. Otherwise set `dist[node] = d`; this is the first and therefore smallest
-   entry for that node.
-5. Push `(d + w, nei)` for every outgoing edge to a node not yet finalized.
-6. When the heap drains, return `max(dist.values())` if `len(dist) == n`, else `-1`.
-   Using "is it in `dist`" as the visited set is what makes the `-1` check a simple
-   count comparison.
+1. Build an adjacency list of `(neighbor, weight)` pairs for each directed edge.
+2. Seed a min-heap with `(0, k)` and keep `dist` for finalized arrival times.
+3. Pop the smallest `(d, node)`. Skip it if already finalized; otherwise record `d`.
+4. Push `d + w` for each outgoing neighbor not yet finalized. Duplicate tentative entries are
+   allowed and later skipped.
+5. Return the largest finalized distance if all `n` nodes were reached; otherwise return `-1`.
 
 ## Code
 
@@ -78,9 +67,13 @@ class Solution:
 
 ## Why it works
 
-Because every `w >= 1`, extending a path never shortens it, so the smallest value in
-the heap cannot be beaten by any route that still has an unprocessed edge to traverse —
-that is the invariant that lets me finalize a node on its first pop. Taking the maximum
-over all finalized distances is right because the signal travels down all edges
-simultaneously, so the network finishes when its slowest node receives. Each edge is
-pushed at most once, so the heap holds `O(E)` entries and the work is `O(E log V)`.
+Suppose `(d, node)` is the first heap entry popped for an unfinalized node. Any alternative path
+to `node` must leave the finalized region through an edge whose candidate distance is already in
+the heap. That candidate is at least `d`, and positive remaining edges cannot reduce it. Therefore,
+`d` is the shortest distance and can be finalized. Induction proves every value in `dist` is an
+earliest arrival time. The latest of those arrivals is exactly the total network delay.
+
+**Complexity**
+
+- **Time:** `O(E log V)` for heap operations after `O(E)` adjacency construction.
+- **Space:** `O(V + E)` auxiliary space for the graph, heap, and finalized distances.

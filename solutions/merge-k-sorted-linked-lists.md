@@ -9,7 +9,8 @@ space: "O(k)"
 
 ## Description
 
-Given an array of `k` linked lists, each already sorted in ascending order, merge all of them into one sorted linked list and return its head.
+Given `k` linked lists sorted in ascending order, merge them into one sorted list and return its
+head.
 
 **Example**
 
@@ -18,33 +19,23 @@ Input: lists = [[1,4,5],[1,3,4],[2,6]]
 Output: [1,1,2,3,4,4,5,6]
 ```
 
-Explanation: Merging the three sorted lists [1,4,5], [1,3,4], and [2,6] by always taking the smallest available head produces the fully sorted sequence [1,1,2,3,4,4,5,6].
+Repeatedly selecting the smallest available head produces `[1,1,2,3,4,4,5,6]`.
 
 ## Intuition
 
-Merging the lists one at a time into an accumulator re-walks the growing result on every merge,
-which is O(Nk). Pair them up instead: merge lists 0 and 1, 2 and 3, and so on, halving the
-number of lists each round. Every round still touches all N nodes exactly once, but there are
-only `log k` rounds, so the total is O(N log k) — the same bound a heap gives, without the heap.
+Sequentially merging into a growing accumulator can revisit early nodes `k` times. Instead, merge
+lists in pairs. Each round processes all nodes once and reduces the number of lists by about half,
+so there are only `ceil(log k)` rounds.
+
+The two-list merge relinks existing nodes; it does not allocate copies of list elements.
 
 ## Approach
 
-1. Return `None` immediately for an empty `lists`; the loop below assumes at least one entry.
-2. Outer loop `while len(lists) > 1`. Each pass builds a fresh `merged` array.
-3. Step `i` over `range(0, len(lists), 2)`. Take `l1 = lists[i]` and
-   `l2 = lists[i + 1] if i + 1 < len(lists) else None` — the guard covers an odd count, where the
-   last list has no partner and is carried forward unchanged (merging with `None` returns it
-   as-is).
-4. Append `self.mergeTwo(l1, l2)` to `merged`, then `lists = merged` and repeat.
-5. `mergeTwo` is the two-pointer splice: `dummy = ListNode()` and `tail = dummy`, then while both
-   are non-empty attach the smaller head with `<=` (keeps the merge stable), advance that list,
-   and `tail = tail.next`. The dummy is there so the first append needs no "is the output still
-   empty?" branch.
-6. When one input runs out, `tail.next = l1 if l1 else l2` splices the entire remainder in one
-   assignment — it is already sorted and every value in it is at least the last emitted.
-7. Return `dummy.next` from `mergeTwo` and `lists[0]` from the driver.
-8. Individual entries of `lists` may be `None`; nothing here dereferences a head without a
-   truthiness check, so that is already handled.
+1. Return `None` when `lists` is empty.
+2. Pair adjacent list heads and append each `mergeTwo` result to a new `merged` array.
+3. If a round has an unpaired list, merge it with `None`, which carries it forward unchanged.
+4. In `mergeTwo`, append the smaller head to a dummy-headed result and advance that input.
+5. Splice the non-empty remainder after one input ends. Repeat rounds until one list remains.
 
 ## Code
 
@@ -79,10 +70,13 @@ class Solution:
 
 ## Why it works
 
-`mergeTwo` is correct because the smallest unemitted value is always at the head of one of the
-two lists, so taking `min(l1.val, l2.val)` preserves the invariant that the output is sorted and
-bounded above by both remaining heads. Merging sorted lists is associative, so any pairing
-schedule produces the same final order — the tournament shape only changes the cost. Each round
-does O(total nodes in that round) = O(N) work and the list count halves, giving `⌈log k⌉` rounds
-and O(N log k) time; the only extra memory is the array of at most `k` heads, so O(k) space with
-no nodes copied.
+During `mergeTwo`, the output is sorted and contains exactly the nodes removed from both inputs.
+The smallest remaining node must be one of the two heads, so appending the smaller head preserves
+the invariant; once one input ends, the other remainder is already sorted. Thus each pairwise merge
+is correct. By induction over rounds, every resulting list is the sorted merge of its original
+group, and the final list merges all inputs.
+
+**Complexity**
+
+- **Time:** `O(N log k)`, where `N` is the total node count.
+- **Space:** `O(k)` for arrays of list heads. Existing nodes are relinked, mutating input chains.

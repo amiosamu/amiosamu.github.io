@@ -9,10 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an `m x n` integer matrix `matrix`, find every cell that contains a 0 and set its
-entire row and entire column to 0 as well, modifying `matrix` directly. The follow-up (and
-what the solution targets) is doing this in-place with only `O(1)` extra space, rather than
-allocating separate row/column marker arrays.
+Given an `m x n` integer matrix, set an entire row and column to zero whenever either contains
+an original zero. Modify `matrix` in place using constant extra space.
 
 **Example**
 
@@ -21,37 +19,24 @@ Input: matrix = [[1,1,1],[1,0,1],[1,1,1]]
 Output: [[1,0,1],[0,0,0],[1,0,1]]
 ```
 
-Explanation: The single 0 sits at row 1, column 1, so every cell in row 1 and every cell in
-column 1 becomes 0, leaving the four corners untouched.
+Explanation: The zero at `(1, 1)` clears row `1` and column `1`.
 
 ## Intuition
 
-The naive fix — zero a row the moment you see a 0 — is wrong, because the zeros you write are
-indistinguishable from the zeros that were already there and they cascade. So the real job is to
-record *which* rows and columns to clear, then clear them in a second pass. Two boolean arrays of
-size `m` and `n` are the obvious storage, but the follow-up wants `O(1)`, and the matrix already
-contains a length-`m` column and a length-`n` row I can overwrite for exactly that purpose: row 0
-and column 0. They overlap at `matrix[0][0]`, which can only carry one bit, so I hoist column 0's
-flag into a separate boolean `first_col_zero` and let `matrix[0][0]` mean "row 0 has a zero".
+Clearing cells while discovering zeros would create new zeros that incorrectly trigger more
+rows and columns. Instead, first record all affected rows and columns. The first column stores
+row flags, and the first row stores column flags. Their shared cell cannot represent both
+facts, so `first_col_zero` separately records whether column zero must be cleared.
 
 ## Approach
 
-1. `m, n = len(matrix), len(matrix[0])`.
-2. `first_col_zero = any(matrix[i][0] == 0 for i in range(m))`. Do this *before* anything is
-   written, since column 0 is about to become scratch space.
-3. Marker pass over `i in range(m)`, `j in range(1, n)` — column 0 deliberately excluded. If
-   `matrix[i][j] == 0`, set `matrix[i][0] = 0` and `matrix[0][j] = 0`.
-4. Write pass over rows **bottom to top**: `for i in range(m - 1, -1, -1)`. For each `j in
-   range(n - 1, 0, -1)`, if `matrix[i][0] == 0 or matrix[0][j] == 0`, set `matrix[i][j] = 0`.
-   Then, after that row's columns are done, `if first_col_zero: matrix[i][0] = 0`.
-5. The bottom-up direction is the subtle part and the thing to remember. Row 0 is the column-flag
-   row; if it is processed first and gets zeroed out, every later row reads corrupted flags. Take
-   `[[0,1],[1,1]]`: top-down, row 0's flag `matrix[0][0] == 0` sets `matrix[0][1] = 0`, which then
-   reads as "column 1 is flagged" and wrongly zeros `matrix[1][1]`. Going bottom-up, row 0 is
-   consumed last, so destroying its flags harms nothing.
-6. Column 0 is written only at the end of each row's inner loop, after `matrix[i][0]` has been read
-   as the row flag for every `j` in that row. That is why the inner loop stops at `j == 1`.
-7. Return nothing; the signature is `-> None` and the judge reads `matrix` back.
+1. Record whether the original first column contains a zero in `first_col_zero`.
+2. Scan columns `1..n-1`. For every zero at `(i, j)`, write row marker `matrix[i][0] = 0`
+   and column marker `matrix[0][j] = 0`.
+3. Traverse rows from bottom to top and columns from right to left. Clear `(i, j)` when either
+   corresponding marker is zero.
+4. After processing a row's other cells, clear its first cell when `first_col_zero` is true.
+   Bottom-up order preserves row zero's column markers until all other rows have read them.
 
 ## Code
 
@@ -77,10 +62,14 @@ class Solution:
 
 ## Why it works
 
-After the marker pass, `matrix[i][0] == 0` holds exactly when row `i` contained an original zero in
-some column `>= 1` (or `i == 0` and row 0 did), and `matrix[0][j] == 0` holds exactly when column
-`j >= 1` did — the pass only reads original values, since every cell it writes lies in row 0 or
-column 0, which it never reads. The write pass then consumes each flag before overwriting it: a
-row's flag `matrix[i][0]` survives until that row's inner loop finishes, and column 0's flag lives
-outside the matrix in `first_col_zero`, while the bottom-up order keeps the column-flag row intact
-until nothing else needs it. Two full sweeps give `O(m * n)` time with a single extra boolean.
+The marker-pass invariant is that every processed original zero has set its row and column
+markers. Consequently, after that pass, `matrix[i][0]` is zero exactly when row `i` had an
+original zero, and `matrix[0][j]` is zero exactly when column `j > 0` had one. The second pass
+clears precisely cells whose row or column marker is set. It reads each row marker before
+overwriting it and processes row zero last, while `first_col_zero` handles the excluded first
+column. Therefore every required cell, and no other cell, is cleared.
+
+**Complexity**
+
+- **Time:** `O(m * n)` for the marker and write passes.
+- **Space:** `O(1)` auxiliary space; `matrix` is modified in place.

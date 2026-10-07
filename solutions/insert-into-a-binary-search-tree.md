@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given the root of a binary search tree and a value val guaranteed not to already be present, insert val into the tree so the result is still a valid BST, and return the root of the resulting tree; any tree that results in a valid placement is accepted.
+Given a binary search tree and a value `val` not already present, insert `val` while
+preserving the BST property and return the resulting root.
 
 **Example**
 
@@ -18,21 +19,26 @@ Input: root = [4,2,7,1,3], val = 5
 Output: [4,2,7,1,3,5]
 ```
 
-Explanation: Descending from 4, 5 is greater so the search moves right to 7; 5 is less than 7 so it moves left into 7's empty left-child slot, giving the tree [4,2,7,1,3,5].
+Explanation: Search moves right from `4`, then left from `7`, and inserts `5` in the empty
+child position.
 
 ## Intuition
 
-The problem says any valid BST is accepted, which removes all the rebalancing and makes this a pure search: run the same descent you'd run to *look up* `val`, and where the lookup would fall off the tree is exactly where the new node belongs. No existing node moves — the insert is a single pointer write on a node that currently has a missing child, so the new node is always a leaf. The only real care is stopping one level early, at the parent, since you have to write into `parent.left` or `parent.right`.
+Follow the same path used to search for `val`. Comparisons determine the only subtree where
+the value can be placed. The first missing child on that path is a valid insertion point.
+
+The new node is attached as a leaf; no existing node moves. The method mutates the tree and
+returns the original root, except when the input tree is empty.
 
 ## Approach
 
-1. If `root` is None the tree is empty — return `TreeNode(val)` as the new root. This is the only case where the returned root differs from the one passed in.
-2. Otherwise set `cur = root` and loop forever. Invariant: `val` belongs somewhere in `cur`'s subtree.
-3. If `val < cur.val`, the new node goes left. If `cur.left` is None, that's the empty slot: set `cur.left = TreeNode(val)` and return `root`. Otherwise step down with `cur = cur.left`.
-4. Else (`val > cur.val`; the problem guarantees `val` isn't already present) mirror it on the right: if `cur.right` is None set `cur.right = TreeNode(val)` and return `root`, otherwise `cur = cur.right`.
-5. Return the *original* `root`, not `cur` — the function returns the root of the whole tree, and after step 1 that never changes.
-6. The `while True` always terminates because each iteration descends one level and every path ends in a None child, so a slot is always found within h steps.
-7. Recursive form if you prefer it: `if not root: return TreeNode(val)`, then `root.left = self.insertIntoBST(root.left, val)` or `root.right = ...`, then `return root`. Same logic, O(h) stack — the reassignment-on-the-way-back-up idiom is what makes it read cleanly.
+1. If `root` is empty, return a new `TreeNode(val)` as the root.
+2. Otherwise, keep `cur` at the current search node.
+3. When `val < cur.val`, descend left or attach the new node if `cur.left` is empty.
+4. Otherwise, descend right or attach at an empty `cur.right`. Equality is impossible by
+   the problem guarantee.
+5. Return the original root immediately after attachment. Each iteration descends one level,
+   so an empty child is reached within the tree height.
 
 ## Code
 
@@ -57,4 +63,13 @@ class Solution:
 
 ## Why it works
 
-The descent follows the unique path a search for `val` would take, so every node passed on the left has a value greater than `val` and every node passed on the right has a value smaller — hanging the new leaf at the end of that path therefore satisfies the BST property against every ancestor, and it has no descendants to violate. Nothing else in the tree is rewritten, so all other nodes' invariants are untouched. The walk costs one comparison per level: O(h) time, O(log n) on a balanced tree and O(n) on a skewed one, with O(1) extra space since the loop carries only `cur`.
+At each node, the comparison selects the only child subtree whose ancestor bounds can
+contain `val`. Those bounds remain valid throughout the descent. Attaching `val` at the
+first empty child satisfies its comparison with the parent and every accumulated ancestor
+bound. The node has no children, and all existing links remain unchanged, so the entire
+tree retains the BST property.
+
+**Complexity**
+
+- **Time:** `O(h)`, where `h` is the tree height.
+- **Space:** `O(1)` auxiliary space; one output node is allocated.

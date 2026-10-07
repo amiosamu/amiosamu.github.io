@@ -9,9 +9,9 @@ space: "O(m * n)"
 
 ## Description
 
-Design a data structure that is built once from a fixed 2D integer matrix and then
-answers repeated `sumRegion(row1, col1, row2, col2)` queries, each returning the sum of
-the matrix elements inside that rectangle (inclusive of both corners).
+Build a data structure for an immutable integer matrix. Each
+`sumRegion(row1, col1, row2, col2)` call must return the sum inside the inclusive rectangle
+defined by those corners.
 
 **Example**
 
@@ -20,35 +20,26 @@ Input: ["NumMatrix", "sumRegion", "sumRegion", "sumRegion"], [[[[3,0,1,4,2],[5,6
 Output: [null, 8, 11, 12]
 ```
 
-Explanation: `sumRegion(2, 1, 4, 3)` sums every entry with row in `[2, 4]` and column in
-`[1, 3]` — `2+0+1+1+0+1+7+1+0+3+0+5` — which totals `8`.
+Explanation: `sumRegion(2, 1, 4, 3)` adds `[2,0,1]`, `[1,0,1]`, and `[0,3,0]`,
+which totals `8`.
 
 ## Intuition
 
-The matrix never changes, and `sumRegion` is called many times — so pay once at
-construction and make each query constant. In 1D that means prefix sums; the 2D
-version is the same idea with corners.
-
-Let `prefix[r][c]` be the sum of the whole rectangle from the origin to `(r, c)`
-exclusive. Any query rectangle is then the big corner rectangle minus the strip
-above it, minus the strip to its left, plus the top-left block that those two
-strips both removed. That last `+` is the whole trick: inclusion–exclusion, four
-lookups, no loop.
+Because the matrix never changes, preprocessing can make every query constant time. Let
+`prefix[r][c]` store the sum in the half-open rectangle from `(0, 0)` to `(r, c)`. A query is
+the large origin rectangle minus the regions above and left of the target, plus their overlap,
+which was subtracted twice.
 
 ## Approach
 
-1. In `__init__`, allocate `self.prefix` with `rows + 1` by `cols + 1` zeros. The
-   extra zero row and column remove every out-of-bounds check later.
-2. Fill it so that `prefix[r + 1][c + 1]` = sum of `matrix[0..r][0..c]`, using
-   `matrix[r][c] + prefix[r][c + 1] + prefix[r + 1][c] - prefix[r][c]` — add the
-   block above and the block to the left, subtract their doubly-counted overlap.
-3. In `sumRegion`, all four reads use the `+1` offset, so the inclusive query
-   corner `(row2, col2)` becomes `prefix[row2 + 1][col2 + 1]`.
-4. Subtract `prefix[row1][col2 + 1]` (everything strictly above the query) and
-   `prefix[row2 + 1][col1]` (everything strictly to its left).
-5. Add back `prefix[row1][col1]`, the top-left corner removed twice.
-6. When `row1 == 0` or `col1 == 0` those terms read the padding row/column and are
-   `0`, which is exactly right.
+1. Allocate `self.prefix` with one extra zero row and column. This padding handles rectangles
+   touching the top or left edge without conditionals.
+2. For each matrix cell `(r, c)`, add the prefixes above and left, subtract their overlap, and
+   add `matrix[r][c]` to form `prefix[r + 1][c + 1]`.
+3. For a query, start with the prefix through `(row2, col2)`. Subtract the rectangle above the
+   query and the rectangle to its left.
+4. Add `prefix[row1][col1]` because the top-left overlap was removed twice. Construction reads
+   but does not mutate `matrix`.
 
 ## Code
 
@@ -78,9 +69,13 @@ class NumMatrix:
 
 ## Why it works
 
-The build recurrence is inclusion–exclusion on two overlapping rectangles, and it
-is well-founded because every term it reads sits strictly above or strictly left
-of the cell being written, so it is already final. The query is the same identity
-run backwards on four corners, which is why it is `O(1)`. Construction touches
-each of the `m * n` cells once and stores one integer per cell, giving
-`O(m * n)` time and space up front and constant time forever after.
+By induction over row-major construction, `prefix[r][c]` is the sum of the half-open rectangle
+`[0, r) x [0, c)`: the recurrence joins the rectangle above with the rectangle to the left,
+subtracts their shared prefix, and adds the new cell. For a query, the full prefix through the
+bottom-right corner contains the target plus the regions above and left. Subtracting those two
+regions and restoring their overlap leaves exactly the requested rectangle.
+
+**Complexity**
+
+- **Time:** `O(m * n)` to build and `O(1)` per query.
+- **Space:** `O(m * n)` for the prefix table.

@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an array `nums` where each element is `0`, `1`, or `2` — representing red, white,
-and blue — sort the array in place, in a single pass, so that objects of the same color
-are adjacent and ordered red, white, then blue, without calling a library sort function.
+Given an array `nums` containing only `0`, `1`, and `2`, sort it in place in one pass, without
+using a library sort.
 
 **Example**
 
@@ -20,34 +19,25 @@ Input: nums = [2,0,2,1,1,0]
 Output: [0,0,1,1,2,2]
 ```
 
-Explanation: Rearranging in place groups the two 0s first, then the two 1s, then the two
-2s, matching the red-white-blue order.
+Explanation: The two `0`s come first, followed by the two `1`s and two `2`s.
 
 ## Intuition
 
-Counting 0s, 1s and 2s and rewriting the array works and is easy, but it reads the
-array twice. The one-pass trick is to notice there are only three colors, so the
-array can be maintained as three growing regions: settled 0s on the left, settled
-2s on the right, and 1s in the middle. Two boundary pointers plus a scanner are
-enough to keep that shape.
+The Dutch national flag algorithm maintains settled `0`s on the left, settled `2`s on the
+right, settled `1`s between the left boundary and the scanner, and an unexamined middle range.
 
-The subtle part is asymmetry: after swapping a 0 forward I know what I received
-(it came from the already-scanned 1-region, so it is a 1), but after swapping a 2
-backward I received something from the unscanned tail and must re-examine it.
+After moving a `0` left, the scanner receives a known `1` from the settled middle region and
+can advance. After moving a `2` right, it receives an unexamined value and must inspect the same
+position again.
 
 ## Approach
 
-1. Keep three indices: `low` (first position not yet known to hold a 0), `i` (the
-   scanner), `high` (last position not yet known to hold a 2).
-2. Invariant: `nums[:low]` is all 0s, `nums[low:i]` is all 1s, `nums[high+1:]` is
-   all 2s, and `nums[i:high+1]` is unexamined.
-3. Loop while `i <= high`.
-4. If `nums[i] == 0`, swap it with `nums[low]`, then advance both `low` and `i` —
-   the value swapped in came from the 1-region so it needs no re-check.
-5. If `nums[i] == 2`, swap it with `nums[high]` and decrement `high` only. Do
-   **not** advance `i`: the value just pulled in is unexamined.
-6. If `nums[i] == 1`, just advance `i`.
-7. Stop when `i` passes `high`; the array is sorted in place, nothing to return.
+1. Maintain `low`, scanner `i`, and `high` so `nums[:low]` is all `0`, `nums[low:i]` is all
+   `1`, and `nums[high + 1:]` is all `2`.
+2. On `0`, swap with `low` and advance both `low` and `i`.
+3. On `2`, swap with `high` and decrement only `high`, leaving `i` to examine the incoming
+   value. On `1`, advance only `i`.
+4. Stop when `i > high`; the unexamined region is then empty and the method returns nothing.
 
 ## Code
 
@@ -70,9 +60,13 @@ class Solution:
 
 ## Why it works
 
-The three-region invariant holds after every branch: a 0 goes to the front of the
-middle region and pushes the 0-boundary right, a 2 goes to the back and pulls the
-2-boundary left, a 1 is already where it belongs. The unexamined window
-`[i, high]` shrinks by one on every iteration — either `i` rises or `high` falls —
-so the loop makes exactly `O(n)` steps and terminates, and the only storage is
-three indices.
+Initially all settled regions are empty. Each branch places the examined value in its correct
+region: `0` extends the left region, `2` extends the right region, and `1` extends the middle
+region. The swaps preserve the other settled regions, so the invariant holds by induction.
+Every iteration shrinks `[i, high]`; when it is empty, the three settled regions cover the array
+in sorted order.
+
+**Complexity**
+
+- **Time:** `O(n)` because the unexamined region shrinks once per iteration.
+- **Space:** `O(1)` auxiliary space; `nums` is modified in place.

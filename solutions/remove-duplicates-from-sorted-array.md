@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a sorted integer array `nums`, remove the duplicates in place so each distinct value appears only once, keeping the remaining elements in their original order, and return the count `k` of unique values; the first `k` elements of `nums` after the operation must hold the deduplicated values.
+Given a sorted integer array `nums`, remove duplicates in place and return the number `k` of
+distinct values. The first `k` positions must contain those values in their original order.
 
 **Example**
 
@@ -18,29 +19,21 @@ Input: nums = [1,1,2]
 Output: 2
 ```
 
-Explanation: The only duplicate is the second `1`; removing it leaves `[1,2]` as the deduplicated prefix, and its length, 2, is what gets returned.
+Explanation: The required prefix becomes `[1,2]`, so the returned length is `2`.
 
 ## Intuition
 
-Because the array is sorted, equal values are contiguous — so a value is a duplicate exactly when it
-equals the previous *kept* value. There is no need for a set or for shifting the tail on every
-deletion (which would be O(n²)); one read pointer scans every element while a write pointer trails
-behind marking the boundary of the deduplicated prefix. The write pointer only moves when something
-new is found, so it can never overtake the reader and clobber unread data.
+Sorted order makes equal values contiguous. A read pointer can scan each run while a write pointer
+marks the end of the distinct prefix. Comparing with the last written value identifies whether the
+current value starts a new run, and the trailing writer cannot overwrite unread input.
 
 ## Approach
 
-1. `k = 1`: the first element is always kept, and the constraints guarantee at least one element, so
-   the deduplicated prefix starts as `nums[0:1]`.
-2. Read pointer `i` runs over `range(1, len(nums))`, advancing every iteration regardless of what it
-   finds.
-3. Compare `nums[i]` against `nums[k - 1]`, the last value written — not against `nums[i - 1]`,
-   which may be a slot already overwritten by an earlier copy.
-4. If they differ, `nums[i]` starts a new run: write `nums[k] = nums[i]` and increment `k`. If they
-   are equal, skip — `i` moves on alone.
-5. The write pointer moves right only, and never faster than the reader (`k <= i` always), which is
-   why the in-place copy is safe.
-6. Return `k`. The tail beyond index `k` is ignored by the judge, so nothing needs cleaning up.
+1. Initialize `k = 1`; the nonempty-array constraint makes `nums[0]` the first kept value.
+2. Scan from index `1`. Compare `nums[i]` with `nums[k - 1]`, the last distinct value written.
+3. When they differ, copy `nums[i]` to `nums[k]` and increment `k`. Otherwise skip the duplicate.
+4. Return `k`. The algorithm mutates the first `k` positions; values beyond that prefix are
+   unspecified and need not be cleared.
 
 ## Code
 
@@ -57,8 +50,13 @@ class Solution:
 
 ## Why it works
 
-The invariant is that `nums[0:k]` holds the distinct values seen so far in sorted order, with
-`nums[k - 1]` the largest of them. Sortedness means any element equal to some earlier one is equal to
-`nums[k - 1]` specifically, so the single comparison detects every duplicate and never rejects a
-genuinely new value. One pass with `k` advancing at most once per step gives O(n) time and O(1)
-extra space.
+Before each read, `nums[:k]` contains exactly the distinct values already seen, in order. Because
+the input is sorted, the current value is a duplicate precisely when it equals the final value in
+that prefix. Skipping preserves the invariant; copying a different value extends the prefix with
+the next distinct value. At termination, the prefix therefore contains every distinct input value
+exactly once.
+
+**Complexity**
+
+- **Time:** `O(n)` for one scan.
+- **Space:** `O(1)` auxiliary space.

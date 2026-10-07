@@ -3,13 +3,14 @@
 # https://leetcode.com/problems/find-k-closest-elements/
 draft: false
 pattern: "Binary search the window start"
-time: "O(log(n - k) + k)"
+time: "O(log(n - k + 1) + k)"
 space: "O(1)"
 ---
 
 ## Description
 
-Given a sorted array `arr`, an integer `k`, and a target value `x`, return the `k` values from `arr` that are closest to `x`, in ascending order. Ties (equal distance) are broken in favor of the smaller value.
+Given sorted `arr`, return the `k` values closest to `x` in ascending order. Prefer the
+smaller value when distances tie.
 
 **Example**
 
@@ -18,20 +19,26 @@ Input: arr = [1,2,3,4,5], k = 4, x = 3
 Output: [1,2,3,4]
 ```
 
-Explanation: distances to `x = 3` are `2,1,0,1,2` for `1,2,3,4,5`; `1` and `5` are tied at distance 2, and the tie favors the smaller value `1`, so the four closest are `[1,2,3,4]`.
+Values 1 and 5 tie at distance 2, so the smaller value 1 is selected.
 
 ## Intuition
 
-The answer must be `k` *consecutive* elements: `arr` is sorted, so if two elements are in the answer, everything between them is at least as close as the further of the two. That reduces the problem to picking one number — the start index `l` of the window, somewhere in `[0, n - k]`. And the choice is monotone: comparing the element about to fall off the left, `arr[mid]`, against the one that would be gained on the right, `arr[mid + k]`, tells me which half of the candidate starts to discard, so binary search finds `l` directly.
+In a sorted array, the `k` selected values form one contiguous window: skipping an interior
+value for an exterior one cannot improve closeness. The problem becomes choosing a start
+index in `0..n-k`.
+
+Adjacent candidate windows share `k - 1` values. Compare only the left value being removed
+with the right value being added to decide whether the optimum lies farther right.
 
 ## Approach
 
-1. Search over *window starts*, not values: `lo = 0`, `hi = len(arr) - k`. Every start in that range yields a full `k`-wide window.
-2. While `lo < hi`, take `mid = (lo + hi) // 2` and compare the two boundary candidates: `x - arr[mid]` (how far the leftmost element of window `mid` is) against `arr[mid + k] - x` (how far the first element outside it is).
-3. If `x - arr[mid] > arr[mid + k] - x`, the left element is strictly worse than the one we'd gain, so sliding right is at least as good: `lo = mid + 1`.
-4. Otherwise window `mid` is at least as good as anything to its right: `hi = mid`. Note the tie goes left, which matches the tie-break rule "prefer the smaller element".
-5. `mid + k` is always a valid index because `mid < hi <= len(arr) - k`, so no bounds check is needed.
-6. When `lo == hi` the start is pinned; return `arr[lo:lo + k]`, which is already sorted ascending.
+1. Binary-search window starts with `lo = 0` and `hi = len(arr) - k`.
+2. At `mid`, compare `x - arr[mid]` with `arr[mid + k] - x`, the two values that
+   differ between neighboring windows.
+3. If the left boundary is strictly farther, set `lo = mid + 1`; otherwise set
+   `hi = mid`. Equality stays left to prefer the smaller value.
+4. Return the sorted slice `arr[lo:lo + k]` when both bounds meet. If `k == len(arr)`,
+   the search range already has one start and the full array is copied immediately.
 
 ## Code
 
@@ -50,4 +57,14 @@ class Solution:
 
 ## Why it works
 
-Define the window at start `i` as better-or-equal to the window at `i + 1` when `x - arr[i] <= arr[i + k] - x`; because `arr` is sorted, that predicate is monotone in `i`, so the starts split into a "keep sliding" prefix and a "stop" suffix, and the binary search converges on the first index of the suffix. Comparing only the two endpoints is enough since the `k - 1` shared elements are identical between neighbouring windows, and the `<=` tie-break keeps the smaller element, satisfying the problem's ordering rule. The search does O(log(n - k)) comparisons and the final slice copies `k` elements.
+Neighboring windows differ only by `arr[i]` and `arr[i + k]`. If the left value is
+farther from `x`, replacing it with the right value improves the window, so no start at or
+left of `i` is optimal. Otherwise the current window is no worse, including the required
+smaller-value tie, so the optimum remains at or left of `i`. Sorted boundaries make this
+decision monotone, and binary search converges to the best start.
+
+**Complexity**
+
+- **Time:** `O(log(n - k + 1) + k)`, including copying the result slice.
+- **Space:** `O(1)` auxiliary space.
+- **Output:** `O(k)` for the returned slice.

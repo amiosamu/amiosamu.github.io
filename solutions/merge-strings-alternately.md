@@ -4,12 +4,13 @@
 draft: false
 pattern: "Lockstep pointers, then append the tail"
 time: "O(n + m)"
-space: "O(1)"
+space: "O(n + m)"
 ---
 
 ## Description
 
-Given two strings `word1` and `word2`, build a new string by taking characters alternately, starting with `word1`; once one string is exhausted, append the remaining characters of the other.
+Given `word1` and `word2`, create a string by alternating their characters, starting with `word1`.
+After one word is exhausted, append the remainder of the other.
 
 **Example**
 
@@ -18,27 +19,22 @@ Input: word1 = "abc", word2 = "pqr"
 Output: "apbqcr"
 ```
 
-Explanation: Characters alternate a, p, b, q, c, r — one from each string in turn — and both strings run out at the same time, so nothing is left to append.
+The characters are appended in the order `a, p, b, q, c, r`.
 
 ## Intuition
 
-Two cursors that advance in lockstep, one per string, and the only real question is what happens
-when the shorter string runs out. Once one cursor is exhausted there is nothing left to alternate
-with, so the rest of the longer string is appended verbatim. Building the answer with `str +=` in a
-loop is quadratic in Python, so collect the pieces in a list and `"".join` once at the end.
+Advance one index through each word in lockstep, appending the character from `word1` before the
+character from `word2`. Once either word ends, alternation is complete and the remaining suffix can
+be appended directly.
+
+A list buffer avoids repeated immutable-string concatenation; one final `join` builds the result.
 
 ## Approach
 
-1. Keep a list `res` for the output pieces and two indices `i = j = 0`, one into `word1` and one
-   into `word2`.
-2. While `i < len(word1)` and `j < len(word2)`: append `word1[i]`, then `word2[j]`, then advance
-   both. Both pointers move forward only, in the same direction and at the same rate — the output
-   position is `i + j`, so falling behind on either one would break the alternation.
-3. When the loop exits, at least one cursor is at the end of its string. Append the slices
-   `word1[i:]` and `word2[j:]` — one of them is guaranteed empty, so no `if` is needed.
-4. Return `"".join(res)`.
-5. Order matters: `word1` first in every pair and in the tail, since the problem starts with
-   `word1`.
+1. Initialize output list `res` and indices `i = j = 0`.
+2. While both words have characters, append `word1[i]` and then `word2[j]`; advance both indices.
+3. Append both remaining slices. At least one is empty, so this adds only the unconsumed suffix.
+4. Join the pieces and return the resulting string.
 
 ## Code
 
@@ -59,8 +55,12 @@ class Solution:
 
 ## Why it works
 
-The loop invariant is `i == j` throughout, so after k iterations the output holds the first k
-characters of each string correctly interleaved; the loop stops exactly when the shorter string is
-consumed, which is precisely where alternation is no longer defined and the spec says to append the
-remainder. Every character of both strings is appended exactly once, so the work is O(n + m), and
-apart from the buffer that becomes the returned string the algorithm holds only two integers.
+After `k` loop iterations, `i == j == k` and `res` contains the first `k` characters of each word
+in the required alternating order. Appending the next pair preserves this invariant. The loop stops
+exactly when no further pair exists, and the required continuation is the sole non-empty suffix.
+Thus every character appears once and in the specified order.
+
+**Complexity**
+
+- **Time:** `O(n + m)` to append and join all characters.
+- **Space:** `O(n + m)` for the construction buffer and returned string.

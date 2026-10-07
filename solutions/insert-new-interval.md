@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a list `intervals` of non-overlapping intervals sorted by start time and a new interval
-`newInterval`, insert `newInterval` into the list, merging it with any intervals it overlaps, and
-return the resulting list of intervals still sorted by start time.
+Given sorted, non-overlapping `intervals`, insert `newInterval`, merge every overlap, and
+return sorted non-overlapping intervals.
 
 **Example**
 
@@ -20,32 +19,27 @@ Input: intervals = [[1,3],[6,9]], newInterval = [2,5]
 Output: [[1,5],[6,9]]
 ```
 
-Explanation: `newInterval = [2,5]` overlaps `[1,3]` (since `2 <= 3`), so they merge into `[1,5]`;
-it does not reach `[6,9]` (since `5 < 6`), so that interval is left unchanged.
+Explanation: `[2,5]` overlaps `[1,3]`, producing `[1,5]`, but does not reach `[6,9]`.
 
 ## Intuition
 
-The input is already sorted and non-overlapping, so I never need to sort again. Relative to
-`newInterval` the list splits into exactly three contiguous blocks: intervals that end strictly
-before it starts, intervals that touch it, and intervals that start strictly after it ends. The
-middle block is contiguous precisely because the input is sorted, so one left-to-right pass that
-collapses that block into a single interval is enough.
+Because the input is sorted and disjoint, its intervals form three contiguous groups relative
+to the new interval: strictly before it, overlapping it, and strictly after it. The middle
+group can be collapsed by expanding one pair of bounds during a left-to-right scan.
+
+Touching closed intervals count as overlapping, so the disjoint comparisons must be strict.
 
 ## Approach
 
-1. Keep `res` as the output list, an index `i` into `intervals`, and unpack `start, end = newInterval`
-   as the running bounds of the merged interval.
-2. Phase one — copy the intervals entirely to the left: while `i < n` and `intervals[i][1] < start`,
-   append `intervals[i]` to `res` and advance `i`. Use strict `<` so an interval ending exactly at
-   `start` is treated as touching, not disjoint.
-3. Phase two — absorb every overlap: while `i < n` and `intervals[i][0] <= end`, set
-   `start = min(start, intervals[i][0])` and `end = max(end, intervals[i][1])`, then advance `i`.
-   The `<=` matters: `[1,3]` and `[3,5]` merge into `[1,5]`.
-4. Append `[start, end]` once, after the loop, not inside it.
-5. Phase three — copy the remaining tail unchanged.
-6. Edge cases fall out for free: an empty `intervals` skips both loops and returns just
-   `[newInterval]`; a `newInterval` before everything skips phase two; one after everything skips
-   phase three.
+1. Track index `i`, output `res`, and running bounds `start, end` copied from
+   `newInterval`; the input objects are not modified.
+2. Append intervals ending before `start` and advance `i`. Strict `<` keeps touching
+   intervals available for merging.
+3. While an interval starts at or before `end`, expand the running bounds with `min` and
+   `max`, then advance.
+4. Append the merged interval once, followed by the untouched remaining intervals.
+5. Empty input and insertion before or after every interval naturally skip the inapplicable
+   loops.
 
 ## Code
 
@@ -76,10 +70,15 @@ class Solution:
 
 ## Why it works
 
-Sortedness guarantees the intervals overlapping `newInterval` form one unbroken run: if
-`intervals[j]` overlaps and `intervals[k]` overlaps with `j < k`, everything between them starts
-after `intervals[j]` starts and ends before `intervals[k]` ends, so it is squeezed inside the union
-too. Phase two therefore only has to widen `start`/`end` until the first interval that starts past
-`end`, and the widened bounds can never reach back into the block phase one already emitted, because
-those all ended before the original `start`. Each interval is examined by exactly one of the three
-loops, so the pass is O(n) with O(1) extra space beyond the output.
+Intervals emitted first end before the original `start`, so they cannot overlap the merged
+result. Sortedness and disjointness make every overlapping interval part of one contiguous
+block; expanding `end` while scanning includes the entire block. The first later interval
+starts after the final `end`, and all subsequent intervals start even later, so they remain
+disjoint. The output is therefore sorted, contains the same covered points plus the new
+interval, and has no overlaps.
+
+**Complexity**
+
+- **Time:** `O(n)` because each input interval is processed once.
+- **Space:** `O(1)` auxiliary space.
+- **Output:** `O(n)` for the returned interval list.

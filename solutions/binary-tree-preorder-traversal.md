@@ -9,7 +9,7 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree, return the values of its nodes in preorder traversal order: the node itself, then the left subtree, then the right subtree.
+Given a binary tree, return its values in node, left-subtree, right-subtree order.
 
 **Example**
 
@@ -18,20 +18,20 @@ Input: root = [1,null,2,3]
 Output: [1,2,3]
 ```
 
-Explanation: Visiting node-left-right starts at 1 (no left child), then its right child 2, then 2's left child 3, giving [1,2,3].
+The traversal visits root `1`, then `2`, and finally `2`'s left child `3`.
 
 ## Intuition
 
-Pre-order is node, then left subtree, then right subtree — the node is emitted *before* I descend anywhere, which is what makes this the one traversal with a trivial iterative form. Because nothing has to be remembered about a node after I've printed it, I don't need the descend-then-come-back dance that in-order and post-order need: I just need a to-do list of subtrees. A stack is that list, and since a stack reverses, I push the right child first so the left child comes off next.
+A stack can hold subtree roots that remain to be visited. Preorder emits a node immediately, then
+processes its left subtree before its right. Because a stack is last-in, first-out, pushing the
+right child before the left child produces that order.
 
 ## Approach
 
-1. Return `[]` immediately if `root` is None, so the stack never holds a None.
-2. Initialise `res = []` and `stack = [root]`. Invariant: `stack` holds the roots of the subtrees still to be visited, in the order they must be visited, top first.
-3. While `stack` is non-empty, pop `node` and append `node.val` to `res` — a node is emitted the moment it comes off, which is the "node first" of pre-order.
-4. Push `node.right` if it exists, **then** push `node.left` if it exists. The order matters and is the only subtle line: the last push is popped first, so left is processed before right.
-5. Return `res`.
-6. If you want the recursive version instead: append `root.val`, recurse left, recurse right — same order, O(h) call stack instead of O(h) list.
+1. Return `[]` for an empty tree; otherwise start `stack = [root]` and `res = []`.
+2. Pop a node and append its value immediately.
+3. Push its right child and then its left child when present, so the left child is processed next.
+4. Continue until no subtree roots remain, then return `res`.
 
 ## Code
 
@@ -54,4 +54,12 @@ class Solution:
 
 ## Why it works
 
-At every step the stack, read top to bottom, is the exact list of subtree roots remaining in pre-order sequence; popping a node and replacing it with `[left, right]` at the top preserves that, since a subtree's pre-order is its root followed by the left subtree's sequence followed by the right's. Each node is pushed and popped exactly once, giving O(n). The stack never holds more than one node per level of the current path plus their right siblings, so it stays O(h) — O(n) for a right-skewed tree, where `res` dominates anyway.
+Read from top to bottom, the stack contains the roots of unvisited subtrees in preorder. Popping a
+root emits the next required node; placing its left subtree ahead of its right subtree preserves
+the same invariant. By induction on the number of pops, `res` is exactly the preorder prefix, and
+the complete result is correct when the stack empties.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(h)` auxiliary stack space and `O(n)` output space.

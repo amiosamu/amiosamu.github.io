@@ -26,34 +26,19 @@ day 2, buy on day 3 at price 0, sell on day 4 at price 2 for a profit of 2 — t
 
 ## Intuition
 
-Without the cooldown you would just bank every upward move. The cooldown breaks that because
-selling today forbids buying tomorrow, so the decision depends on what happened yesterday. But
-"what happened yesterday" collapses to three possibilities: I am holding a share, I just sold
-today (so tomorrow is blocked), or I am free to buy. Track the best cash balance in each of
-those three states and each day is a constant-time update.
+The cooldown means current profit depends on whether a share is held, a sale just occurred, or
+buying is allowed. These three states contain all information needed for the next day. Keeping
+the best profit in each state turns every day's choices into constant-time transitions.
 
 ## Approach
 
-1. `dp[i][s]` is the maximum cash after processing day `i`, considering only prices
-   `prices[0..i]`, given the position `s` at the end of that day. Three values of `s`:
-   - `held` — I own one share.
-   - `sold` — I sold today, so day `i + 1` is a cooldown.
-   - `rest` — I own nothing and am free to buy tomorrow.
-2. Recurrence at price `p`, each case spelled out against the *previous* day's values:
-   - `sold = held + p` — the only way to be in `sold` is to sell the share I was holding.
-   - `held = max(held, rest - p)` — keep holding, or buy today, which is legal only from
-     `rest` (never from `sold`, and that omission is the whole cooldown rule).
-   - `rest = max(rest, sold)` — stay free, or arrive from yesterday's `sold` now that the
-     cooldown day has passed.
-3. Base cases before day 0: `rest = 0` (no stock, no cash spent); `held = -inf` and
-   `sold = -inf`, because owning or having just sold is impossible before trading starts. The
-   sentinels keep those branches from being chosen instead of needing an `if`.
-4. Iterate `p` over `prices` **forward**, left to right, and assign all three states in one
-   tuple assignment so every right-hand side reads day `i - 1`. Forward is forced: each state
-   is defined in terms of the day before it.
-5. The answer is `max(sold, rest)` after the last day — ending while still holding a share is
-   never better than not having bought it, so `held` is excluded.
-6. Only the previous day's triple is ever read, so no array is needed at all.
+1. Before trading, set `rest = 0`; set `held` and `sold` to negative infinity because those
+   states are impossible.
+2. For each price `p`, compute `sold = old_held + p`, representing a sale today.
+3. Compute `held = max(old_held, old_rest - p)` and
+   `rest = max(old_rest, old_sold)`. Buying only from `rest` enforces the cooldown.
+4. Use tuple assignment so all transitions read the previous day's states.
+5. Return `max(sold, rest)`, since an optimal completed strategy does not end holding a share.
 
 ## Code
 
@@ -70,10 +55,13 @@ class Solution:
 
 ## Why it works
 
-The three states partition every legal position at the end of a day, and each transition lists
-every legal way to arrive there, so no schedule is missed and none illegal is allowed — the
-cooldown is enforced structurally by the absence of a `sold -> buy` edge. The subproblems are
-path-independent because future profit depends only on the day index and whether I hold a share
-or am cooling down, not on which earlier trades produced the current cash; the running maximum
-per state therefore dominates every prefix that lands in it. One pass with three `max`
-operations per day is `O(n)` time and `O(1)` space.
+After each day, each variable is the maximum profit among all legal schedules ending in its
+named state. This holds initially. The transitions enumerate every legal previous state and
+action that can reach each new state, while omitting a purchase immediately after `sold`.
+Induction therefore preserves the invariant. The best non-holding final state is the maximum
+realizable profit.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(1)`.

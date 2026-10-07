@@ -9,7 +9,7 @@ space: "O(1)"
 
 ## Description
 
-Given a string `s`, return whether it can be made into a palindrome by deleting at most one character.
+Given a string `s`, return whether deleting at most one character can make it a palindrome.
 
 **Example**
 
@@ -18,30 +18,22 @@ Input: s = "abca"
 Output: true
 ```
 
-Explanation: Deleting the `b` gives "aca", or deleting the `c` gives "aba" — either way one deletion is enough to make the remaining string a palindrome.
+Deleting either `b` or `c` leaves a palindrome.
 
 ## Intuition
 
-Trying every deletion is O(n) candidate strings times O(n) to check each, so O(n²). The insight: as
-long as the outer pair matches, deleting anything there can only hurt, so the plain palindrome walk
-is forced until the *first* mismatch. At that first mismatch `s[l] != s[r]`, the one deletion I am
-allowed has to be spent on `s[l]` or `s[r]` — deleting any character strictly inside the window
-leaves that same bad pair on the outside. So there are only two branches to test, and each is a
-plain O(n) palindrome check.
+Matching outer characters can remain in any valid answer, so move inward until the first mismatch.
+At that point, deleting any interior character would leave the mismatched pair unchanged. The only
+possible repairs are deleting the left character or the right character, followed by a strict
+palindrome check.
 
 ## Approach
 
-1. Write a helper `is_pal(i, j)` that checks whether `s[i..j]` is a palindrome with the ordinary
-   inward walk (`while i < j`, compare, `i += 1`, `j -= 1`).
-2. In the main loop set `l = 0`, `r = len(s) - 1` and walk inward while `s[l] == s[r]`. `l` only
-   moves right and `r` only moves left, because a matched outer pair is settled and can never be
-   improved by deleting one of its characters.
-3. On the first mismatch, return `is_pal(l + 1, r) or is_pal(l, r - 1)` — branch one deletes
-   `s[l]`, branch two deletes `s[r]`.
-4. Do **not** recurse or allow a second skip: the helper is the strict check, so the budget of one
-   deletion is spent by construction.
-5. If the loop finishes without a mismatch, the string is already a palindrome — return `True`
-   (deleting zero characters is allowed).
+1. Define `is_pal(i, j)` to check `s[i:j + 1]` without allowing deletions.
+2. Move outer pointers inward while their characters match.
+3. At the first mismatch, test both legal deletions with `is_pal(l + 1, r)` and
+   `is_pal(l, r - 1)`.
+4. Return `True` if no mismatch occurs because deleting zero characters is allowed.
 
 ## Code
 
@@ -67,8 +59,12 @@ class Solution:
 
 ## Why it works
 
-Any valid solution must still match every pair the pointers passed before the mismatch, since those
-characters are untouched by a deletion further inside; so the algorithm loses nothing by walking
-greedily to the first mismatch. At that point the deleted character must be `s[l]` or `s[r]` — every
-other choice leaves `s[l]` facing `s[r]` again — and both branches are tested. The outer walk and
-the two helper calls are each at most one pass over the string, so O(n) time and O(1) space.
+Before the first mismatch, all discarded outer pairs match and need no deletion. At the mismatch,
+any resulting palindrome must remove `s[l]` or `s[r]`; removing another character leaves those two
+unequal characters paired. The algorithm tests both exhaustive possibilities with an exact
+palindrome check, so it accepts if and only if at most one deletion can succeed.
+
+**Complexity**
+
+- **Time:** `O(n)` because the main scan and each of two checks are linear.
+- **Space:** `O(1)` auxiliary space.

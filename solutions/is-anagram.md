@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given two strings `s` and `t`, return `true` if `t` is an anagram of `s` — meaning `t`
-can be formed by rearranging every letter of `s` exactly once, so both strings hold the
-same letters with the same counts — and `false` otherwise.
+Given lowercase English strings `s` and `t`, return whether `t` is an anagram of `s`: both
+strings must contain the same characters with the same frequencies.
 
 **Example**
 
@@ -20,28 +19,25 @@ Input: s = "anagram", t = "nagaram"
 Output: true
 ```
 
-Explanation: Both strings consist of the letters `a` (x3), `n`, `g`, `r`, `m` (x1 each),
-just in a different order, so `t` is an anagram of `s`.
+Explanation: Both strings contain three `a` characters and one each of `n`, `g`, `r`, and
+`m`.
 
 ## Intuition
 
-Two words are anagrams iff they have identical letter multisets, so the whole problem is
-comparing two histograms — `Counter(s) == Counter(t)` in one line. Sorting both strings
-also works but pays `O(n log n)` for information counting gets in `O(n)`. The version
-below counts up on `s` and down on `t`, deleting keys that hit zero, so "everything
-cancelled" is just an empty dict at the end.
+Anagrams have equal character frequency maps. Count every character in `s`, then consume
+one count for each character in `t`. A missing key during consumption means `t` contains a
+character too many times.
+
+Deleting zero-count entries keeps the map equal to the unmatched multiset from `s`. A
+length check rejects strings that cannot contain the same total number of characters.
 
 ## Approach
 
-1. If `len(s) != len(t)`, return `False` immediately — different lengths can never cancel.
-2. Build `count`, a dict from character to occurrences in `s`, via `count.get(c, 0) + 1`.
-3. Walk `t`. If `c` is not a key in `count`, `t` has a letter `s` doesn't (or has one too
-   many of it), so return `False`.
-4. Otherwise decrement `count[c]`, and `del count[c]` when it reaches zero — that keeps the
-   dict holding only letters still owed.
-5. After the loop return `len(count) == 0`. Given the length guard from step 1 this is
-   always true at that point, but keeping it makes the intent explicit and keeps the
-   function correct if the guard is ever dropped.
+1. Return `False` immediately when the string lengths differ.
+2. Build `count`, mapping each character in `s` to its frequency.
+3. For each character in `t`, return `False` if no unmatched copy remains. Otherwise
+   decrement its count and delete the key when the count reaches zero.
+4. Return whether `count` is empty. The function reads both strings without modifying them.
 
 ## Code
 
@@ -67,9 +63,14 @@ class Solution:
 
 ## Why it works
 
-Anagram is an equality of multisets, and `count` is exactly the multiset of `s`; deleting
-one occurrence per character of `t` either succeeds for all of them (multisets equal) or
-hits a character with no remaining budget (they differ). The length check rules out the
-case where `t` is a strict sub-multiset of `s`, which would otherwise leave leftovers
-undetected in a single downward pass. Both passes are linear in `n = len(s)`, and the dict
-holds at most 26 lowercase keys, so space is `O(1)`.
+Before processing each character of `t`, `count` represents exactly the occurrences from
+`s` not yet matched. If no copy of the next character remains, the two multisets differ.
+Otherwise decrementing preserves the invariant. After all characters are processed, an
+empty map means every occurrence matched. Equal lengths ensure neither string can have
+unmatched characters when the other is exhausted, so this condition is equivalent to being
+anagrams.
+
+**Complexity**
+
+- **Time:** `O(n)`, where `n = len(s) = len(t)` after the length check.
+- **Space:** `O(1)` because the lowercase English alphabet has 26 characters.

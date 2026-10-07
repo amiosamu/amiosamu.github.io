@@ -9,7 +9,8 @@ space: "O(k)"
 
 ## Description
 
-Design a class that, given an integer `k` and an initial array `nums`, tracks the kth largest element as new values are added one at a time via `add(val)`.
+Design a class that tracks the `k`th largest value in an integer stream. It receives initial
+values in `nums`, and `add(val)` inserts a value and returns the current `k`th largest.
 
 **Example**
 
@@ -18,19 +19,23 @@ Input: ["KthLargest", "add", "add", "add", "add", "add"], [[3, [4, 5, 8, 2]], [3
 Output: [null, 4, 5, 5, 8, 8]
 ```
 
-Explanation: with `k = 3` over `[4, 5, 8, 2]`, the 3rd largest is `4`; adding `3` keeps it `4`; adding `5` makes the top three `{5, 5, 8}` so the answer is `5`, and it stays `5` and then `8` as larger values arrive.
+With `k = 3`, the heap retains the three largest values seen after every call, producing the
+returned sequence `4, 5, 5, 8, 8`.
 
 ## Intuition
 
-Sorting is off the table because the numbers keep arriving — I would be re-sorting on every `add`. But I never need the whole ordering: the kth largest so far depends only on the k largest values seen, and everything below them is dead weight forever. So I keep exactly those k in a **min-heap**, which puts the *smallest* of the k largest — the answer — at `heap[0]`. Each new value either kicks out that smallest one or is itself immediately discarded.
+Only the largest `k` values seen so far can affect the answer. A min-heap capped at `k` entries
+stores exactly those candidates, with the current `k`th largest at its root. Each insertion pushes
+the new value and removes the smallest value if the heap becomes too large.
 
 ## Approach
 
-1. Store `self.k` and copy `nums` into `self.heap`, then `heapq.heapify` it (O(n), cheaper than n pushes).
-2. Pop from `self.heap` while its length exceeds `k`. Each pop removes the current minimum, so what survives is the k largest of `nums`.
-3. `add(val)`: `heappush(self.heap, val)`, then if the size is now `k + 1`, `heappop` once.
-4. Return `self.heap[0]` — the root of a min-heap holding the top k is the kth largest.
-5. Edge case: the constructor may get fewer than `k` numbers, so the heap can start undersized. That is fine — the problem guarantees `add` is only queried once at least k elements exist, and after the first few adds the heap fills to `k`.
+1. Copy at most the first `k` values into the heap and build it with `heapify`.
+2. For each remaining value, replace the root only when that value is larger. This keeps the heap
+   capped at `k` without storing values that cannot affect the answer.
+3. In `add`, push `val`, remove the minimum if the heap grows past `k`, then return the root.
+4. The constructor may finish with fewer than `k` entries. The API guarantees enough total values
+   exist whenever `add` must return the `k`th largest.
 
 ## Code
 
@@ -41,10 +46,11 @@ class KthLargest:
 
     def __init__(self, k: int, nums: List[int]):
         self.k = k
-        self.heap = list(nums)
+        self.heap = nums[:k]
         heapq.heapify(self.heap)
-        while len(self.heap) > k:
-            heapq.heappop(self.heap)
+        for num in nums[k:]:
+            if num > self.heap[0]:
+                heapq.heapreplace(self.heap, num)
 
     def add(self, val: int) -> int:
         heapq.heappush(self.heap, val)
@@ -55,4 +61,13 @@ class KthLargest:
 
 ## Why it works
 
-The invariant is that after every operation the heap contains exactly the k largest values seen so far (or all of them, if fewer than k have arrived). Pushing then popping the minimum preserves it: the discarded element is the smallest of the k+1 candidates, so it cannot be in the top k of anything that follows either. Given that invariant, the min of the heap is by definition the kth largest, read in O(1); each add costs one push and one pop on a heap of size k, so O(log k).
+After each processed value, the heap contains the largest `k` values seen, or every value if fewer
+than `k` exist. Pushing includes the only new candidate; when the size is `k + 1`, popping the
+minimum removes exactly the value outside the largest `k`. The invariant follows by induction.
+Once at least `k` values exist, the heap minimum is therefore the `k`th largest.
+
+**Complexity**
+
+- **Time:** `O(n log k)` in the worst case to initialize and `O(log k)` per `add`. The initial
+  `heapify` is `O(min(n, k))`, so construction is `O(n)` when `k >= n`.
+- **Space:** `O(k)` for the heap.

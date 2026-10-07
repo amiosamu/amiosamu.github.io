@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an unsorted integer array `nums`, return the smallest positive integer that does not appear in it. The array may contain negatives, zeros, duplicates, and gaps; the solution must run in O(n) time using O(1) extra space.
+Given an unsorted integer array `nums`, return the smallest positive integer that does not
+appear in it. The solution must use linear time and constant auxiliary space.
 
 **Example**
 
@@ -18,20 +19,25 @@ Input: nums = [3,4,-1,1]
 Output: 2
 ```
 
-Explanation: 1 is present but 2 is not, and 2 is the smallest positive integer missing from the array.
+Explanation: `1` is present, but `2` is not.
 
 ## Intuition
 
-With `n` numbers, the answer is somewhere in `1..n + 1` — if all of `1..n` are present the answer is `n + 1`, otherwise it is the smallest one missing. So values outside `1..n` are irrelevant, and everything I need is a membership table for `n` slots. The constraint is O(1) extra space, so the array has to *be* that table: put value `v` at index `v - 1`. After that placement pass, the first index whose entry isn't `i + 1` names the answer directly.
+For an array of length `n`, the answer lies in `1..n + 1`. Values outside `1..n` cannot
+affect which answer is smallest. The array itself can serve as a membership table by placing
+each relevant value `v` at index `v - 1`.
+
+After this in-place placement, index `i` contains `i + 1` exactly when that value exists.
+The first mismatch identifies the answer. This process mutates `nums`.
 
 ## Approach
 
-1. Let `n = len(nums)`.
-2. First pass: for each `i`, run a `while` loop that keeps swapping `nums[i]` to where it belongs.
-3. The loop condition is `1 <= nums[i] <= n and nums[nums[i] - 1] != nums[i]`. The range test throws away zeros, negatives, and anything too large; the second test stops when the destination already holds this value, which is what prevents an infinite swap loop on duplicates.
-4. Inside, capture `j = nums[i] - 1` *before* swapping, then `nums[i], nums[j] = nums[j], nums[i]`. Computing `j` first matters — writing `nums[i]` first would corrupt the index.
-5. Second pass: scan `i` over `range(n)` and return `i + 1` at the first index where `nums[i] != i + 1`.
-6. If the scan finishes, `1..n` are all present, so return `n + 1`.
+1. For each index `i`, repeatedly inspect `nums[i]` while it lies in `1..n` and is not
+   already at its destination.
+2. Set `j = nums[i] - 1` and swap `nums[i]` with `nums[j]`. The destination check prevents
+   duplicate values from causing an infinite loop.
+3. Scan the rearranged array. At the first index where `nums[i] != i + 1`, return `i + 1`.
+4. If every index matches, all values `1..n` are present, so return `n + 1`.
 
 ## Code
 
@@ -54,4 +60,13 @@ class Solution:
 
 ## Why it works
 
-Each swap places a value in `1..n` at its final index `v - 1`, and a value is never moved off a correct index afterwards, so every swap permanently increases the count of correctly-placed values — bounding the total number of swaps by `n` and making the doubly-nested loop O(n) overall, not O(n²). Once the pass ends, index `i` holds `i + 1` if and only if `i + 1` appears in the input, so the first mismatch is precisely the smallest missing positive. Only the loop indices and one temporary are stored, so the space is O(1), at the cost of mutating the input.
+Each swap places one in-range value at its unique destination. The destination guard ensures
+that a correctly placed copy is never displaced by a duplicate, so there are at most `n`
+successful placements. Afterward, a present value `v` in `1..n` must be at index `v - 1`;
+therefore the first mismatching index represents the smallest absent positive. If there is
+no mismatch, the pigeonhole bound leaves `n + 1` as the answer.
+
+**Complexity**
+
+- **Time:** `O(n)` because the total number of swaps and the final scan are linear.
+- **Space:** `O(1)` auxiliary space; the algorithm mutates `nums`.

@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a string `s`, rearrange its characters so that no two adjacent characters are the same, and return any such rearrangement, or an empty string if none exists.
+Rearrange the lowercase letters of `s` so adjacent characters differ. Return any valid
+rearrangement, or `""` when none exists.
 
 **Example**
 
@@ -18,21 +19,25 @@ Input: s = "aab"
 Output: "aba"
 ```
 
-Explanation: rearranging `"aab"` as `"aba"` places the two `a`s apart with `b` between them, so no two adjacent characters match.
+Explanation: Placing `b` between the two `a`s avoids equal adjacent characters.
 
 ## Intuition
 
-Placing letters in sorted order fails immediately — sorting groups identical letters together, which is the one thing forbidden. The right greedy is to always place the letter with the most copies left, because that letter is the one at risk of being stranded in a run at the end; postponing it only makes the problem harder. That means I need the maximum count *after every placement*, and the counts change every step, so a **max-heap** of `(-count, char)` it is. The one twist: the letter I just used must be excluded from the next pick, so I hold it aside in `prev` for exactly one round and push it back afterwards.
+The character with the largest remaining count is most likely to become impossible to separate, so
+place the most frequent currently allowed character at each step. A max-heap supplies that choice.
+The previously placed character must be temporarily withheld from the heap for one iteration,
+which guarantees that it cannot be selected twice in a row.
 
 ## Approach
 
-1. Count with `collections.Counter(s)` and build `heap = [(-c, ch) for ch, c in counts.items()]`, then `heapify`. Negated counts turn `heapq` into a max-heap on frequency; the second field `ch` only breaks ties, deterministically and harmlessly, since any valid rearrangement is accepted.
-2. Keep `out`, the list of characters placed, and `prev = None`, the letter used on the previous step and therefore banned this step.
-3. While the heap is non-empty: pop `(count, ch)` — the most frequent *allowed* letter, since the banned one is not in the heap — and append `ch` to `out`.
-4. Now that a different letter has been placed, push `prev` back onto the heap if it is not `None`.
-5. Do `count += 1` (counts are negative, so this spends one copy) and set `prev = (count, ch)` if any copies remain, else `None`.
-6. The loop ends when the heap is empty and `prev` is either exhausted or still stuck — which is the failure case: some letter had copies left but nothing legal to alternate with.
-7. Return `"".join(out)` if `len(out) == len(s)`, else `""`. Comparing lengths is the cleanest failure test; no separate `count > (n + 1) // 2` check is needed.
+1. Count the characters and heapify pairs `(-count, ch)`. Negative counts make Python's
+   min-heap act as a max-heap; characters only break equal-frequency ties.
+2. Keep the previous pair in `prev` instead of the heap. Pop the most frequent allowed character
+   and append it to `out`.
+3. Reinsert the older `prev` after a different character has been placed. Increment the popped
+   negative count and retain it as the new `prev` only if copies remain.
+4. Continue while the heap has an allowed character. If `out` reaches `len(s)`, join and return
+   it; otherwise `prev` is stranded, so return `""`.
 
 ## Code
 
@@ -62,4 +67,19 @@ class Solution:
 
 ## Why it works
 
-Withholding `prev` for one round makes every adjacency legal by construction, so the only question is whether the greedy ever gets stuck when a valid answer exists. It does not: the arrangement is possible exactly when no letter exceeds `(n + 1) // 2` copies, and always spending the largest count keeps the multiset as balanced as any schedule can, so if the heap empties with `prev` still holding copies then that letter alone outnumbered all the rest and no arrangement existed either. Each character is pushed and popped a constant number of times on a heap of at most 26 entries, so the work is O(n) time and O(1) auxiliary space.
+Because `prev` is absent from the heap, every appended character differs from the preceding one.
+For `R` remaining positions, feasibility requires the withheld character to occur at most
+`floor(R / 2)` times and every allowed character at most `ceil(R / 2)` times. These bounds are
+also sufficient because the most frequent characters can be alternated with the others.
+
+The greedy step preserves those bounds. It chooses a largest allowed count, spends one copy, and
+withholds that character; its new count is at most `floor((R - 1) / 2)`. Reinserted `prev` and all
+other counts are at most `ceil((R - 1) / 2)`; when `R` is odd, two counts cannot both exceed that
+bound because their sum would exceed `R`. Induction therefore shows that every feasible input can
+complete. If the heap empties early, only `prev` remains and no separator exists, so failure is
+correct.
+
+**Complexity**
+
+- **Time:** `O(n)` because the heap contains at most 26 lowercase letters.
+- **Space:** `O(1)` auxiliary space for the fixed alphabet, excluding the `O(n)` output.

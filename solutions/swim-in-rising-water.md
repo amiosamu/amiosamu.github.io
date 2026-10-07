@@ -21,37 +21,24 @@ Input: grid = [[0,2],[1,3]]
 Output: 3
 ```
 
-Explanation: At `t = 3` every cell's elevation is `<= 3`, so all four cells are usable and
-connected; at any smaller `t` the bottom-right cell (elevation 3) is not yet usable, so 3 is
-the earliest time a path exists.
+The destination has elevation `3`, so it is unavailable earlier. At time `3`, a complete path
+exists.
 
 ## Intuition
 
-At time `t` I can stand on every cell with `grid[r][c] <= t`, so a path is swimmable at
-time `t` exactly when `t` is at least the largest elevation on it. The answer is
-therefore the path that minimizes its own maximum cell — a bottleneck path, not a
-shortest one.
-
-BFS is the wrong tool because every cell is reachable eventually and step count is
-irrelevant; what matters is the ordering of elevations. Dijkstra with `max` instead of
-`+` walks the grid in increasing order of "water level needed to get here", so the
-first time the corner is popped, that level is the answer.
+A path becomes usable when the water reaches its highest cell. The objective is therefore to
+minimize the maximum elevation on a path, not its number of steps. Dijkstra's algorithm applies
+after replacing additive path cost with this monotone maximum: extending a path can never lower
+its required water level.
 
 ## Approach
 
-1. Keep a `visited` grid and a min-heap of `(t, r, c)` where `t` is the highest
-   elevation on the best path found to `(r, c)`.
-2. Seed the heap with `(grid[0][0], 0, 0)` and mark `(0,0)` visited — the start cell's
-   own elevation is already a floor on the answer.
-3. Pop the smallest `t`. If it is `(n-1, n-1)`, return `t`.
-4. For every in-bounds unvisited neighbour, mark it visited **at push time** and push
-   `(max(t, grid[nr][nc]), nr, nc)`.
-5. Marking at push is safe here (unlike sum-Dijkstra) because pops come out in
-   non-decreasing `t`: any later parent `u'` has `t_u' >= t_u`, so
-   `max(t_u', grid[v]) >= max(t_u, grid[v])` and the first value pushed for a cell can
-   never be improved.
-6. The trailing `return -1` never fires — a grid is always fully connected once the
-   water is high enough.
+1. Store `(level, row, col)` in a min-heap, where `level` is the maximum elevation on the path
+   used to discover that cell.
+2. Seed the heap with the start cell and mark cells when they are pushed.
+3. Pop the smallest level; if the cell is the destination, return that level.
+4. Push each unvisited neighbor with `max(level, grid[nr][nc])` as its path cost.
+5. Return `-1` only as a defensive fallback; the finite grid is connected by its grid edges.
 
 ## Code
 
@@ -79,9 +66,14 @@ class Solution:
 
 ## Why it works
 
-The heap pops cells in non-decreasing bottleneck value, so when `(n-1, n-1)` comes out
-with value `t`, every other route into it passes through a cell that is still unpopped
-and therefore already costs at least `t`. Since `max` is monotone — adding a cell can
-only raise a path's bottleneck — no cheaper route can appear later, which is exactly
-the greedy exchange argument Dijkstra needs. With `V = n * n` cells and `E = 4V` edges,
-each edge triggers at most one push: `O(E log V) = O(n^2 log n)`.
+Maintain the invariant that every popped cell has the minimum possible bottleneck among all paths
+to that cell. Consider the first unpopped cell on any alternative path to the next popped cell.
+Its predecessor was already popped, so the algorithm offered it with no greater bottleneck than
+that alternative path. The heap minimum can therefore not exceed any alternative. By induction,
+the destination's first pop has the globally minimum required level. Marking on push is safe here:
+a later parent has no smaller level, so taking `max` with the same neighbor cannot improve its cost.
+
+**Complexity**
+
+- **Time:** `O(V log V)`, equivalently `O(n^2 log n)`, for `V = n^2` cells.
+- **Space:** `O(V)` for the heap and visited grid.

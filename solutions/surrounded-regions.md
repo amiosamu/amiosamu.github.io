@@ -20,22 +20,24 @@ Input: board = [["X","X","X","X"],["X","O","O","X"],["X","X","O","X"],["X","O","
 Output: [["X","X","X","X"],["X","X","X","X"],["X","X","X","X"],["X","O","X","X"]]
 ```
 
-Explanation: the `'O'`s at `(1,1)`, `(1,2)`, `(2,2)` never touch the border, so they flip to
-`'X'`, while the `'O'` at `(3,1)` touches the bottom border and is left alone.
+The three connected interior cells are captured. The `'O'` at `(3, 1)` touches the border and
+therefore remains unchanged.
 
 
 ## Intuition
 
-A region of 'O's only survives if it isn't connected, directly or through other 'O's, to the border — anything touching the border can never be fully surrounded, no matter how it winds through the grid. Rather than testing every region for enclosure, flip it around: flood-fill from every border 'O' first to mark the safe cells, then everything left unmarked afterward is provably surrounded and gets flipped to 'X'.
+An `'O'` cannot be captured exactly when a path of adjacent `'O'` cells connects it to the border.
+It is simpler to mark all such safe cells than to test each interior region for enclosure. After
+that flood-fill, every unmarked `'O'` is surrounded.
 
 ## Approach
 
-1. Handle the empty-board edge case; read `rows`, `cols` from `board`.
-2. Write `dfs(r, c)`: if `board[r][c] != 'O'`, return immediately; otherwise mark it with a temporary sentinel `'#'` and recurse into the 4 in-bounds neighbors.
-3. Call `dfs` on every cell along row 0, row `rows - 1`, column 0, and column `cols - 1` — this marks every 'O' reachable from the border as `'#'`.
-4. Sweep the whole board once: any cell still `'O'` was never reached from the border, so flip it to `'X'`.
-5. In the same sweep, flip every `'#'` back to `'O'` — these are the safe, border-connected cells.
-6. The board is mutated in place; the function returns nothing, matching the LeetCode signature.
+1. Return immediately for an empty board and record its dimensions.
+2. Define `dfs(r, c)` to replace a reachable `'O'` with the temporary marker `'#'`, then visit
+   its four in-bounds neighbors.
+3. Start the flood-fill from every cell on all four borders.
+4. Sweep the board: replace unmarked `'O'` cells with `'X'` and restore `'#'` cells to `'O'`.
+5. Mutate `board` in place and return no value, as required by the API.
 
 ## Code
 
@@ -73,4 +75,12 @@ class Solution:
 
 ## Why it works
 
-Capture requires a region to be walled in by 'X' on every side with no path of adjacent 'O's escaping to an edge; the border-seeded flood-fill visits exactly the set of cells that have such an escape path, so anything left as plain 'O' after it runs is guaranteed surrounded. The sentinel marker stops each cell from being revisited, so the flood-fill and the final sweep each touch every cell once, giving O(rows * cols) time and O(rows * cols) space for the recursion stack in the worst case, e.g. a board that's all 'O'.
+The flood-fill invariant is that every marked cell is an `'O'` connected to a border, and every
+border-connected `'O'` reachable from a seed is eventually marked. Thus the marked set is exactly
+the set that cannot be captured. Every remaining `'O'` has no path to a border and is surrounded,
+so flipping precisely those cells is correct; restoring the marked cells preserves all safe regions.
+
+**Complexity**
+
+- **Time:** `O(rows * cols)` because each cell is processed a constant number of times.
+- **Space:** `O(rows * cols)` in the worst case for the recursive DFS stack.

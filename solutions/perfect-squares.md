@@ -9,8 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an integer `n`, return the fewest perfect squares (`1, 4, 9, 16, ...`) that sum to
-exactly `n`. A perfect square may be used more than once.
+Given a positive integer `n`, return the minimum number of perfect squares whose sum is
+exactly `n`. Each square may be used any number of times.
 
 **Example**
 
@@ -19,31 +19,25 @@ Input: n = 12
 Output: 3
 ```
 
-Explanation: `12 == 4 + 4 + 4`, three perfect squares, and no combination of fewer perfect
-squares sums to 12.
+Explanation: `12 = 4 + 4 + 4`, and no representation using one or two squares exists.
 
 ## Intuition
 
-This is coin change where the coin denominations are `1, 4, 9, 16, ...` and every coin can be
-reused. Greedily taking the largest square is wrong — `12` greedily goes `9 + 1 + 1 + 1` (four)
-when `4 + 4 + 4` is three. So peel off one square at a time and let the table decide which one:
-the answer for `i` is one more than the best answer for `i - s*s`, minimized over all squares
-that fit.
+Treat every perfect square as an unlimited coin denomination. A largest-square greedy rule is
+not reliable: for `12` it chooses `9 + 1 + 1 + 1`, while `4 + 4 + 4` is better.
+
+For each total `i`, consider which square appears last. Removing that square leaves a smaller
+total whose optimum has already been computed.
 
 ## Approach
 
-1. Let `dp[i]` = the minimum count of perfect squares summing to exactly `i`, for `i` in
-   `0..n`.
-2. Base case: `dp[0] = 0`. Initialize every other entry to `n`, which is a valid upper bound
-   because `i` can always be written as `i` ones and `i <= n` — so no infinity sentinel is
-   needed and the `min` never has to special-case unreachability.
-3. Recurrence: `dp[i] = 1 + min(dp[i - s*s]) over all s >= 1 with s*s <= i`.
-4. Iteration order: `i` ascending from `1` to `n`; inside, walk `s = 1, 2, 3, ...` while
-   `s * s <= i`. Ascending guarantees `dp[i - s*s]` is already final, and since `s*s >= 1` the
-   index read is always strictly smaller than `i`.
-5. Because squares are reusable, there is no "descending inner loop" trick here — this is
-   unbounded knapsack, and reading an already-updated smaller cell is exactly what we want.
-6. Return `dp[n]`.
+1. Define `dp[i]` as the fewest squares needed to form `i`. Set `dp[0] = 0` and initialize
+   every other entry to `n`, the count obtained by using only ones.
+2. Visit totals `i` from `1` through `n`, so every state `dp[i - s * s]` needed by `i` is
+   already final.
+3. For each square `s * s <= i`, update `dp[i]` with `1 + dp[i - s * s]`. Reusing an
+   already-computed state allows the same square to appear repeatedly.
+4. Return `dp[n]` after all candidate final squares have been considered.
 
 ## Code
 
@@ -63,9 +57,14 @@ class Solution:
 
 ## Why it works
 
-Any optimal decomposition of `i` contains at least one square `s*s`; removing it leaves an
-optimal decomposition of `i - s*s` (otherwise you could swap in a better one and beat the
-original), so the recurrence has optimal substructure and trying every `s` covers every
-possible last term. Lagrange's four-square theorem says the answer is always 1, 2, 3 or 4, so
-the table is never unreachable. Each of the `n` states scans `sqrt(i)` squares: `O(n * sqrt(n))`
-time, `O(n)` space.
+We prove by induction on `i` that `dp[i]` is optimal. The base `dp[0] = 0` is exact. For
+`i > 0`, any representation has a final square `s * s`; by the induction hypothesis, its
+remaining total needs at least `dp[i - s * s]` squares. The recurrence therefore considers a
+value no larger than every valid representation. Conversely, each candidate appends one square
+to a valid representation of `i - s * s`, so it cannot be smaller than the optimum. Thus the
+minimum candidate is exactly optimal, including the reusable-square case.
+
+**Complexity**
+
+- **Time:** `O(n * sqrt(n))`, because state `i` examines `floor(sqrt(i))` squares.
+- **Space:** `O(n)` for the dynamic-programming table.

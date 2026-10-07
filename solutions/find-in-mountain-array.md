@@ -9,7 +9,9 @@ space: "O(1)"
 
 ## Description
 
-Given read-only access to a mountain array — strictly increasing to a single peak, then strictly decreasing — through a `MountainArray` interface exposing only `get(index)` and `length()`, find and return the leftmost index at which `target` occurs, or `-1` if it never occurs. The array cannot be scanned directly, and the number of `get` calls is capped, which is what rules out a linear search and pushes toward two binary searches instead.
+Through `MountainArray.length()` and `MountainArray.get(index)`, search an array that
+strictly increases to one peak and then strictly decreases. Return the smallest target
+index, or `-1` if absent, while respecting the API-call limit.
 
 **Example**
 
@@ -18,22 +20,29 @@ Input: target = 3, mountain_arr = [1,2,3,4,5,3,1]
 Output: 2
 ```
 
-Explanation: 3 occurs twice, at index 2 on the ascending side and index 5 on the descending side; the search returns the leftmost match, index 2.
+The target occurs at indices 2 and 5, so the required smallest index is 2.
 
 ## Intuition
 
-A mountain array is not sorted, but it is two sorted arrays glued at the peak: strictly increasing up to it, strictly decreasing after. So the whole problem is finding the peak, after which I run a normal ascending binary search on the left slope and a descending one on the right. The peak itself is a boundary problem: `get(i) < get(i+1)` is true on the whole ascent and false on the whole descent, one clean flip. The 100-call budget is the real constraint: the peak search spends two `get` calls per step and each slope search one, which lands around 40 calls at `n = 10^4`.
+A mountain array consists of two monotonic ranges joined at the peak. First locate the
+peak from the change in adjacent direction. Then binary-search the increasing side before
+the decreasing side; searching left first guarantees the smallest matching index.
+
+The peak search uses two `get()` calls per iteration, and each slope search uses one. For
+`n <= 10^4`, each search takes at most 14 iterations, so the code makes at most 56 `get()`
+calls. It calls `length()` once; that separate method does not count toward the 100-call
+limit on `get()`.
 
 ## Approach
 
-1. Read `n = mountain_arr.length()` once. Never call `get` twice for the same index inside a comparison you can restructure.
-2. Peak search space: the index interval `[l, r]`, **inclusive on both ends**, with `l = 0`, `r = n - 2` — the last index at which `i + 1` is still valid. `n >= 3` is guaranteed, so this interval is non-empty.
-3. Monotone predicate: `P(i) = get(i) < get(i+1)`, "still ascending at `i`". True on `[0, peak)`, false on `[peak, n-2]`. The answer is the first false index, which is the peak.
-4. Loop `while l <= r`, `mid = (l + r) // 2`; if ascending, `l = mid + 1`, else `r = mid - 1`. On exit `l == r + 1`, `r` is the last ascending index and `l` is the peak — set `peak = l`.
-5. Helper `find(lo, hi, asc)`: the standard inclusive binary search over `[lo, hi]`, returning the index or `-1`. Fetch `v = get(mid)` once, return `mid` on a hit, and move `lo = mid + 1` when `(v < target) == asc` — on an ascending slope go right when the value is too small, on a descending slope go right when it is too big.
-6. Run `find(0, peak, True)` first. Return it if it is not `-1`, since ties must resolve to the smallest index and the left slope holds every smaller index.
-7. Otherwise return `find(peak + 1, n - 1, False)`, which is `-1` if the target is absent everywhere.
-8. Note `peak` is included in the first search and excluded from the second, so the peak value is probed exactly once across the two calls.
+1. Call `length()` once. Binary-search indices `0..n - 2` for the first `i` where
+   `get(i) > get(i + 1)`; that index is the peak, and both adjacent reads are valid.
+2. Define `find(lo, hi, asc)` as an inclusive binary search. Read `get(mid)` once per
+   iteration and return immediately on equality.
+3. Move right when `(value < target) == asc`: ascending search moves right for a small
+   value, while descending search moves right for a large value.
+4. Search `0..peak` first and return its match. Only if absent, search
+   `peak + 1..n - 1`, so the two slope ranges do not overlap.
 
 ## Code
 
@@ -70,4 +79,15 @@ class Solution:
 
 ## Why it works
 
-The mountain shape guarantees `get(i) < get(i+1)` holds for exactly a prefix of indices and fails for exactly a suffix, so the first search converges on the unique peak, and each of the two slopes is strictly monotone, which is all a binary search requires. Searching the ascending slope first and returning on a hit satisfies the "smallest index" rule, because every index on the left slope is smaller than every index on the right. Three binary searches over `n` indices cost `O(log n)` time and `O(1)` space; the peak search spends two `get` calls per iteration and each slope search one, well inside the 100-call limit.
+The predicate `get(i) < get(i + 1)` is true exactly before the peak and false from the
+peak onward, so the first binary search returns the unique peak. Each resulting side is
+strictly monotonic, and the direction-aware update preserves the standard binary-search
+invariant that a possible target remains inside `[lo, hi]`. If both sides contain the
+target, every left-side index is smaller, so searching and returning from that side first
+satisfies the required tie rule.
+
+**Complexity**
+
+- **Time:** `O(log n)`, with one `length()` call and at most 56 `get()` calls when
+  `n <= 10^4`.
+- **Space:** `O(1)` auxiliary space.

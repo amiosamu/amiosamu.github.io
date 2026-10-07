@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Design a stack that supports `push`, `pop`, `top`, and `getMin` (retrieving the minimum element currently in the stack), with every operation running in O(1) time.
+Design a stack supporting `push`, `pop`, `top`, and `getMin`, where `getMin` returns the
+smallest current element. Every operation must run in constant time.
 
 **Example**
 
@@ -18,20 +19,22 @@ Input: ["MinStack","push","push","push","getMin","pop","top","getMin"], [[],[-2]
 Output: [null,null,null,null,-3,null,0,-2]
 ```
 
-Explanation: after pushing -2, 0, -3 the minimum is -3; popping removes -3 so `top()` returns 0, and the minimum of the remaining `[-2,0]` is -2.
+Explanation: After pushing `-2`, `0`, and `-3`, the minimum is `-3`. Popping it exposes `0`
+as the top and restores `-2` as the minimum.
 
 ## Intuition
 
-Recomputing the minimum after a pop is the expensive part, so instead of one minimum I store the answer for *every* prefix of the stack. `mins[i]` is the minimum of the bottom `i+1` elements. Pushing extends that prefix by one, which is a single `min`; popping shortens it, and the previous prefix minimum is already sitting right there. The two stacks stay the same height, so they pop in lockstep and nothing is ever recomputed.
+Store the minimum for every stack prefix rather than recomputing it after a pop. If `mins[i]`
+is the minimum through `stack[i]`, pushing one value requires one comparison. Popping both lists
+then exposes the minimum of the preceding prefix immediately. Duplicate minima must be stored too,
+so the lists always remain aligned.
 
 ## Approach
 
-1. Keep `stack` for the values and `mins` for the running minimum, always the same length.
-2. `push(val)` — append `val` to `stack`. Append to `mins` either `val` if `mins` is empty, or `min(val, mins[-1])` otherwise: the minimum of everything including the new value.
-3. `pop()` — pop both `stack` and `mins`. Popping `mins` restores it to the minimum of the remaining elements, which is why nothing needs recomputing.
-4. `top()` — `stack[-1]`.
-5. `getMin()` — `mins[-1]`, the minimum over the whole current stack by construction.
-6. Keeping the lengths equal is the invariant to protect; never skip a `mins` push on duplicates, or the stacks desynchronize.
+1. Maintain `stack` for values and an equal-length `mins` list of prefix minima.
+2. On `push(val)`, append `val` and append `min(val, mins[-1])`, using `val` when empty.
+3. On `pop()`, remove the final item from both lists.
+4. Return `stack[-1]` from `top()` and `mins[-1]` from `getMin()`.
 
 ## Code
 
@@ -59,4 +62,12 @@ class MinStack:
 
 ## Why it works
 
-The invariant is `mins[i] == min(stack[0..i])`, and it is maintained inductively: `min(stack[0..i]) = min(stack[i], min(stack[0..i-1]))`, which is exactly the push rule. Since a pop removes only the top element, the correct minimum for the shorter stack is the one recorded one level down, so it is already stored rather than derived. Every operation is a constant number of list ops, so O(1) time, at the cost of one extra integer per element — O(n) space.
+The invariant is `mins[i] == min(stack[0:i + 1])`. It holds for the first value. If it holds
+before a push, the new prefix minimum is exactly `min(val, mins[-1])`, so the invariant extends
+by one position. A pop removes the same position from both lists, leaving the invariant unchanged
+for every remaining prefix. Therefore, `mins[-1]` always returns the current minimum.
+
+**Complexity**
+
+- **Time:** `O(1)` for each operation.
+- **Space:** `O(n)` auxiliary space after `n` pushes.

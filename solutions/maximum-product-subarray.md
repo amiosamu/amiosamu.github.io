@@ -9,8 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an array of integers that may include negative numbers and zeros, find the contiguous
-subarray with the largest product and return that product.
+Given an integer array that may contain negative values and zeros, return the largest product of
+any non-empty contiguous subarray.
 
 **Example**
 
@@ -19,31 +19,22 @@ Input: nums = [2,3,-2,4]
 Output: 6
 ```
 
-Explanation: the subarray `[2,3]` has product `2 * 3 == 6`, and no contiguous subarray
-(including ones that reach the negative `-2` or the trailing `4`) beats it.
+The subarray `[2,3]` has product 6, which is larger than every other contiguous product.
 
 ## Intuition
 
-The sum version of this (Kadane) works because a running total only ever gets worse by keeping
-a negative prefix. Products break that: a very negative running product is one negative number
-away from being the largest thing in the array. So the max ending at `i` can come from the *min*
-ending at `i - 1`. Carry both extremes forward and a sign flip just swaps their roles. Zeros are
-handled for free by allowing the subarray to restart at `n` itself.
+A negative value can turn the smallest product into the largest product. Therefore, each index
+needs both the maximum and minimum products of subarrays ending there.
+
+For the current value, either start a new subarray or extend one of the previous extremes. This
+also handles zero naturally because starting at the next value remains an available choice.
 
 ## Approach
 
-1. `res = max(nums)` — this seeds the answer with the best single element, which is the right
-   answer when every extension makes things worse (all-negative arrays, arrays with zeros).
-2. Keep two running values, `curMax` and `curMin`: the largest and smallest product of a
-   subarray that **ends at the current index**. Initialize both to `1` (the empty product).
-3. For each `n` in `nums`, compute `cand = curMax * n` **first**, before overwriting `curMax` —
-   otherwise the update to `curMin` reads a stale value.
-4. New `curMax = max(cand, curMin * n, n)` and new `curMin = min(cand, curMin * n, n)`.
-   The three candidates are: extend the best-ending-here, extend the worst-ending-here (the
-   sign-flip case), and start a fresh subarray at `n`.
-5. After each update, `res = max(res, curMax)`.
-6. Return `res`. When `n == 0` both running values collapse to `0`, and the `n` term in the max
-   lets the next index start over cleanly, so no special zero handling is needed.
+1. Initialize `res` to the largest single element and both running products to `1`.
+2. For each `n`, save `curMax * n` before overwriting `curMax`.
+3. Set the new maximum and minimum from `n`, `old curMax * n`, and `old curMin * n`.
+4. Update `res` with `curMax`; zeros reset both ending products to zero without special handling.
 
 ## Code
 
@@ -64,9 +55,14 @@ class Solution:
 
 ## Why it works
 
-Every subarray ending at index `i` is either `nums[i]` alone or a subarray ending at `i - 1`
-extended by `nums[i]`, and multiplying by `nums[i]` is monotone in the running product — it
-preserves order when `nums[i] > 0` and reverses it when `nums[i] < 0`. So the extremes at `i`
-are reachable only from the extremes at `i - 1`, which is exactly what the two-value state
-tracks; every subarray gets considered when it ends. One pass, two scalars: O(n) time, O(1)
-space.
+After processing index `i`, `curMax` and `curMin` are the extreme products among all subarrays
+ending at `i`. The base case follows from allowing the first value to start a subarray. For the
+inductive step, every ending subarray is either `nums[i]` alone or a previous ending subarray
+multiplied by `nums[i]`. Multiplication preserves or reverses order according to the sign, so only
+the previous two extremes can produce the new extremes. Every subarray is considered at its final
+index, making `res` the global maximum.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through `nums`.
+- **Space:** `O(1)` auxiliary space.

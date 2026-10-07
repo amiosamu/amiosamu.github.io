@@ -20,35 +20,21 @@ Input: s = "abc"
 Output: 3
 ```
 
-Explanation: the only palindromic substrings are the three single characters `"a"`, `"b"`,
-`"c"` — no substring of length two or three reads the same forwards and backwards.
+Explanation: The three single-character substrings are palindromes; no longer substring is.
 
 ## Intuition
 
-Same machinery as Longest Palindromic Substring, but counting instead of measuring. Verifying
-each of the `O(n^2)` substrings separately is `O(n^3)`; expanding from each of the `2n - 1`
-centers is `O(n^2)`, and the accounting is even simpler here — every successful expansion step
-*is* one more palindromic substring, so you just increment a counter inside the expansion loop
-instead of comparing lengths at the end.
+Every palindrome has a unique center: one character for odd lengths or one gap for even lengths.
+Expand outward from all such centers while the characters match. Each successful expansion
+identifies one distinct substring, so it can be counted immediately without storing it.
 
 ## Approach
 
-1. `res = 0`.
-2. For each index `i`, run two expansions: the odd center `(l, r) = (i, i)` and the even center
-   `(l, r) = (i, i + 1)`.
-3. Expansion loop: `while l >= 0 and r < len(s) and s[l] == s[r]`, do `res += 1`, then `l -= 1`
-   and `r += 1`. The increment goes *inside* the loop, before moving the pointers — each
-   iteration confirms exactly one new palindrome `s[l..r]`.
-4. The odd expansion counts the single character `s[i]` on its first iteration, so all `n`
-   length-1 palindromes are picked up for free; the even expansion contributes nothing when
-   `s[i] != s[i + 1]` and needs no guard.
-5. Return `res`.
-6. As a table, if you prefer the DP framing: `dp[i][j]` is `True` iff `s[i..j]` is a palindrome,
-   considering only that window; recurrence
-   `dp[i][j] = (s[i] == s[j]) and (j - i < 2 or dp[i + 1][j - 1])`; base cases `dp[i][i] = True`
-   and `dp[i][i + 1] = (s[i] == s[i + 1])`; iterate `i` **descending** with `j` ascending from
-   `i` so `dp[i + 1][j - 1]` is already final; the answer is the count of `True` cells rather
-   than a single one. Same time, but `O(n^2)` space instead of `O(1)`.
+1. Initialize `res = 0`.
+2. For each index `i`, expand around odd center `(i, i)` and even center `(i, i + 1)`.
+3. While both pointers are in bounds and their characters match, increment `res` and move both
+   pointers outward.
+4. Stop an expansion at its first mismatch and return the final count.
 
 ## Code
 
@@ -69,9 +55,13 @@ class Solution:
 
 ## Why it works
 
-Each palindromic substring has exactly one center — a character for odd lengths, a gap for even
-— and is reached by exactly one iteration of the expansion from that center, so the count has no
-duplicates and no omissions. The expansion is safe to stop at the first mismatch: if `s[l..r]`
-fails, every wider substring on the same center contains it as its middle and cannot be a
-palindrome either. `2n - 1` centers times `O(n)` expansion is `O(n^2)` time with a single counter
-and two pointers, so `O(1)` space.
+Every palindromic substring has exactly one midpoint, represented by one of the odd or even centers
+examined by the loops. Expanding from that center reaches the substring because all mirrored pairs
+match. Conversely, each successful expansion has matching mirrored characters and is therefore a
+palindrome. No substring is counted twice because its endpoints determine a unique center. Once a
+pair mismatches, every wider substring at that center contains the mismatch and cannot qualify.
+
+**Complexity**
+
+- **Time:** `O(n^2)` across `2n - 1` centers.
+- **Space:** `O(1)` auxiliary space.

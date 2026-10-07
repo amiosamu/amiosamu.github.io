@@ -9,9 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Same rule as House Robber — an array `nums` of money per house, no two adjacent houses may
-both be robbed — except the houses are arranged in a circle, so the first and last houses
-are also considered adjacent. Return the maximum total amount that can be robbed.
+Given money in houses arranged in a circle, return the maximum amount that can be robbed
+without choosing adjacent houses. The first and last houses are adjacent.
 
 **Example**
 
@@ -20,37 +19,25 @@ Input: nums = [2,3,2]
 Output: 3
 ```
 
-Explanation: Houses 0 and 2 are adjacent because the houses form a circle, so they cannot
-both be robbed; the best legal choice is robbing only house 1, which yields 3 — more than
-robbing either endpoint alone.
+Explanation: Houses `0` and `2` are adjacent around the circle, so robbing house `1` alone
+gives the maximum amount.
 
 ## Intuition
 
-The circle only adds one constraint over House Robber: houses `0` and `n - 1` are now adjacent,
-so they cannot both be taken. Rather than build a DP that tracks whether the first house was
-robbed, note that any valid circular selection omits at least one of the two endpoints. Cut the
-circle at that omission and it becomes a plain line — so run the linear solver twice, once on
-`nums[1:]` (first house banned) and once on `nums[:-1]` (last house banned), and take the better
-result.
+Any valid selection omits either the first house or the last house because those endpoints
+are adjacent. Removing one endpoint turns the remaining houses into a line.
+
+Solve the linear House Robber problem for `nums[1:]` and `nums[:-1]`, then take the larger
+result. A one-house input needs separate handling because both slices would be empty.
 
 ## Approach
 
-1. Handle `len(nums) == 1` first and return `nums[0]`. Otherwise `nums[1:]` and `nums[:-1]`
-   would both be empty and the answer would come out `0`.
-2. Write the linear House Robber as a helper `robLine`. Its state: `dp[i]` is the maximum loot
-   from the first `i` houses of the slice it was given, considering only that prefix.
-3. Recurrence in the helper: `dp[i] = max(dp[i - 1], dp[i - 2] + nums[i - 1])` — skip this house
-   and inherit, or rob it and add the prefix that stops two short.
-4. Base cases: `dp[0] = 0`, `dp[1] = nums[0]`; in rolling form both are covered by seeding
-   `rob1 = rob2 = 0`.
-5. Iteration direction: left to right, sliding
-   `rob1, rob2 = rob2, max(rob1 + n, rob2)`. Answer cell of the helper is `dp[n]`, returned as
-   `rob2`.
-6. Top level: return `max(robLine(nums[1:]), robLine(nums[:-1]))`.
-7. There is no third case to worry about. A selection that omits both endpoints is already
-   counted — twice, harmlessly — since it is legal in both slices.
-8. The two slices cost O(n) space. Passing `(start, end)` indices into the helper instead of
-   slicing brings it down to O(1) with the same recurrence, if you want it.
+1. Return `nums[0]` when there is one house.
+2. In `robLine`, let `rob1` and `rob2` represent the best totals two and one positions
+   before the current house.
+3. For each amount, update them to skip the house (`rob2`) or rob it (`rob1 + amount`).
+4. Run the helper on `nums[1:]` and `nums[:-1]`, then return the larger result.
+5. Both slices allocate new lists in Python; the function does not mutate `nums`.
 
 ## Code
 
@@ -72,9 +59,14 @@ class Solution:
 
 ## Why it works
 
-The two runs cover every legal circular selection: such a selection cannot contain both endpoint
-houses, so it misses house `0`, house `n - 1`, or both, and is therefore feasible in at least one
-of the two slices. Conversely nothing infeasible sneaks in — any selection valid on a slice is
-non-adjacent on the line, and it is missing an endpoint, so wrapping the line back into a circle
-creates no new adjacency. Each run is a linear O(n) scan with O(1) state; the O(n) space is the
-two slices.
+Every legal circular selection excludes at least one endpoint, so it appears in one of the
+two linear subproblems. Conversely, a nonadjacent selection from either slice excludes one
+endpoint, so joining the line into a circle creates no selected endpoint pair. The maximum
+of the two linear optima is therefore exactly the circular optimum. Within `robLine`, the
+take-or-skip recurrence examines both possibilities for each final house and is correct by
+induction on the processed prefix.
+
+**Complexity**
+
+- **Time:** `O(n)` across the two linear scans.
+- **Space:** `O(n)` for the two Python slices; each helper uses `O(1)` additional state.

@@ -9,7 +9,8 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree, return the maximum path sum of any non-empty path. A path is a sequence of nodes connected by edges, each node used at most once, and it does not need to pass through the root.
+Given a binary tree, return the maximum sum of any non-empty path. A path follows edges, uses
+each node at most once, and does not need to pass through the root.
 
 **Example**
 
@@ -22,17 +23,18 @@ Explanation: the best path is `2 -> 1 -> 3`, giving `2 + 1 + 3 == 6`.
 
 ## Intuition
 
-Every path has a unique highest node — the point where it stops going up and turns back down. So instead of enumerating paths, I enumerate that turning point: for each node, the best path whose apex is that node is `node.val` plus the best downward path into the left child plus the best downward path into the right child. But a path that *continues upward through* a node can only use one of its two sides, so the value I hand my parent is different from the value I score. Two different quantities, one traversal. The second trick is clamping negative contributions to 0 — a subtree that hurts is simply not entered.
+Every path has a highest node. The best path with a given highest node may use one downward branch
+from each child. In contrast, a path offered to the parent may use only one child branch, or it
+would fork. Negative branch gains can be omitted, so they are clamped to zero.
 
 ## Approach
 
-1. Keep `best = float('-inf')` in the enclosing scope, declared `nonlocal` in the helper. It can't start at 0: all values may be negative, and a path must contain at least one node.
-2. Write `gain(node)` with an exact contract: **it returns the largest sum of a path that starts at `node` and goes strictly downward, using at most one child** — i.e. what this subtree can contribute to a path passing through its parent. It is *not* the answer for the subtree; the answer is accumulated into `best` as a side effect.
-3. Base case: `node` is None, return 0.
-4. `left = max(gain(node.left), 0)` and `right = max(gain(node.right), 0)`. Clamping at 0 encodes "if a branch's best downward path is negative, don't take it" — it is never worse to stop at the node.
-5. Score this node as an apex: `best = max(best, node.val + left + right)`. This is the only place a two-sided path is ever considered, and it is legal precisely because such a path does not continue to the parent.
-6. Return `node.val + max(left, right)` — one side only, because the parent will attach this to something above and a path can't fork.
-7. Call `gain(root)` for the side effects, then return `best`.
+1. Initialize global `best` to negative infinity so an all-negative tree is handled correctly.
+2. Define `gain(node)` as the maximum sum of a path starting at `node` and descending through
+   at most one child. An empty subtree contributes zero.
+3. Compute each child gain and replace negative gains with zero.
+4. Update `best` with `node.val + left + right`, the best path whose highest node is `node`.
+5. Return `node.val + max(left, right)` to the parent, then return `best` after the traversal.
 
 ## Code
 
@@ -56,4 +58,12 @@ class Solution:
 
 ## Why it works
 
-Every non-empty path in the tree has exactly one node closest to the root, and at that node the path splits into at most one downward chain on each side — so the candidate scored at each node covers every path exactly once, and taking the maximum over all nodes covers all of them. Clamping to 0 is safe because dropping a negative-sum branch always yields a path that is still valid (the apex alone is a path) and no worse. Each node is visited once with O(1) arithmetic, so the traversal is O(n), and the only extra memory is the recursion stack at O(h), which is O(n) for a degenerate tree.
+Every non-empty path has one highest node and consists of at most one downward chain in each of
+that node's child subtrees. The candidate computed there therefore includes every possible path.
+Dropping a negative branch cannot reduce the optimum, and `best` starts below every valid
+single-node path. Taking the maximum of all candidates yields the maximum path sum.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(h)` for recursion.

@@ -28,37 +28,22 @@ with the others and stays separate.
 
 ## Intuition
 
-There is no edge list here — I have to invent one. The nodes are the account *indices*
-`0..len(accounts)-1`, and there is an edge between two accounts whenever they share at
-least one email. Merging accounts is then just finding connected components of that graph,
-and the transitivity the problem describes ("A shares with B, B shares with C") is exactly
-connectivity.
+Treat account indices as graph nodes. Accounts that share an email belong to the same
+connected component, including through a chain of shared emails. Union-find builds those
+components without comparing every pair of accounts.
 
-Building the edges explicitly would be quadratic, so instead I keep a dict
-`owner[email] -> first account index that listed it`. When account `i` mentions an email
-already claimed by account `j`, that is the edge, and I `union(i, j)` on the spot. That
-turns the whole grouping into one linear pass plus a final sort of each component's
-emails.
+The `owner` map records the first account seen for each email. Every later occurrence unions
+its account with that first owner, which is enough to connect all accounts containing the email.
 
 ## Approach
 
-1. Set up union-find over `n = len(accounts)`: `parent = list(range(n))`,
-   `rank = [1] * n`, `find` with path halving, `union` by size.
-2. Sweep `for i, acc in enumerate(accounts)` and, for each `email` in `acc[1:]` (skipping
-   the name at index 0):
-   - if `email in owner`, call `union(i, owner[email])` — same person;
-   - else record `owner[email] = i`.
-   Keeping only the *first* claimant is enough; every later account holding that email
-   gets unioned into the same component through it.
-3. Second pass: group emails by component root. Iterate `owner.items()` and append each
-   `email` to `groups[find(i)]` using a `collections.defaultdict(list)`. Doing this after
-   all unions is important — `find(i)` is only final once the merging is done.
-4. `owner` holds each distinct email exactly once, so no de-duplication step is needed;
-   duplicates within a single account collapse there too.
-5. Build the answer as `[[accounts[root][0]] + sorted(emails) for root, emails in
-   groups.items()]`. The name is read off the root account, and every account in a
-   component belongs to the same person so any of them carries the right name.
-6. Emails must come back sorted; account order in the output is unconstrained.
+1. Initialize `parent` and `rank` for union-find. `find` compresses paths, and `union`
+   attaches the smaller component to the larger one.
+2. Scan every email. Store its first account index in `owner`, or union the current account
+   with the stored account when the email has appeared before.
+3. After all unions, map each distinct email to `find(owner[email])`. This groups emails by
+   their final component root and also removes duplicate occurrences.
+4. Sort each component's emails and prefix them with the name from its root account.
 
 ## Code
 
@@ -103,11 +88,14 @@ class Solution:
 
 ## Why it works
 
-Two accounts belong together iff they are connected through shared emails, and unioning
-each account with the first claimant of every email it lists produces exactly that
-connectivity: if accounts `a` and `b` share email `e`, both were unioned with
-`owner[e]`, so they land in one component, and transitive chains follow because union-find
-components are closed under merging. The second pass then assigns each email to the
-component of *any* account that listed it, which is well-defined since all such accounts
-share a root. With `N` emails in total, the two passes are `O(N * α(N))` and the per-group
-sorting sums to `O(N log N)`, which dominates; space is `O(N)` for `owner` and `groups`.
+For any email, every account containing it is unioned with the same first owner, so all such
+accounts share a component. Conversely, unions occur only because of a shared email, so a
+component contains exactly one connected group of accounts. Looking up the final root then
+places every distinct email in the correct merged account.
+
+**Complexity**
+
+- **Time:** `O(N log N)` for `N` total email entries; union-find costs
+  `O(N alpha(N))`, and sorting the merged email groups dominates.
+- **Space:** `O(N + A)` auxiliary space for the maps, groups, and union-find arrays, where
+  `A` is the number of accounts. The returned accounts require `O(N)` space.

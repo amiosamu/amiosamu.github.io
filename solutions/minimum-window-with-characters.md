@@ -9,7 +9,8 @@ space: "O(m)"
 
 ## Description
 
-Given strings `s` and `t`, return the smallest substring of `s` that contains every character of `t` (including repeated characters, with at least the same multiplicity). If no such substring exists, return `""`.
+Given strings `s` and `t`, return the shortest substring of `s` containing every character of
+`t` with at least the required multiplicity. Return `""` if no such substring exists.
 
 **Example**
 
@@ -18,20 +19,26 @@ Input: s = "ADOBECODEBANC", t = "ABC"
 Output: "BANC"
 ```
 
-Explanation: `"BANC"` contains one `'A'`, one `'B'`, and one `'C'`, and no shorter substring of `s` covers all three characters of `t`.
+Explanation: `"BANC"` contains `A`, `B`, and `C`, and no shorter substring covers all three.
 
 ## Intuition
 
-Validity here is monotone: if `s[l..r]` covers `t`, so does any window containing it. So for each right end `r` there is exactly one smallest valid left edge, and it never moves backwards as `r` grows — expand until the window is valid, then shrink from the left as far as it stays valid, and record. The bookkeeping trick is to not compare two whole count maps every step: keep one counter `missing` of how many *slots* are still unfilled, using the sign of `need[ch]` to distinguish a genuinely needed character from a surplus copy.
+Expanding a window cannot make a valid window invalid, and shrinking cannot make an invalid one
+valid. This supports a sliding window: advance the right edge until all requirements are met, then
+advance the left edge while recording shorter valid windows.
+
+`need[c]` tracks how many more copies of `c` are required; negative values represent surplus
+copies. A single `missing` count avoids comparing complete frequency maps after every update.
 
 ## Approach
 
-1. If `len(t) > len(s)` return `""`.
-2. `need = collections.Counter(t)` holds, per character, how many more copies the window still needs; a negative value means surplus. `missing = len(t)` counts unfilled slots, counting duplicates.
-3. Track the best window as `best_len = len(s) + 1` (sentinel for "none found") and `best_l = 0`, with `l = 0`.
-4. For each `r, ch` in `enumerate(s)`: if `ch` is a key of `need`, decrement `missing` only when `need[ch] > 0` (this copy fills a real slot rather than adding surplus), then decrement `need[ch]`.
-5. While `missing == 0` the window is valid: if `r - l + 1 < best_len` record `best_len` and `best_l`; then evict `s[l]` — if it is a key of `need`, increment `need[s[l]]` and, if that pushes it back above 0, increment `missing` (we just broke validity) — and advance `l`.
-6. Return `""` if `best_len > len(s)`, else `s[best_l:best_l + best_len]`.
+1. Return `""` immediately when `t` is longer than `s`. Build `need = Counter(t)` and set
+   `missing = len(t)`, counting repeated requirements separately.
+2. Expand with `r`. For a relevant character, reduce `missing` only if a copy was still needed,
+   then decrement its `need` value.
+3. While `missing == 0`, record a shorter window and remove `s[l]`. If removal makes a count
+   positive, increment `missing`, then advance `l`.
+4. Return the recorded slice, or `""` if the sentinel best length remains.
 
 ## Code
 
@@ -65,4 +72,17 @@ class Solution:
 
 ## Why it works
 
-The invariant is that `need[c]` equals `count_t(c) - count_window(c)` for every character of `t`, and `missing` is the sum of the positive parts of those values — so `missing == 0` is exactly "the window contains every character of `t` with multiplicity". Guarding the counter updates on `need[ch] > 0` is what keeps surplus copies from wrongly decrementing `missing`, and it is symmetric on eviction, so validity is tracked exactly. For the optimal window `s[i..j]`, the iteration `r = j` shrinks `l` up to and including `i` (it cannot pass `i`, since dropping `s[i]` from the optimal window would break validity), so its length is recorded. Each character enters and leaves once, giving O(n + m) time, and `need` holds one entry per distinct character of `t`, O(m) space.
+For each character in `t`, `need[c]` equals its required count minus its current window count.
+Thus `missing`, the sum of all positive deficits, is zero exactly when the window covers `t`.
+The update rules preserve this invariant for both additions and removals, including surplus copies.
+
+For any right endpoint, the inner loop visits every valid left endpoint until the next removal
+breaks validity. In particular, when the right endpoint of an optimal window is processed, that
+window is recorded before its left edge can pass. Therefore, the shortest recorded window is
+globally optimal.
+
+**Complexity**
+
+- **Time:** `O(len(s) + len(t))`; each character enters and leaves the window at most once.
+- **Space:** `O(len(t))` auxiliary space for the requirement counter. The returned substring uses
+  `O(k)` space in Python, where `k` is its length.

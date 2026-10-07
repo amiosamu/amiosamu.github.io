@@ -4,15 +4,13 @@
 draft: false
 pattern: "Length-prefix framing"
 time: "O(m)"
-space: "O(1)"
+space: "O(m)"
 ---
 
 ## Description
 
-Design an algorithm to encode a list of strings into a single string, and decode that
-string back into the original list. A string in the list may contain any character,
-including whatever delimiter the encoding itself uses, so the scheme must not rely on a
-character being forbidden in the input.
+Design methods to encode a list of arbitrary strings into one string and decode it back into the
+original list. Input strings may contain any character, including the encoding's delimiter.
 
 **Example**
 
@@ -21,39 +19,23 @@ Input: strs = ["neet","code","love","you"]
 Output: ["neet","code","love","you"]
 ```
 
-Explanation: `encode(strs)` produces `"4#neet4#code4#love3#you"`, and decoding that
-string recovers the original four strings in the same order.
+Explanation: One encoding is `"4#neet4#code4#love3#you"`, which decodes to the original list.
 
 ## Intuition
 
-Any separator character I pick — comma, `#`, even `\0` — can legally appear inside
-one of the strings, so no delimiter alone can be trusted. Escaping fixes that but
-is fiddly to get right under time pressure.
-
-The clean answer is to stop searching for boundaries and instead announce them:
-write `len(s)` before each string, terminated by a marker. The decoder reads
-digits until the marker, then takes *exactly* that many characters verbatim,
-whatever they contain. The `#` is only there to end the number, never to find the
-end of the payload, so a `#` inside the data is harmless.
+A delimiter alone is ambiguous because it may occur in a payload. Prefix each payload with its
+character count followed by `#`. The decoder uses `#` only to locate the end of the numeric
+length, then consumes exactly that many characters. Delimiters and digits inside the payload
+therefore need no escaping.
 
 ## Approach
 
-**encode**
-
-1. For each `s` in `strs`, emit `str(len(s)) + "#" + s`.
-2. Collect the pieces in a list and `"".join` them — repeated `+=` on a string is
-   quadratic.
-
-**decode**
-
-3. Keep a cursor `i` at the start of the next record; loop while `i < len(s)`.
-4. Advance a second index `j` from `i` until `s[j] == "#"`. Everything in
-   `s[i:j]` is the length digits.
-5. `length = int(s[i:j])`, then the payload is `s[j + 1 : j + 1 + length]`.
-6. Append the payload and set `i = j + 1 + length`, the first character of the
-   next record.
-7. Edge cases fall out for free: an empty string encodes to `"0#"` and decodes to
-   `""`; an empty list encodes to `""` and the `while` never runs.
+1. For each input string, append `str(len(s)) + "#" + s` to `parts`, then join the parts once.
+2. To decode, place cursor `i` at the next record and scan `j` to the first `#`.
+3. Parse `s[i:j]` as `length`, then append the exact slice
+   `s[j + 1:j + 1 + length]`.
+4. Move `i` past that payload and repeat. `"0#"` represents an empty string, while an empty
+   encoded string represents an empty list.
 
 ## Code
 
@@ -82,9 +64,14 @@ class Solution:
 
 ## Why it works
 
-The encoding is unambiguous because the decoder never has to guess where a string
-ends: the count that precedes it is self-delimiting (digits, then the first `#`),
-and the payload is then taken by position rather than by search. Both directions
-touch each character a constant number of times, so both are `O(m)` in the total
-length of the input, and beyond the string being built and the list being returned
-the only state is two integer cursors.
+Each encoded record begins with decimal digits terminated by the first `#`, so its length field
+has a unique endpoint. That length identifies the payload's unique endpoint regardless of its
+contents. After decoding one record, `i` points exactly to the next record; induction over the
+records shows that every original string is recovered once and in order. Empty payloads consume
+zero characters and preserve the same argument.
+
+**Complexity**
+
+- **Time:** `O(m)` for either method, where `m` is the total encoded size.
+- **Space:** `O(m)` in this implementation: `encode` stores `parts` before joining, and `decode`
+  returns payload copies totaling `O(m)`; cursor state alone is `O(1)`.

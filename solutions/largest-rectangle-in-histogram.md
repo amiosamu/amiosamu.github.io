@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an array `heights` representing the bar heights of a histogram where each bar has width 1, return the area of the largest rectangle that can be formed using contiguous bars.
+Given the heights of unit-width histogram bars, return the largest area of a rectangle formed
+from contiguous bars.
 
 **Example**
 
@@ -18,21 +19,24 @@ Input: heights = [2,1,5,6,2,3]
 Output: 10
 ```
 
-Explanation: The bars at indices 2 and 3, with heights 5 and 6, support a rectangle of height 5 spanning both bars, giving an area of `2 * 5 = 10`, which is the maximum possible.
+The bars of heights `5` and `6` support a width-two rectangle of height `5`, with area `10`.
 
 ## Intuition
 
-Every maximal rectangle is limited by one bar: it has some height `h` from the histogram and extends left and right until it hits a bar shorter than `h`. So the answer is `max over i of heights[i] * (span of bars at least as tall as heights[i] around i)`, and the brute force is scanning outwards from each bar, O(n²). A stack kept increasing in height gives both edges for free — when a bar shorter than the top arrives, that top's right edge is exactly here, and its left edge is where it was first allowed to extend to. I store `(start, height)` so a popped bar carries its own left edge with it.
+For a chosen rectangle height, the widest valid span ends at the first shorter bar on either side.
+A monotonic stack delays calculating a bar's area until its first shorter bar on the right appears.
+Each entry also stores the earliest index to which that height can extend on the left.
 
 ## Approach
 
-1. Keep `stack` of `(index, height)` pairs, increasing in height from bottom to top, and `maxArea = 0`.
-2. For each `i, h` from `enumerate(heights)`, set `start = i` — provisionally, the current bar begins where it stands.
-3. While the stack is non-empty and `stack[-1][1] > h`, pop `(idx, height)`. That bar cannot extend past `i`, so its rectangle is `height * (i - idx)` and it is folded into `maxArea`.
-4. After each pop set `start = idx`. This is the key step: the current bar is shorter, so it can be extended back over everything the popped bar covered.
-5. Push `(start, h)` once the popping stops.
-6. After the scan, everything left on the stack extends to the far right edge, so for each `(idx, height)` fold `height * (len(heights) - idx)` into `maxArea`.
-7. Return `maxArea`. Equal heights are not popped (`>`, not `>=`), which is fine — the later, taller-or-equal duplicate inherits the earlier `start` when a shorter bar eventually pops both.
+1. Keep a stack of `(start, height)` pairs whose heights are non-decreasing, plus `maxArea`.
+2. For each bar at `i`, begin with `start = i` and pop every entry whose height exceeds it.
+3. A popped `(idx, height)` spans through `i - 1`; update the area with `height * (i - idx)`
+   and assign `start = idx` so the shorter current bar inherits that left boundary.
+4. Push `(start, h)`. Equal heights remain as separate entries because the loop pops only `>`;
+   this preserves a non-decreasing, not strictly increasing, stack.
+5. After the scan, measure every remaining entry through the histogram's right edge and return the
+   largest area. An empty histogram correctly returns zero.
 
 ## Code
 
@@ -58,4 +62,14 @@ class Solution:
 
 ## Why it works
 
-Because the stack is increasing, the bar below any entry is strictly shorter, so an entry's recorded `start` is one past the nearest shorter bar to its left — its true left boundary. When it is popped at index `i`, `heights[i]` is the first bar to its right that is shorter, so `i` is its true right boundary, and `height * (i - idx)` is the largest rectangle with that bar as the limiting height. Every bar is pushed exactly once and popped at most once, either mid-scan or in the final sweep, so every candidate rectangle is measured and the run is O(n) time with an O(n) stack.
+For every stack entry `(start, height)`, all bars from `start` through the current index have height
+at least `height`. When a shorter bar appears at `i`, that span cannot extend right, so
+`height * (i - start)` is the widest rectangle limited by that entry. Propagating the popped
+`start` to the new shorter bar preserves the invariant. Equal-height entries may overlap, but the
+earliest one still measures their widest span. Entries never popped during the scan can extend to
+the final boundary, so every possible limiting height is measured at its maximum width.
+
+**Complexity**
+
+- **Time:** `O(n)`, because every bar is pushed once and removed or finalized once.
+- **Space:** `O(n)` for the stack.

@@ -30,32 +30,21 @@ Input: board =
 Output: true
 ```
 
-Explanation: No row, column, or 3x3 box has a repeated digit anywhere on the board — for
-example row 0 has only `5`, `3`, `7` filled in, with no digit appearing twice — so the
-board is valid.
+No filled digit repeats within any row, column, or `3 x 3` box.
 
 ## Intuition
 
-Only the board as filled matters — no solving, no backtracking, just three
-independent "no duplicates" checks. Doing them as three separate passes works but
-means visiting the board three times and writing the box-walk twice.
-
-One pass is enough if each cell reports itself to all three of its groups at once.
-The only piece worth remembering is the box index: cell `(r, c)` lives in box
-`(r // 3) * 3 + c // 3`, which flattens the 3×3 grid of boxes into `0..8` the same
-way row-major indexing flattens any grid.
+The board need not be solved; only existing conflicts matter. During one scan, record the digits
+already seen in each row, column, and box. Cell `(r, c)` belongs to box
+`(r // 3) * 3 + c // 3`, which numbers the boxes from `0` through `8`.
 
 ## Approach
 
-1. Create three lists of nine empty sets: `rows`, `cols`, `boxes`.
-2. Scan every cell `(r, c)` with two nested loops over `range(9)`.
-3. Skip immediately if `board[r][c] == "."` — empties never conflict, and the
-   board is deliberately allowed to be unsolvable.
-4. Compute `b = (r // 3) * 3 + c // 3`.
-5. If the digit is already in `rows[r]`, `cols[c]`, or `boxes[b]`, return `False`.
-6. Otherwise add it to all three sets and continue.
-7. Return `True` if the scan completes. Check-then-insert, never insert-then-check,
-   or a cell will collide with itself.
+1. Create nine sets each for rows, columns, and boxes.
+2. Scan every cell, skipping `'.'` because empty cells impose no constraint.
+3. Compute the cell's box index from its row and column.
+4. Reject the digit if it already appears in any of its three group sets.
+5. Otherwise add it to all three sets; return `True` after the complete scan.
 
 ## Code
 
@@ -85,9 +74,12 @@ class Solution:
 
 ## Why it works
 
-A board is valid exactly when no group contains a repeated digit, and each cell
-belongs to exactly one row, one column and one box — so testing membership in
-those three sets before inserting catches the first repeat in whichever group it
-occurs, and reaching the end means no group ever saw one. The board is fixed at
-9×9, so the 81 cells and the 27 sets of at most 9 digits are both constant work
-and constant space.
+After each processed cell, the invariant is that every set contains exactly the nonempty digits
+already encountered in that group, with no duplicates. A membership hit proves the current digit
+would violate a row, column, or box. Otherwise insertion preserves the invariant. If the scan
+finishes, no group contains a duplicate, which is exactly Sudoku validity for a partial board.
+
+**Complexity**
+
+- **Time:** `O(1)` because the board always contains 81 cells.
+- **Space:** `O(1)` because the 27 sets each hold at most nine digits.

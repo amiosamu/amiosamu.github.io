@@ -9,7 +9,7 @@ space: "O(1)"
 
 ## Description
 
-Given an array `nums` sorted in ascending order and an integer `target`, return the index of `target` in `nums`, or `-1` if it is not present. The array holds distinct values, and the solution must run in O(log n) time.
+Given a sorted array of distinct integers, return the index of `target`, or `-1` if it is absent.
 
 **Example**
 
@@ -22,17 +22,16 @@ Explanation: `nums[4] == 9`, so index 4 is returned.
 
 ## Intuition
 
-The array is sorted, so one comparison against the middle element rules out half of what is left: if `nums[mid] < target` nothing at or left of `mid` can be the target, and symmetrically on the other side. Scanning is O(n); halving the live interval every step is O(log n). This is the template every other problem in this group is a variation of, so it is worth fixing one loop shape and reusing it.
+Sorted order lets one middle comparison discard half of the remaining indices. Inclusive bounds
+make the search space explicit: while `left <= right`, every index where the target could still
+occur remains inside `[left, right]`.
 
 ## Approach
 
-1. Search space: the index interval `[l, r]`, **inclusive on both ends**. Initialise `l = 0`, `r = len(nums) - 1`.
-2. Loop invariant: if `target` is in `nums` at all, its index lies in `[l, r]`. An empty interval (`l > r`) therefore means the target is absent.
-3. Loop `while l <= r` — `l == r` is a live one-element interval and must still be probed.
-4. `mid = (l + r) // 2` (Python ints do not overflow, so no need for `l + (r - l) // 2`).
-5. Three-way compare: `nums[mid] == target` returns `mid`; `nums[mid] < target` discards `[l, mid]` with `l = mid + 1`; otherwise discards `[mid, r]` with `r = mid - 1`.
-6. Each branch strictly shrinks the interval (it always excludes `mid`), so the loop terminates.
-7. On exit `l == r + 1`: the interval is empty and `target` is not present, so return `-1`. `l` is where the target *would* be inserted — that fact is the whole of Search Insert Position.
+1. Initialize the inclusive search interval with `l = 0` and `r = len(nums) - 1`.
+2. While it is non-empty, inspect `mid = (l + r) // 2` and return it on equality.
+3. If `nums[mid] < target`, set `l = mid + 1`; otherwise set `r = mid - 1`.
+4. Return `-1` when the interval becomes empty. This also handles an empty input array.
 
 ## Code
 
@@ -53,4 +52,12 @@ class Solution:
 
 ## Why it works
 
-The invariant "the target, if present, is in `[l, r]`" holds initially and is preserved by every branch, because sortedness means the half being discarded provably cannot contain the target. Termination is guaranteed since `mid` is always inside `[l, r]` and both updates exclude it, so `r - l` strictly decreases. The interval length halves each iteration, giving `O(log n)` comparisons and `O(1)` extra space.
+The invariant is that the target's index, if it exists, lies in `[l, r]`. Sortedness proves that
+the discarded half cannot contain the target, so each update preserves the invariant. Both
+updates exclude `mid`, making progress. If the interval empties, the invariant implies the target
+does not exist.
+
+**Complexity**
+
+- **Time:** `O(log n)`.
+- **Space:** `O(1)`.

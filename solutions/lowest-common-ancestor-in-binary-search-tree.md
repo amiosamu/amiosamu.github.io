@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given the root of a binary search tree and two of its nodes p and q, return their lowest common ancestor: the deepest node in the tree that has both p and q as descendants (a node is considered a descendant of itself).
+Given a binary search tree and two nodes `p` and `q` in it, return their lowest common ancestor.
+A node is considered a descendant of itself.
 
 **Example**
 
@@ -18,20 +19,22 @@ Input: root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 8
 Output: 6
 ```
 
-Explanation: 2 lies in the left subtree of 6 and 8 lies in the right subtree of 6, so their paths down from the root split apart exactly at node 6, making it the lowest common ancestor.
+The search paths for `2` and `8` split at `6`, making `6` their lowest common ancestor.
 
 ## Intuition
 
-In a general binary tree finding the LCA takes a full post-order pass, but the BST ordering hands it over for free: if both `p` and `q` are smaller than the current node they must both live in its left subtree, if both are larger they both live in its right, and in either case the current node is too high to be the *lowest* common ancestor. The first node where they don't agree on a direction — one goes left and the other right, or one of them *is* the node — is the answer. So it's a single root-to-node descent, no traversal and no recursion needed.
+BST ordering identifies the only subtree that can contain both targets. If both values are smaller
+than the current value, descend left; if both are larger, descend right.
+
+The first node where the values split across sides, or where one equals the current value, is the
+deepest node that can contain both targets.
 
 ## Approach
 
-1. Start `cur = root` and loop while `cur` is not None. The invariant: both `p` and `q` are somewhere in `cur`'s subtree.
-2. If `p.val < cur.val` **and** `q.val < cur.val`, both are strictly in the left subtree — set `cur = cur.left`. The invariant is preserved by the BST property.
-3. Else if `p.val > cur.val` **and** `q.val > cur.val`, both are in the right subtree — set `cur = cur.right`.
-4. Otherwise return `cur`. "Otherwise" covers exactly two situations: the values straddle `cur`, or one of them equals `cur.val`. In the split case `cur` is the branch point; in the equality case a node is allowed to be its own descendant, so `cur` is again the answer.
-5. The loop is guaranteed to return before `cur` becomes None, because the problem promises both nodes exist in the tree; the trailing `return None` is only there to satisfy the type checker.
-6. Compare `.val`, not node identity — BST values are unique here, and comparing values is what lets the descent decide a direction.
+1. Set `cur = root`; both targets are known to lie in its subtree.
+2. If both target values are less than `cur.val`, move to `cur.left`.
+3. If both are greater, move to `cur.right`.
+4. Otherwise, return `cur`: the values straddle it or one target is `cur` itself.
 
 ## Code
 
@@ -51,4 +54,12 @@ class Solution:
 
 ## Why it works
 
-Every common ancestor of `p` and `q` sits on the path from the root down to the split point, and the descent walks exactly that path: as long as both targets lie on the same side, the current node has a child that is still a common ancestor, so it can't be the lowest one and stepping down is safe. The moment they part ways — or one target is reached — no child contains both, so the current node is minimal by definition. The walk takes one step per level, O(h) time, which is O(log n) for a balanced BST and O(n) for a degenerate one; because it's iterative there's no call stack, so O(1) space (the recursive version is the same O(h) time but O(h) space).
+The invariant is that both targets lie in `cur`'s subtree. When both values are on the same side,
+the BST property puts both in that child subtree, so descending preserves the invariant and proves
+the current node is not the lowest common ancestor. Otherwise, no child subtree contains both
+targets, while `cur` does. Therefore `cur` is exactly their lowest common ancestor.
+
+**Complexity**
+
+- **Time:** `O(h)`, where `h` is the tree height.
+- **Space:** `O(1)` auxiliary space because the search is iterative.

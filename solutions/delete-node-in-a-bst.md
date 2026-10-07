@@ -9,7 +9,9 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary search tree and a key, delete the node holding that value from the tree, keeping the remaining tree a valid BST, and return the new root; if the key isn't present, the tree is returned unchanged.
+Given a binary search tree and `key`, delete the node with that value while preserving the
+BST property. Return the possibly changed root. If the key is absent, return the tree
+unchanged.
 
 **Example**
 
@@ -18,25 +20,31 @@ Input: root = [5,3,6,2,4,null,7], key = 3
 Output: [5,4,6,2,null,null,7]
 ```
 
-Explanation: Node 3 has two children (2 and 4); its in-order successor is 4, so 4's value is copied into 3's spot, and the original leaf holding 4 is then removed, leaving [5,4,6,2,null,null,7].
+Node 3 has two children. Its in-order successor, 4, replaces it, and the original node 4
+is then removed from the right subtree.
 
 ## Intuition
 
-Finding the node is the easy half — a plain BST descent. The hard half is that removing a node with two children leaves a hole that neither child can fill on its own: promoting the left child would strand the right subtree, and vice versa. The only value that can sit in that hole is one that's still greater than everything on the left and less than everything on the right, and there are exactly two such values — the in-order predecessor and the in-order successor. I take the successor, the leftmost node of the right subtree, copy its value into the hole, and then delete *it* instead, which is a strictly easier deletion because a leftmost node has no left child.
+BST ordering identifies which subtree can contain the key. Once found, a node with at most
+one child can be replaced directly by that child. A node with two children needs a value
+that remains between both subtrees.
+
+The smallest value in the right subtree, the in-order successor, has exactly that property.
+Copying it mutates the found node; recursively deleting the original successor then removes
+the duplicate value.
 
 ## Approach
 
-1. Make the function return the (possibly new) root of the subtree it was given, and always assign the result back: `root.left = self.deleteNode(root.left, key)`. This reassignment-on-unwind idiom is what lets a child be replaced without ever tracking a parent pointer.
-2. `root is None` → return None. Key not in the tree, nothing to do.
-3. `key < root.val` → recurse left and assign to `root.left`; `key > root.val` → recurse right and assign to `root.right`. Then fall through to `return root`.
-4. Found it (`key == root.val`). Three cases:
-   - no left child → return `root.right` (covers the leaf case too, since that's None);
-   - no right child → return `root.left`;
-   - two children → the interesting one.
-5. Two children: walk `succ = root.right`, then `while succ.left: succ = succ.left`. `succ` is now the in-order successor — the smallest value greater than `root.val`.
-6. Copy `root.val = succ.val`, then remove the duplicate with `root.right = self.deleteNode(root.right, succ.val)`. That inner delete recurses down the left spine and lands in case "no left child", so it never recurses a second time into a two-child node.
-7. Return `root` at the end. The top-level call returns the new tree root, which differs from the original only when the root itself was deleted.
-8. Traversal shape: a descent to find the node, with the rewiring happening on the way back up — the assignment in step 1 is the only thing that makes the parent's pointer follow the child's replacement.
+1. If `root` is `None`, return `None`. Otherwise recurse left or right according to the
+   comparison with `root.val`, assigning the returned subtree root back to that child.
+2. When the key is found, return the other child if either child is missing. This also
+   handles deleting a leaf.
+3. With two children, walk left from `root.right` to find `succ`, the smallest value in
+   the right subtree.
+4. Copy `succ.val` into `root`, then delete that value from `root.right` and reassign the
+   returned pointer.
+5. Return `root`, which may now contain a changed value or child pointer. If `key` is
+   absent, recursive calls return every original pointer unchanged.
 
 ## Code
 
@@ -64,4 +72,14 @@ class Solution:
 
 ## Why it works
 
-The successor is the minimum of the right subtree, so it is larger than every value in the left subtree and no larger than every remaining value in the right — exactly the two conditions the hole demands — which is why overwriting `root.val` with it keeps the BST valid, and deleting the old copy keeps values unique. The one- and zero-child cases splice the surviving child straight into the parent's slot, which is legal because that whole subtree already sat on the correct side of every ancestor. Cost is one descent to find the key, one descent to find the successor, and one more to remove it, all bounded by the height: O(h) time and O(h) recursion stack, O(log n) on a balanced tree and O(n) on a chain.
+Induct on subtree height. The recursive search modifies only the side that can contain the
+key and returns a valid replacement root. For a found node with at most one child, that
+child already satisfies every ancestor bound and can be spliced in directly. With two
+children, the successor is greater than every left value and smaller than every other
+right-subtree value. Replacing the node with it preserves ordering, and deleting its old
+copy removes the duplicate. Therefore every returned subtree remains a valid BST.
+
+**Complexity**
+
+- **Time:** `O(h)`, where `h` is the tree height.
+- **Space:** `O(h)` for the recursion stack.

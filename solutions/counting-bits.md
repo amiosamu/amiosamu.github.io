@@ -23,20 +23,15 @@ Explanation: In binary, 0..5 are 0,1,10,11,100,101, whose 1-bit counts are 0,1,1
 
 ## Intuition
 
-Calling popcount on each of the `n + 1` values costs O(n log n). The insight is that `i` in
-binary is just `i >> 1` with one extra bit glued on the right, so
-`popcount(i) = popcount(i >> 1) + (i & 1)`. Since `i >> 1 < i` for every `i >= 1`, the answer
-for `i` is already sitting in the table when I reach it — a one-line DP, left to right.
+The binary representation of `i` is the representation of `i >> 1` followed by its low bit.
+Therefore `bits(i) = bits(i >> 1) + (i & 1)`. The shifted value is smaller than `i`, so its
+answer is already available during a left-to-right scan.
 
 ## Approach
 
-1. Allocate `dp = [0] * (n + 1)`; `dp[0] = 0` is already correct and is the base case.
-2. For `i` from `1` to `n`, set `dp[i] = dp[i >> 1] + (i & 1)`.
-3. `i >> 1` drops the least significant bit; `i & 1` adds back the 1 if that dropped bit was set.
-4. Return `dp`.
-5. Trace `n = 5`: `dp[1] = dp[0] + 1 = 1`, `dp[2] = dp[1] + 0 = 1`, `dp[3] = dp[1] + 1 = 2`,
-   `dp[4] = dp[2] + 0 = 1`, `dp[5] = dp[2] + 1 = 2`, giving `[0,1,1,2,1,2]`.
-6. Edge case `n = 0` returns `[0]` because the loop body never runs.
+1. Allocate `dp` with `n + 1` zeros; `dp[0]` is the base count for zero.
+2. For each `i` from 1 through `n`, set `dp[i] = dp[i >> 1] + (i & 1)`.
+3. Return `dp`. When `n == 0`, the loop is empty and `[0]` is returned.
 
 ## Code
 
@@ -51,7 +46,11 @@ class Solution:
 
 ## Why it works
 
-Every non-negative `i` factors uniquely as `2 * (i >> 1) + (i & 1)`, and multiplying by 2 is a
-left shift that moves bits without creating or destroying any, so the set-bit count of `i` is the
-count of `i >> 1` plus the low bit. The recurrence only reads a strictly smaller index, so a
-single forward pass fills the table in O(n) time with O(1) auxiliary space beyond the output.
+Every `i` decomposes uniquely into `2 * (i >> 1) + (i & 1)`. The shift contributes the same set
+bits as `i >> 1`, while the low bit contributes either zero or one. Thus the recurrence is
+exact. Since it reads a smaller index, induction from `dp[0]` proves every output entry correct.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(1)` auxiliary space and `O(n)` output space.

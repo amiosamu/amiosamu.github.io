@@ -9,30 +9,42 @@ space: "O(n)"
 
 ## Description
 
-Design a `WordDictionary` that supports `addWord(word)` to add a string, and `search(word)` to check whether any added word matches, where the search word may contain '.' as a wildcard that matches any single letter.
+Design a `WordDictionary` with `addWord` and `search`. A search pattern may contain `.`,
+which matches any single letter.
 
 **Example**
 
 ```
-Input: ["WordDictionary","addWord","addWord","addWord","search","search","search","search"], [[],["bad"],["dad"],["mad"],["pad"],["bad"],[".ad"],["b.."]]
-Output: [null,null,null,null,false,true,true,true]
+Input:
+operations = ["WordDictionary", "addWord", "addWord", "addWord", "search",
+              "search", "search", "search"]
+arguments = [[], ["bad"], ["dad"], ["mad"], ["pad"], ["bad"], [".ad"], ["b.."]]
+Output: [null, null, null, null, false, true, true, true]
 ```
 
-Explanation: "pad" was never added so `search("pad")` is false; `search("bad")` matches the added word "bad" exactly; `search(".ad")` matches "bad", "dad", or "mad" since '.' stands for any letter; `search("b..")` matches "bad" since the two dots can be any letters.
+`"pad"` is absent, while `".ad"` can match any of the three stored words and `"b.."`
+matches `"bad"`.
 
 ## Intuition
 
-Without the `.` this is a plain trie. The `.` is what breaks the single-path walk: at that position the search is no longer at one node but at *any* child of the current node, so matching stops being a loop and becomes a branching search. The insight is that the branching is bounded — a `.` forks into at most 26 subtrees, and every fork still consumes one character of the pattern, so the recursion depth is the pattern length. So: walk deterministically while the character is a letter, and recurse over `node.children.values()` only when you hit a dot.
+A trie follows one child for an ordinary letter. A wildcard is different because every
+child may match, so search must branch at that position. Each branch still consumes one
+pattern character, which bounds recursion depth by the pattern length.
+
+Continue ordinary-letter runs in a loop and recurse only at wildcards. A terminal marker
+is required because reaching a trie node proves only that a prefix exists, not a full word.
 
 ## Approach
 
-1. Reuse the trie node shape: `children` dict plus `is_word`. The `WordDictionary` instance is the root.
-2. `addWord(word)`: descend from `self`, creating `WordDictionary()` children for missing characters, then set `is_word = True` on the final node.
-3. `search(word)`: define an inner `dfs(i, node)` meaning "can `word[i:]` be matched starting from `node`".
-4. Inside `dfs`, loop `j` from `i` to `len(word) - 1` and handle the deterministic case in place: if `word[j]` is a real letter, fail with `False` when it is absent from `node.children`, otherwise reassign `node = node.children[word[j]]` and keep looping. This keeps dot-free searches iterative with no recursion at all.
-5. When `word[j] == '.'`, return `any(dfs(j + 1, child) for child in node.children.values())` — hand each subtree the rest of the pattern and let short-circuiting stop at the first match. Returning here is essential; the loop must not continue past the fork.
-6. If the loop finishes without returning, the whole pattern was consumed, so return `node.is_word` — not `True`. A pattern can land on a real trie node that is only a prefix, e.g. `search("ba")` after `addWord("bad")`.
-7. `search` returns `dfs(0, self)`.
+1. Represent each trie node with `children` and `is_word`; the dictionary object itself is
+   the root.
+2. `addWord` follows or creates one child per letter, then marks the final node.
+3. Define `dfs(i, node)` to match `word[i:]`. Follow ordinary letters directly, returning
+   `False` when the required child is absent.
+4. At `.`, recurse from the next pattern index into every child and return whether any
+   branch matches.
+5. After consuming the pattern, return `node.is_word` so a proper prefix is not accepted.
+   Searching an empty pattern therefore succeeds only if an empty word was added.
 
 ## Code
 
@@ -67,4 +79,14 @@ class WordDictionary:
 
 ## Why it works
 
-`dfs(i, node)` is true exactly when some stored word has `node`'s prefix followed by a match of `word[i:]`, and the two cases are exhaustive: a letter admits one continuation, a dot admits all of them, and `any` covers the union. Because the recursion advances `j` by one on every fork, no branch can revisit a (position, node) pair, so the search terminates in depth at most `L`. A dot-free search touches one node per character, O(L); an all-dots pattern is the worst case, forking 26 ways per level for the O(26^L) bound, and the trie stores one node per character ever added, O(n).
+For `dfs(i, node)`, maintain the invariant that the trie path to `node` matches the pattern
+prefix before `i`. An ordinary letter has exactly one possible continuation, while `.` has
+all children as the exhaustive set of continuations. Recursing with `i + 1` preserves the
+invariant. Once the pattern is exhausted, `is_word` is true exactly when the matched path
+is a stored word, so search accepts precisely valid matches.
+
+**Complexity**
+
+- **Time:** `O(L)` for `addWord`. `search` is `O(L)` without wildcards and `O(26^L)` in
+  the worst case for length `L` over the 26-letter alphabet.
+- **Space:** `O(N)` for `N` stored characters, plus `O(L)` recursion space per search.

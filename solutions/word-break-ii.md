@@ -3,13 +3,14 @@
 # https://leetcode.com/problems/word-break-ii
 draft: false
 pattern: "DFS pruned by suffix-breakable table"
-time: "O(n * L^2 + n * S)"
-space: "O(n)"
+time: "O(D + n * L^2 * (S + 1))"
+space: "O(n + d)"
 ---
 
 ## Description
 
-Given a string `s` and a dictionary of strings `wordDict`, add spaces to `s` to build every sentence where each resulting word appears in `wordDict`, and return all such sentences in any order.
+Given `s` and `wordDict`, insert spaces to produce every sentence whose words all belong to the
+dictionary. Return the sentences in any order.
 
 **Example**
 
@@ -18,22 +19,24 @@ Input: s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]
 Output: ["cats and dog","cat sand dog"]
 ```
 
-Explanation: "catsanddog" can be split as "cats" + "and" + "dog" or as "cat" + "sand" + "dog", and both splits use only words found in `wordDict`.
+The string has exactly the two shown segmentations into dictionary words.
 
 ## Intuition
 
-Enumerating sentences is plain prefix-cut backtracking — the same shape as Palindrome Partitioning, with "is this piece in the dictionary" replacing "is this piece a palindrome". The reason naive backtracking blows up is the adversarial case `"aaaa...aaab"` with words `["a","aa","aaa",...]`: there are no valid sentences at all, yet the search rebuilds an exponential number of prefixes before discovering the trailing `b` is unusable every single time. The fix is to answer "can `s[i:]` be segmented at all?" once for each `i` in a linear DP pass, then use that table as a prune. With it, every branch the DFS enters is guaranteed to reach a real sentence, so the work becomes proportional to the output.
+Backtracking naturally enumerates every sequence of prefix cuts, but it can repeatedly explore
+suffixes that cannot produce a sentence. Precompute whether each suffix is segmentable, then enter
+only branches whose remainder can finish. The DFS still generates every valid sentence while
+avoiding dead subtrees.
 
 ## Approach
 
-1. Put `wordDict` in a set `words` for O(1) membership, and take `maxlen = max(map(len, wordDict))` so the piece loop never tries a length no word can have.
-2. Precompute `breakable`, a list of `n + 1` booleans where `breakable[i]` means "`s[i:]` splits into dictionary words". Seed `breakable[n] = True` (the empty suffix) and fill **backwards** from `i = n - 1`: `breakable[i]` is true if some `end` in `i+1 .. min(n, i+maxlen)` has `s[i:end] in words and breakable[end]`. Break out of the inner loop as soon as one works.
-3. Now the search. The decision at each node is where to cut next: take `s[start:end]` as the next word.
-4. `path` holds the words chosen so far, always concatenating to exactly `s[:start]`; `res` collects finished sentences.
-5. Base case: `start == n` — the string is consumed, so append `" ".join(path)`. The join is the copy step: `path` is one list mutated across the whole traversal, so joining snapshots it into a fresh immutable string that later `pop`s cannot disturb.
-6. Pruning rule, and the whole point of the solution: only recurse when `word in words and breakable[end]`. The second test refuses to enter a subtree that provably contains no leaf, so no dead-end branch is ever explored.
-7. Body: `path.append(word)`, `dfs(end)`, `path.pop()` — undo before trying a longer word at the same cut so `path` still describes the current node.
-8. No duplicate rule is needed: distinct cut sequences are distinct sentences, so no two branches can produce the same string.
+1. Store the dictionary in `words` and compute `maxlen` to bound all substring checks.
+2. Fill `breakable` from right to left, where `breakable[i]` means that `s[i:]` has at least
+   one dictionary segmentation.
+3. In `dfs(start)`, try every next word ending no farther than `start + maxlen`.
+4. Recurse only when the candidate is in `words` and `breakable[end]` is true.
+5. Append a completed sentence with `" ".join(path)`; after recursion, pop the chosen word so
+   the shared path again represents the current prefix.
 
 ## Code
 
@@ -71,4 +74,16 @@ class Solution:
 
 ## Why it works
 
-The DP is correct by induction from the back: `s[i:]` is segmentable exactly when some dictionary word is a prefix of it and the remaining suffix is segmentable, which is precisely the recurrence filled in decreasing `i`. Given that, the prune is safe — it only skips cuts whose suffix admits no segmentation, so no sentence is lost — and it is also complete in the other direction: every node the DFS reaches has at least one descendant leaf, so the search does no wasted work. The DP costs O(n * L) candidate slices of O(L) each to hash, and the enumeration costs O(n) per emitted sentence, giving O(n * L^2 + n * S) for `S` sentences and `L` the longest dictionary word; auxiliary space is the `breakable` table and `path`, both O(n), though the returned list itself can be exponentially large.
+Backward induction proves `breakable[i]`: a suffix is segmentable exactly when some dictionary
+prefix ends at `end` and `breakable[end]` is true. During DFS, `path` concatenates to `s[:start]`.
+Every accepted cut preserves that invariant and has a finishable suffix. Conversely, every valid
+sentence's next word passes both tests, so induction over its cuts shows that DFS reaches and emits
+it. Distinct cut sequences produce distinct sentences, so none is duplicated.
+
+**Complexity**
+
+- **Time:** `O(D + n * L^2 * (S + 1))` as an upper bound, where `D` is the total number of
+  dictionary characters, `L` is the maximum word length, and `S` is the number of returned
+  sentences. Slicing and hashing cost up to `O(L)`.
+- **Space:** `O(n + d)` auxiliary space for DP, recursion/path, and `d` dictionary entries.
+- **Output:** `O(n * S)` characters in the returned sentences.

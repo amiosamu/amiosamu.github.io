@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given the head of a linked list and an integer `k`, reverse the nodes of the list `k` at a time and return the head; if the number of remaining nodes is not a multiple of `k`, the last group, which is shorter than `k`, is left as-is.
+Given a linked-list head and integer `k`, reverse each complete group of `k` nodes and return the
+new head. Leave a final group with fewer than `k` nodes unchanged.
 
 **Example**
 
@@ -18,37 +19,27 @@ Input: head = [1,2,3,4,5], k = 2
 Output: [2,1,4,3,5]
 ```
 
-Explanation: The first two nodes [1,2] reverse to [2,1] and the next two [3,4] reverse to [4,3]; the last node, [5], forms a group of only one, shorter than k = 2, so it stays untouched.
+Explanation: `[1,2]` and `[3,4]` reverse independently; the one-node remainder stays unchanged.
 
 ## Intuition
 
-Reversing a block of `k` nodes is the standard three-pointer loop; everything hard here is at
-the seams. Two facts make it manageable: you must *check* that a full group of `k` exists before
-touching it, and after reversing a group the node that was its head becomes its tail — which is
-precisely the anchor for the next group. So keep one pointer `groupPrev` on the node just before
-the current group, walk `k` links ahead to find `kth`, reverse into the already-known successor,
-and the boundary rewiring is two assignments.
+The difficult part is preserving each group's boundaries. Before changing links, verify that `k`
+nodes remain and save the node after the group. Reverse the group with that successor as the
+initial `prev`, so its old head becomes a tail already connected to the untouched remainder. A
+dummy predecessor makes the same relinking work for the first group.
 
 ## Approach
 
-1. `dummy = ListNode(0, head)` and `groupPrev = dummy`. The dummy gives the first group a
-   predecessor to hang from, so the "attach the reversed group" step is identical for group one
-   and group seven.
-2. In an outer `while True`: set `kth = groupPrev` and advance it `k` times with
-   `for _ in range(k): kth = kth.next; if not kth: return dummy.next`. Returning from inside the
-   count is the whole leftover-tail rule — a partial group is left untouched, and everything
-   before it has already been reversed and linked.
-3. `groupNext = kth.next` — the first node beyond this group, captured before any rewiring
-   destroys it.
-4. Reverse the group by seeding `prev = groupNext` instead of `None`: with `cur = groupPrev.next`,
-   loop `while cur is not groupNext` doing `nxt = cur.next`, `cur.next = prev`, `prev = cur`,
-   `cur = nxt`. Seeding with `groupNext` means the group's old head gets its correct forward
-   link for free — no separate reattachment of the tail.
-5. Relink the front boundary in this order: `tmp = groupPrev.next` (the old head, now the
-   group's tail), then `groupPrev.next = kth` (the old kth is now the group's head), then
-   `groupPrev = tmp` to anchor the next iteration.
-   Saving `tmp` first is mandatory — after `groupPrev.next = kth` the old head is unreachable.
-6. Use `is not` for the loop-exit comparison, node identity, not `==` on values.
+1. Create `dummy` and set `groupPrev = dummy`, the predecessor of the next possible group.
+2. Starting at `groupPrev`, advance `k` times to find `kth`. If any advance reaches `None`,
+   return `dummy.next` without modifying the incomplete suffix.
+3. Save `groupNext = kth.next`. Reverse nodes from `groupPrev.next` up to, but not including,
+   `groupNext`, initializing `prev = groupNext` so the new tail is already attached.
+4. Save `tmp = groupPrev.next`, the old group head and new tail. Set `groupPrev.next = kth` to
+   attach the new head, then set `groupPrev = tmp` for the next group.
+5. Saving `tmp` is required for progression, not reachability: after the front link changes, the
+   old head remains reachable through the reversed group, but it is no longer directly named as
+   the predecessor needed by the next iteration. All rewiring mutates the original list.
 
 ## Code
 
@@ -80,10 +71,15 @@ class Solution:
 
 ## Why it works
 
-The counting loop guarantees the invariant that a group is only reversed once `k` nodes are
-known to exist, so a shorter final run falls out of the function with the list already correct
-in front of it. Seeding `prev = groupNext` makes the reversal produce a segment whose tail
-already points at the untouched remainder, so the only edge left to fix is the one entering the
-group, which `groupPrev.next = kth` supplies — and `groupPrev = tmp` re-establishes the same
-precondition for the next block. Every node is visited once by the counting walk and once by
-the reversal walk with a fixed set of pointers, so O(n) time and O(1) space.
+Before each outer iteration, `groupPrev.next` starts the unreversed suffix and all preceding
+complete groups are correctly linked. The count prevents any partial group from being changed.
+For a complete group, the reversal maps its final node `kth` to the head and its original head to
+the tail; initializing `prev` with `groupNext` attaches that tail to the remaining suffix.
+Connecting `groupPrev.next` to `kth` completes the group, and assigning the saved old head to
+`groupPrev` restores the invariant. Therefore every complete group is reversed once and the
+incomplete suffix is preserved.
+
+**Complexity**
+
+- **Time:** `O(n)`; each node is counted and reversed at most once.
+- **Space:** `O(1)` auxiliary space.

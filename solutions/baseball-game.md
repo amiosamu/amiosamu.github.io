@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a list of strings `operations` describing a round of a scoring game — an integer (a new score), `"+"` (sum of the previous two scores), `"D"` (double the previous score), or `"C"` (cancel/remove the previous score) — replay the operations and return the sum of all scores that remain on the record.
+Given scoring `operations`, return the sum of the final record. An integer adds a score, `"+"`
+adds the previous two scores, `"D"` doubles the previous score, and `"C"` cancels it.
 
 **Example**
 
@@ -18,21 +19,21 @@ Input: ops = ["5","2","C","D","+"]
 Output: 30
 ```
 
-Explanation: the record becomes `[5]`, then `[5,2]`, then `"C"` removes 2 leaving `[5]`, then `"D"` doubles 5 to append 10 giving `[5,10]`, then `"+"` adds the last two (`5+10=15`) giving `[5,10,15]`; the sum is `5+10+15 == 30`.
+The record changes to `[5]`, `[5,2]`, `[5]`, `[5,10]`, and `[5,10,15]`, whose sum is 30.
 
 ## Intuition
 
-Every operation only ever refers to the *most recent* valid scores: `"+"` reads the last two, `"D"` reads the last one, `"C"` deletes the last one. That is exactly a stack's access pattern, so I keep a stack of the scores that are currently valid and the whole problem becomes one linear pass. The answer is the sum of whatever survives.
+Every symbolic operation uses or removes the most recent valid scores. A stack stores exactly
+that record: its top entries are the previous scores, and cancellation is a pop.
 
 ## Approach
 
-1. Keep `stack`, a list of the scores that are currently on the record, in order.
-2. Walk `operations` left to right. For each token `op`:
-3. `"+"` — push `stack[-1] + stack[-2]` as a new score. The problem guarantees at least two valid scores exist, so no bounds check is needed.
-4. `"D"` — push `2 * stack[-1]`.
-5. `"C"` — `stack.pop()`, which removes the previous score permanently. It never comes back, so nothing else needs to be tracked.
-6. Otherwise the token is an integer string (possibly negative) — push `int(op)`.
-7. Return `sum(stack)`.
+1. Initialize `stack` with no valid scores.
+2. For each operation, append the sum of the top two for `"+"`, append twice the top for
+   `"D"`, or pop the top for `"C"`.
+3. Otherwise parse and append the integer, including a possible negative value.
+4. Return the sum of the remaining scores. The input guarantees each symbolic operation has
+   enough preceding valid scores.
 
 ## Code
 
@@ -54,4 +55,12 @@ class Solution:
 
 ## Why it works
 
-The invariant is that `stack` always holds exactly the valid scores in the order they were recorded, so `stack[-1]` and `stack[-2]` are always the "previous" and "second previous" the problem means. `"C"` is the only destructive op, and popping is the correct semantics because a cancelled score is never referenced again. One pass with O(1) work per token gives O(n) time, and the stack holds at most n scores.
+After each operation, `stack` contains exactly the valid record in chronological order. Each
+branch performs the operation's specified change using the correct most recent entries, so the
+invariant is preserved. Therefore summing the stack after the final operation gives the required
+score.
+
+**Complexity**
+
+- **Time:** `O(n)` for processing and summing at most `n` scores.
+- **Space:** `O(n)` for the stack.

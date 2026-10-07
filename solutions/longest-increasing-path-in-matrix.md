@@ -9,9 +9,8 @@ space: "O(m * n)"
 
 ## Description
 
-Given an `m x n` integer matrix, determines the length of the longest strictly increasing
-path, where each step moves to a horizontally or vertically adjacent cell whose value is
-greater than the current one.
+Given an `m x n` integer matrix, return the length of its longest strictly increasing path.
+Each step may move to a horizontally or vertically adjacent cell with a greater value.
 
 **Example**
 
@@ -20,21 +19,22 @@ Input: matrix = [[9,9,4],[6,6,8],[2,1,1]]
 Output: 4
 ```
 
-Explanation: the path `1 -> 2 -> 6 -> 9` moves between adjacent cells with strictly
-increasing values and has length 4, the longest such path in the matrix.
+The adjacent path `1 -> 2 -> 6 -> 9` is strictly increasing and has the maximum length `4`.
 
 ## Intuition
 
-Every step of a valid path strictly increases in value, so the "can move to" relation between cells has no cycles — a path can never lead back to a cell it already visited. That means the longest increasing path starting at a given cell is a fixed number independent of how you got there, so a DFS from each cell can be memoized safely instead of re-explored.
+Direct every valid move from a cell to a greater neighbor. Values strictly increase along these
+edges, so the resulting graph has no cycle. The longest path starting at a cell is therefore a
+fixed subproblem that can be computed by DFS and reused wherever that cell is reached.
 
 ## Approach
 
-1. Let `rows, cols` be the matrix dimensions. `memo[r][c]` = length of the longest increasing path starting at `(r, c)`, `0` if not yet computed.
-2. `dfs(r, c)`: if `memo[r][c]` is already set, return it directly.
-3. Otherwise start with `best = 1` (the cell alone counts as a path of length 1).
-4. For each of the 4 neighbors `(nr, nc)`: if in bounds and `matrix[nr][nc] > matrix[r][c]`, update `best = max(best, 1 + dfs(nr, nc))`.
-5. Store `memo[r][c] = best` and return it.
-6. The answer is `max(dfs(r, c) for every cell (r, c))`.
+1. Let `memo[r][c]` store the longest increasing path starting at `(r, c)`, with zero meaning
+   that the state has not been computed.
+2. In `dfs`, return a cached result immediately; otherwise initialize `best = 1` for the cell alone.
+3. For each in-bounds neighbor with a greater value, consider `1 + dfs(nr, nc)`.
+4. Cache and return the greatest candidate for the current cell.
+5. Run `dfs` from every cell and return the maximum. The empty-matrix guard returns zero.
 
 ## Code
 
@@ -62,4 +62,13 @@ class Solution:
 
 ## Why it works
 
-Strictly increasing values mean the move graph is a DAG, so `dfs(r, c)` is well defined and terminates, and memoization guarantees each cell's answer is computed exactly once no matter how many other cells' searches pass through it. Every cell does O(1) work beyond checking its four neighbors, so total time is O(rows*cols); the memo table dominates auxiliary space at O(rows*cols), plus an O(rows*cols) worst-case recursion stack.
+Strict increases make the move graph acyclic, so every path from a cell either stops there or first
+moves to one of its greater neighbors. Therefore `dfs(r, c)` takes the maximum over exactly all
+possible first moves, with one for the current cell. Induction in decreasing value order shows each
+cached result is the true longest path from that cell. Every path has some starting cell, so taking
+the maximum over all starts gives the global optimum.
+
+**Complexity**
+
+- **Time:** `O(m * n)`, because each cell is solved once and checks four neighbors.
+- **Space:** `O(m * n)` for memoization and the worst-case recursion stack.

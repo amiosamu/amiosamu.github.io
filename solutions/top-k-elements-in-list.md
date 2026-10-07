@@ -19,33 +19,21 @@ Input: nums = [1,1,1,2,2,3], k = 2
 Output: [1,2]
 ```
 
-Explanation: `1` occurs 3 times and `2` occurs 2 times, more often than `3`'s single
-occurrence, so `1` and `2` are the two most frequent values.
+`1` occurs three times and `2` occurs twice, so they are the two most frequent values.
 
 ## Intuition
 
-Counting is the easy half; the question is how to get the `k` largest counts
-without sorting them. The problem explicitly asks for better than `O(n log n)`,
-which rules out `sorted(count, key=count.get)` and makes even the `O(n log k)`
-heap answer a compromise.
-
-The observation that kills the sort: a frequency is itself a small integer,
-bounded by `n`. So I can index by it. Build `n + 1` buckets, drop each value into
-`buckets[its frequency]`, then walk the buckets from the back — that is a counting
-sort on a key I already know the range of, and it costs `O(n)`.
+A value's frequency is an integer from `1` through `n`. Use the frequency as an array index
+instead of sorting the distinct values. Scanning those buckets from high to low visits values in
+non-increasing frequency order.
 
 ## Approach
 
-1. Build `count`, a dict from value to how many times it occurs, in one pass.
-2. Allocate `buckets = [[] for _ in range(len(nums) + 1)]`. Index `f` holds every
-   value that occurs exactly `f` times; index `0` stays empty.
-3. For each `value, freq` in `count`, append `value` to `buckets[freq]`.
-4. Walk `freq` from `len(nums)` down to `1`, and inside each bucket append every
-   value to `result`.
-5. Return as soon as `len(result) == k` — the problem guarantees the answer is
-   unique, so ties never need breaking.
-6. Size the bucket list `len(nums) + 1`, not `len(nums)`: a single value repeated
-   `n` times needs index `n` to exist.
+1. Count every value in a hash map.
+2. Allocate `n + 1` buckets so frequency `n` is a valid index.
+3. Append each distinct value to the bucket matching its frequency.
+4. Scan frequencies from `n` down to `1`, appending bucket contents to `result`.
+5. Return as soon as `k` values have been collected; their order is unrestricted.
 
 ## Code
 
@@ -72,8 +60,12 @@ class Solution:
 
 ## Why it works
 
-Scanning buckets from high index to low visits values in non-increasing frequency
-order, so the first `k` values collected are exactly the `k` most frequent. Every
-step is linear: one pass to count, one pass over the distinct values to bucket
-them, and one sweep over `n + 1` buckets whose contents total the number of
-distinct values — `O(n)` overall, with `O(n)` space for the count map and buckets.
+After bucketing, the invariant is that bucket `f` contains exactly the values occurring `f`
+times. During the descending scan, every collected value is at least as frequent as every value
+in an unvisited bucket. Consequently, when `k` values have been collected, no omitted value can
+have a greater frequency, so the result is exactly a valid top-`k` set.
+
+**Complexity**
+
+- **Time:** `O(n)` for counting, bucketing, and scanning.
+- **Space:** `O(n)` for the frequency map, buckets, and result.

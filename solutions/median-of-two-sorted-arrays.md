@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given two arrays `nums1` and `nums2`, each already sorted in ascending order, return the median of the combined set of all their elements, in O(log(min(m, n))) time.
+Given two arrays sorted in ascending order, return the median of all their elements in
+`O(log(min(m, n)))` time.
 
 **Example**
 
@@ -18,22 +19,28 @@ Input: nums1 = [1,3], nums2 = [2]
 Output: 2.0
 ```
 
-Explanation: Merging both arrays gives `[1,2,3]`, whose middle element is 2.
+The conceptual merged order is `[1,2,3]`, whose middle element is `2`.
 
 ## Intuition
 
-Merging is `O(m + n)` and the requirement is logarithmic, so I never merge. The median is defined by a *cut*: split the combined elements into a left part and a right part of fixed sizes such that everything on the left is `<= `everything on the right; then the median is read off the two elements adjacent to the cut. A cut is fully determined by how many elements `i` it takes from `A` — the count from `B` is forced as `j = half - i` — so the unknown is a single number in `[0, m]`, and the condition on it is monotone. Searching the shorter array keeps it `O(log(min(m, n)))`.
+Partition the combined order into a left half and a right half such that every left value is at
+most every right value. If the partition takes `i` values from shorter array `A`, it must take
+`j = half - i` values from `B`.
+
+As `i` increases, `A` contributes larger left-boundary values while `B` contributes smaller
+right-boundary values. This monotonicity permits binary search without merging the arrays.
 
 ## Approach
 
-1. Swap so `A` is the shorter array; set `m, n = len(A), len(B)` and `half = (m + n + 1) // 2`, the size of the left part. The `+ 1` puts the extra element on the left when the total is odd, so the odd-case median is just the left part's maximum.
-2. Search space: `i`, the number of elements taken from `A`, over the interval `[l, r]` **inclusive on both ends**, with `l = 0`, `r = m`. Note the upper end is `m`, not `m - 1` — taking all of `A` is a legal cut. `j = half - i` is automatically inside `[0, n]` because `m <= n`.
-3. Sentinels: `Aleft = A[i-1] if i > 0 else -inf`, `Aright = A[i] if i < m else +inf`, same for `B` with `j`. They make the empty-side cases fall out with no branching.
-4. Monotone predicate: `P(i) = Aleft <= Bright`. As `i` grows, `Aleft` only grows and `Bright` only shrinks, so `P` is true on a prefix of `[0, m]` and false after. `P(0)` is always true, so a true value always exists. The answer is the **last** true `i`.
-5. Loop `while l <= r`, `i = (l + r) // 2`, `j = half - i`; if `Aleft <= Bright` then `l = i + 1`, else `r = i - 1`.
-6. On exit `l == r + 1`, so `r` is the last `i` satisfying `P`. Set `i = r`, `j = half - i` and recompute the four boundary values.
-7. The other half of the cut condition, `Bleft <= Aright`, comes for free: `P(i+1)` being false means `A[i] > B[j-1]`, which is exactly `Bleft < Aright`.
-8. If `m + n` is odd, return `max(Aleft, Bleft)`. Otherwise return `(max(Aleft, Bleft) + min(Aright, Bright)) / 2`. The division must be float — LeetCode expects a `float` return.
+1. Make `A` the shorter array. Set `half = (m + n + 1) // 2`, placing any extra value left.
+2. Binary-search `i` over the inclusive range `[0, m]`; taking none or all of `A` is valid.
+   Because `m <= n`, `j = half - i` always lies in `[0, n]` for this search range.
+3. Use `-inf` and `inf` when a partition side is empty. Search for the largest `i` satisfying
+   `A[i - 1] <= B[j]`, moving right when it holds and left otherwise.
+4. At the resulting cut, maximality also gives `B[j - 1] <= A[i]`; boundary sentinels cover
+   `i == m` or `j == 0`.
+5. For an odd total, return the left side's maximum. For an even total, average the left maximum
+   and right minimum.
 
 ## Code
 
@@ -70,4 +77,14 @@ class Solution:
 
 ## Why it works
 
-A cut is valid exactly when `Aleft <= Bright` and `Bleft <= Aright`; the first condition is monotone in `i`, so binary search finds the largest `i` satisfying it, and maximality forces the second condition, since the search only stopped because `i + 1` violated `Aleft <= Bright` in `A`'s favour. With both conditions holding, the `half` elements on the left of the cut are precisely the `half` smallest overall, so their maximum and the minimum of the right side straddle the median by definition. The loop runs `O(log(min(m, n)))` iterations over the shorter array with `O(1)` extra space.
+Let `P(i)` be `A[i - 1] <= B[half - i]`, with sentinels at array boundaries. As `i` grows,
+the left side cannot decrease and the right side cannot increase, so `P` is true on a prefix.
+Binary search returns its largest true index `i`. If `i < m`, `P(i + 1)` is false, which states
+`A[i] > B[j - 1]`; if `i == m`, `A[i]` is `inf`. Thus `Bleft <= Aright` in both cases. Along with
+`P(i)`, this proves every left-part value is at most every right-part value. Since the left part has
+exactly `half` elements, its maximum and the right part's minimum determine the median.
+
+**Complexity**
+
+- **Time:** `O(log(min(m, n)))`.
+- **Space:** `O(1)` auxiliary space.

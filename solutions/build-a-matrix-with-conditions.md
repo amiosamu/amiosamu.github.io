@@ -28,29 +28,18 @@ number at its row and column position gives this matrix.
 
 ## Intuition
 
-The rows and the columns never interact. `rowConditions` only constrains which row each
-number sits in, `colConditions` only which column — so the k x k placement problem
-factors into two completely separate one-dimensional ordering problems.
-
-Once seen that way it is two topological sorts: a row order and a column order, each a
-linear arrangement of `1..k`. Number `v` goes at `(position of v in the row order,
-position of v in the column order)`. Every cell is distinct because the two orders are
-permutations, so no two numbers can collide. If either sort has a cycle, no arrangement
-exists and the answer is the empty list.
+Row and column constraints are independent ordering problems. Topologically sort values `1..k`
+once for row positions and once for column positions. Value `v` then belongs at the intersection
+of its positions in those two orders. A cycle in either graph makes the matrix impossible.
 
 ## Approach
 
-1. Write one `topo(conditions)` helper used twice — that reuse is the whole point of
-   the decomposition.
-2. Inside it: build `adj` as a list of lists indexed `0..k` and `indegree` as a list of
-   the same size; for each `[a, b]` add `a -> b` and bump `indegree[b]`.
-3. Kahn's: enqueue every `v` in `1..k` with `indegree[v] == 0`, pop, append to `order`,
-   decrement neighbours, enqueue on zero.
-4. Return `order` if `len(order) == k`, else `[]` to signal a cycle.
-5. Run it on both condition lists. If either comes back empty, return `[]`.
-6. Invert both orders into `row_of` and `col_of` (value -> index), allocate a `k x k`
-   grid of zeros, and write `matrix[row_of[v]][col_of[v]] = v` for `v` in `1..k`.
-   The zeros left behind are exactly the required blanks.
+1. In `topo`, build adjacency lists and indegrees for a condition graph on `1..k`.
+2. Run Kahn's algorithm: repeatedly remove an indegree-zero value and reduce its neighbors'
+   indegrees. Return an empty list unless all `k` values are ordered.
+3. Topologically sort `rowConditions` and `colConditions`; return `[]` if either has a cycle.
+4. Map each value to its index in both orders, allocate a zero-filled `k x k` matrix, and place
+   each value at `(row_of[v], col_of[v])`.
 
 ## Code
 
@@ -94,9 +83,14 @@ class Solution:
 
 ## Why it works
 
-A row condition `[a, b]` is satisfied iff `a` appears before `b` in the row order, which
-is precisely what a topological sort of the row graph guarantees, and the same holds
-independently for columns — so placing `v` at the intersection of its two ranks
-satisfies every condition simultaneously. Duplicate edges are harmless because Kahn's
-decrements once per edge occurrence and the indegree counted them the same way. Both
-sorts are `O(k + E)`; allocating and filling the `k x k` grid dominates at `O(k^2)`.
+Kahn's algorithm outputs every edge's source before its destination, or detects a cycle when not
+all vertices can be removed. Thus `row_of[a] < row_of[b]` for every row condition, with the same
+property for columns. Each value receives one row and one column, and two values cannot occupy
+the same cell because their row and column orders are both permutations. Therefore every
+placement and condition is valid.
+
+**Complexity**
+
+- **Time:** `O(k^2 + E)`, where `E` is the total number of conditions; matrix allocation
+  dominates the two `O(k + E)` topological sorts.
+- **Space:** `O(k + E)` auxiliary graph space and `O(k^2)` output space.

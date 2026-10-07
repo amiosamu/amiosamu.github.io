@@ -9,11 +9,9 @@ space: "O(n + m)"
 
 ## Description
 
-Given an integer `n` of rooms numbered `0` to `n - 1` and a list `meetings` where
-`meetings[i] = [starti, endi]`, assign each meeting, in start-time order, to the lowest-numbered
-free room, or — if no room is free — delay it until the room that frees up soonest becomes
-available, keeping the meeting's original duration; on a tie, use the lowest-numbered room. Return
-the number of the room that holds the most meetings by the end.
+Given `n` numbered rooms and meeting intervals, assign meetings by start time. Use the
+lowest-numbered free room; if none is free, delay the meeting until the earliest room becomes
+available while preserving its duration. Break room ties by number and return the most-used room.
 
 **Example**
 
@@ -22,35 +20,24 @@ Input: n = 2, meetings = [[0,10],[1,5],[2,7],[3,4]]
 Output: 0
 ```
 
-Explanation: Rooms 0 and 1 start the first two meetings at times 0 and 1; the third and fourth
-meetings arrive while both rooms are busy and get delayed until rooms 1 and then 0 free up. Rooms
-0 and 1 each end up hosting 2 meetings, and the lowest-numbered room on that tie is room 0.
+Both rooms host two meetings, so the required lowest-numbered room is `0`.
 
 ## Intuition
 
-The allocation rule names two "minimums" I have to answer fast, so each gets its own heap: the
-lowest-numbered *free* room, and the earliest-finishing *busy* room. Processing meetings in start
-order is what makes the delay rule work — a delayed meeting waits for the next room to free up, and
-because the tie-break for delayed meetings is the original start time, start order is exactly the
-order in which they get served. A delayed meeting keeps its duration, so it simply occupies the room
-from that room's current end time for `end - start` more units.
+Two heaps represent the two required minimums: the smallest available room number and the busy room
+with the earliest end time. Busy-heap entries are `(endTime, room)`, so tuple ordering also applies
+the room-number tie-break.
+
+Processing meetings by original start time preserves their priority when delays occur. A delayed
+meeting starts at the selected room's end time and retains duration `end - start`.
 
 ## Approach
 
-1. Sort `meetings` by start time; all starts are distinct, so the order is unambiguous.
-2. Keep `count = [0] * n`, a min-heap `available` seeded with `range(n)` (heapified), and a min-heap
-   `used` of `(endTime, room)` pairs for rooms currently booked.
-3. For each `start, end`, first release: while `used` is non-empty and `used[0][0] <= start`, pop it
-   and push its room back into `available`. Use `<=` — a room that frees exactly at `start` is
-   usable now.
-4. If `available` is non-empty, pop the smallest room number, push `(end, room)` onto `used`.
-5. Otherwise the meeting is delayed. Pop `(endTime, room)` from `used` — the tuple ordering picks the
-   earliest-freeing room and breaks ties by the lowest room number, which is exactly the rule — and
-   push `(endTime + (end - start), room)` back. The delayed meeting runs for its full original
-   duration starting at `endTime`.
-6. Either way, increment `count[room]`.
-7. Return `count.index(max(count))`; `index` returns the first position of the maximum, which is the
-   required lowest room number on a tie.
+1. Sort `meetings` in place by start time. Initialize all room numbers in `available`.
+2. Before each meeting, move every room ending by `start` from `used` to `available`.
+3. If a room is available, choose its smallest number and schedule the original end time.
+4. Otherwise, choose the smallest `(endTime, room)` and schedule through `endTime + end - start`.
+5. Increment that room's count and finally return the first index with the maximum count.
 
 ## Code
 
@@ -85,12 +72,15 @@ class Solution:
 
 ## Why it works
 
-Processing in start order means that when I reach a meeting, every meeting that could possibly have
-claimed a room before it has already been placed, so the state of the two heaps is the true room
-state at time `start` — that is the invariant the whole solution rests on. The release loop is
-correct because `used` is ordered by end time, so once its minimum exceeds `start` no other room has
-freed either; and when nothing is free, popping the minimum of `(endTime, room)` reproduces the
-tie-break the problem specifies without any extra bookkeeping. Each of the `m` meetings does O(1)
-heap pushes and pops plus one amortised release, and every room is released at most once per
-meeting, giving O(m log m) for the sort and O(m log n) for the heap traffic, with O(n + m) space for
-the heaps and the sort.
+Before assigning each meeting, the heaps describe all earlier assignments: `available` contains
+exactly the free rooms, and `used` contains each busy room keyed by its next end time. Releasing all
+entries ending by `start` preserves this invariant. If `available` is non-empty, its minimum is the
+required room. Otherwise, the minimum busy tuple is exactly the earliest room with the correct tie
+break, so delaying there is forced. Induction over start order proves every assignment and count are
+correct; the first maximum count supplies the final tie-break.
+
+**Complexity**
+
+- **Time:** `O(m log m + m log n)` for sorting and heap operations.
+- **Space:** `O(n + m)` worst case, including heaps and Python sort workspace; `meetings` is
+  reordered.

@@ -9,56 +9,41 @@ space: "O(V + E)"
 
 ## Description
 
-Given a list of equations `a / b = val` as pairs of variable names with corresponding
-`values`, and a list of `queries` each asking for `a / b`, evaluate each query by chaining
-the known ratios through shared variables, returning `-1.0` for any query involving an
-unknown variable or an unreachable pair.
+Given equations such as `a / b = value`, evaluate ratio queries by combining known
+equations. Return `-1.0` when either variable is unknown or no chain connects them.
 
 **Example**
 
 ```
-Input: equations = [["a","b"],["b","c"]], values = [2.0,3.0], queries = [["a","c"],["b","a"],["a","e"],["a","a"],["x","x"]]
-Output: [6.0,0.5,-1.0,1.0,-1.0]
+Input:
+equations = [["a", "b"], ["b", "c"]]
+values = [2.0, 3.0]
+queries = [["a", "c"], ["b", "a"], ["a", "e"], ["a", "a"], ["x", "x"]]
+Output: [6.0, 0.5, -1.0, 1.0, -1.0]
 ```
 
-Explanation: `a / b = 2.0` and `b / c = 3.0` chain to `a / c = 2.0 * 3.0 = 6.0`, while `"e"`
-and `"x"` never appear in the equations, so those queries return `-1.0`.
-
+The known equations give `a / c = (a / b)(b / c) = 6.0`. Unknown variables cannot be
+evaluated.
 
 ## Intuition
 
-Each equation `a / b = k` is a weighted edge in disguise: nodes are the variable *names*,
-and the edge `a -> b` carries weight `k`, with the reverse edge `b -> a` carrying `1 / k`.
-The point of storing both directions is that ratios are invertible, so the graph is
-effectively undirected with reciprocal weights.
+Treat every variable as a graph node. Equation `a / b = value` creates an edge from `a`
+to `b` with that weight and a reciprocal edge from `b` to `a`. Multiplying edge weights
+along a path cancels intermediate variables and produces the endpoint ratio.
 
-Once it is a graph, a query `c / d` is a path from `c` to `d`, and the answer is the
-*product* of the weights along it — the intermediate variables cancel telescopically
-(`a/b * b/c = a/c`). So each query is one traversal carrying a running product. BFS keeps
-it iterative and, since the input is consistent, any path gives the same product, so I can
-return the first time I touch the target. Unknown variables and disconnected pairs both
-mean "no path", which is `-1.0`.
+For each query, BFS carries the product from the source to every reached node. The input
+is consistent, so the first path to the destination has the required value.
 
 ## Approach
 
-1. Build `adj = collections.defaultdict(list)`. For each `(a, b)` in `equations` with its
-   `val` in `values`, append `(b, val)` to `adj[a]` and `(a, 1 / val)` to `adj[b]`.
-   `zip(equations, values)` pairs them up.
-2. `bfs(src, dst)`:
-   - If `src` or `dst` is missing from `adj`, the variable never appeared in any equation
-     and nothing can be derived. Return `-1.0`. This check also correctly rejects
-     `x / x` for an unseen `x`.
-   - Seed `queue = deque([(src, 1.0)])` and `visited = {src}`. The `1.0` is the identity
-     for the running product.
-3. Pop `(node, product)`. If `node == dst`, `product` is the value of `src / dst` — return
-   it. Checking on dequeue handles `src == dst` for a known variable, giving `1.0` for
-   free.
-4. For each `(nei, weight)` in `adj[node]` with `nei` not yet visited: add `nei` to
-   `visited` and enqueue `(nei, product * weight)`. Marking on enqueue rather than on pop
-   keeps each variable in the queue once, which matters because otherwise the reciprocal
-   back-edges would immediately bounce the traversal back where it came from.
-5. If the queue drains, `src` and `dst` are in different components — return `-1.0`.
-6. Map the queries: `[bfs(a, b) for a, b in queries]`.
+1. Build reciprocal weighted adjacency lists for every equation.
+2. For a query, reject either variable if it is absent. Otherwise start BFS from `src`
+   with product `1.0` and mark it visited.
+3. Pop `(node, product)` pairs. Return `product` at `dst`; this makes a known
+   `src / src` equal `1.0`, while an unknown self-query was already rejected.
+4. For each unvisited neighbor, enqueue `product * weight` and mark it immediately to
+   avoid reciprocal cycles.
+5. Return `-1.0` if BFS exhausts the connected component, and run this helper per query.
 
 ## Code
 
@@ -66,7 +51,12 @@ mean "no path", which is `-1.0`.
 import collections
 
 class Solution:
-    def calcEquation(self, equations: List[List[str]], values: List[float], queries: List[List[str]]) -> List[float]:
+    def calcEquation(
+        self,
+        equations: List[List[str]],
+        values: List[float],
+        queries: List[List[str]],
+    ) -> List[float]:
         adj = collections.defaultdict(list)
         for (a, b), val in zip(equations, values):
             adj[a].append((b, val))
@@ -93,10 +83,15 @@ class Solution:
 
 ## Why it works
 
-Multiplying the weights along a path `v0 -> v1 -> ... -> vk` gives
-`(v0/v1)(v1/v2)...(v(k-1)/vk) = v0/vk`, so any path from `src` to `dst` evaluates the
-query — and since the problem guarantees no contradictory equations, every path yields the
-same number, which is why returning on first contact is safe. If no path exists, no chain
-of substitutions can relate the two variables, so `-1.0` is genuinely undetermined rather
-than merely unfound. Building the graph is `O(E)`, and each of the `q` queries is one BFS
-over at most `V` nodes and `E` edges, giving `O(q * (V + E))` on top of `O(V + E)` space.
+The BFS invariant is that `product` at node `v` equals `src / v`. It starts true at the
+source because `src / src = 1`. Traversing an edge weighted `v / next` changes the product
+to `(src / v)(v / next) = src / next`, preserving the invariant. Thus reaching `dst`
+returns the requested ratio. If BFS cannot reach it, no equation chain relates the two
+variables, so `-1.0` is correct.
+
+**Complexity**
+
+- **Time:** `O(V + E)` to build the graph and `O(V + E)` per query, for
+  `O(V + E + q(V + E))` total.
+- **Space:** `O(V + E)` for the graph and one BFS queue and visited set.
+- **Output:** `O(q)` for the returned query results.

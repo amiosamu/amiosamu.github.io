@@ -9,9 +9,8 @@ space: "O(log n)"
 
 ## Description
 
-Given an integer `columnNumber` as it would appear as a column title in an Excel sheet (where
-`A, B, ..., Z, AA, AB, ...` are `1, 2, ..., 26, 27, 28, ...`), return the corresponding column
-title as a string.
+Given a positive Excel column number, return its title. The sequence begins `A, B, ...,
+Z, AA, AB, ...` for numbers `1, 2, ..., 26, 27, 28, ...`.
 
 **Example**
 
@@ -20,34 +19,23 @@ Input: columnNumber = 701
 Output: "ZY"
 ```
 
-Explanation: `701` decrements to `700`; `700 % 26 == 24` gives `'Y'` and `700 // 26 == 26`;
-decrementing `26` to `25` gives `25 % 26 == 25`, `'Z'`, with quotient 0. Reading the digits in the
-order they were produced, last to first, gives `"ZY"`.
+After shifting each digit to zero-based indexing, 701 produces `Y` and then `Z`. Reversing
+those least-significant-first characters gives `"ZY"`.
 
 ## Intuition
 
-This is base 26, except there is no zero digit: the alphabet spells out 1..26, not 0..25, so
-`A` is 1 and `Z` is 26 and there is nothing that means "empty". That one difference breaks the
-usual `n % 26` / `n //= 26` loop — for `n = 26` it hands me digit 0 and quotient 1, i.e. "A?"
-instead of "Z". The fix is a single `n -= 1` at the top of each iteration: it slides the digit
-range from `1..26` down to `0..25`, which is exactly the offset from `A`, and the same decrement
-makes the quotient borrow correctly so 26 fully consumes itself instead of leaving a stray 1.
+Excel titles use bijective base 26: digits are `A = 1` through `Z = 26`, with no zero
+digit. Ordinary remainder arithmetic expects digits `0..25`. Subtracting one before each
+digit extraction shifts the current digit into that range and makes multiples of 26 map
+to `Z` rather than to a nonexistent zero symbol.
 
 ## Approach
 
-1. Keep a list `letters` of characters produced least-significant first.
-2. While `columnNumber` is non-zero:
-   - `columnNumber -= 1` first. This is the whole trick; everything below assumes 0-indexed digits.
-   - Append `chr(ord('A') + columnNumber % 26)`.
-   - `columnNumber //= 26`.
-3. Return `''.join(reversed(letters))` — the loop emits the last letter first.
-4. Trace `1`: decrement to 0, digit 0 -> `A`, quotient 0, stop. Output `"A"`.
-5. Trace `26`: decrement to 25, digit 25 -> `Z`, quotient `25 // 26 == 0`, stop. Output `"Z"`.
-   Without the decrement the quotient would have been 1 and I would have emitted a bogus `A`.
-6. Trace `701`: decrement to 700, `700 % 26 == 24` -> `Y`, quotient 26; decrement to 25 ->
-   `Z`, quotient 0. Reversed gives `"ZY"`.
-7. `columnNumber >= 1` by constraint, so the loop always runs at least once and I never return
-   the empty string.
+1. Keep `letters` for characters generated from least to most significant.
+2. While `columnNumber` is positive, subtract one to convert the next bijective digit to
+   `0..25`. The positive-input constraint ensures at least one iteration.
+3. Append the character at `columnNumber % 26`, then divide `columnNumber` by 26.
+4. Reverse and join `letters` because remainders are produced in reverse order.
 
 ## Code
 
@@ -64,8 +52,13 @@ class Solution:
 
 ## Why it works
 
-In bijective base 26 every positive integer has a unique representation with digits in `1..26`,
-and `((n - 1) % 26) + 1` is that least-significant digit while `(n - 1) // 26` is the rest of the
-number — the decrement moves me into ordinary base 26 for exactly one digit extraction and the
-floor division carries the borrow. Each pass divides `columnNumber` by 26, so the loop runs
-`O(log n)` times and the output holds that many letters (at most 7 for a 32-bit input).
+For any positive `n`, `((n - 1) % 26) + 1` is its unique least-significant bijective
+base-26 digit, and `(n - 1) // 26` is the remaining prefix. Each loop iteration emits
+exactly that digit and continues with the prefix. Induction on the number of digits shows
+that the reversed emitted sequence is the unique Excel title for the original number.
+
+**Complexity**
+
+- **Time:** `O(log n)` because each iteration divides the remaining number by 26.
+- **Space:** `O(log n)` auxiliary space because the characters are buffered before joining.
+- **Output:** `O(log n)` for the returned title.

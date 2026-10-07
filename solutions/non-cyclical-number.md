@@ -10,9 +10,8 @@ space: "O(1)"
 ## Description
 
 Given a positive integer `n`, determine whether it is a happy number: repeatedly replace
-`n` with the sum of the squares of its decimal digits, and `n` is happy if this process
-eventually reaches 1. If the process instead loops forever in a cycle that never includes 1,
-`n` is not happy.
+it with the sum of the squares of its decimal digits. It is happy if the process reaches `1`;
+otherwise, the sequence eventually repeats in a cycle.
 
 **Example**
 
@@ -21,29 +20,21 @@ Input: n = 19
 Output: true
 ```
 
-Explanation: 19 -> 1^2+9^2=82 -> 8^2+2^2=68 -> 6^2+8^2=100 -> 1^2+0^2+0^2=1, so the chain
-reaches 1 and 19 is happy.
+Explanation: `19 -> 82 -> 68 -> 100 -> 1`, so `19` is happy.
 
 ## Intuition
 
-The brute force keeps a hash set of every value seen while repeatedly replacing `n` with the
-sum of the squares of its digits, and declares the number unhappy once a value repeats - correct,
-but it costs O(the whole trajectory) of memory. The transform is a function on a bounded state
-space (a k-digit number maps to at most `81k`, which shrinks anything with more than 3 digits),
-so every starting number either reaches 1 or falls into one fixed cycle - which means the cycle
-can be detected with a slow/fast pointer instead of remembering every value ever seen.
+The digit-square transform is deterministic. It quickly maps any input into a bounded range, so
+its sequence must eventually enter a cycle. The cycle is the self-loop at `1` for a happy number
+or a cycle excluding `1` otherwise. Floyd's slow and fast pointers distinguish these outcomes
+without storing every previous value.
 
 ## Approach
 
-1. Write a helper `next_num(x)` that returns the sum of the squares of the digits of `x` (e.g.
-   `sum(int(d) ** 2 for d in str(x))`).
-2. Initialize `slow = n` and `fast = next_num(n)` - fast starts one application ahead of slow.
-3. Loop while `fast != 1` and `slow != fast`: each iteration, advance `slow` by one application
-   of `next_num`, and advance `fast` by two applications of `next_num`.
-4. If the trajectory reaches 1, `fast` lands on 1 and the loop exits there.
-5. If `n` is unhappy, the sequence enters the one known fixed cycle, and because fast gains on
-   slow by one step every iteration, they're guaranteed to collide somewhere inside that cycle.
-6. Return `fast == 1`.
+1. Define `next_num(x)` as the sum of the squared decimal digits of `x`.
+2. Initialize `slow = n` and `fast = next_num(n)`.
+3. While `fast != 1` and the pointers differ, advance `slow` once and `fast` twice.
+4. Return whether `fast == 1`; otherwise the pointers met in a non-happy cycle.
 
 ## Code
 
@@ -51,7 +42,11 @@ can be detected with a slow/fast pointer instead of remembering every value ever
 class Solution:
     def isHappy(self, n: int) -> bool:
         def next_num(x: int) -> int:
-            return sum(int(d) ** 2 for d in str(x))
+            total = 0
+            while x:
+                x, digit = divmod(x, 10)
+                total += digit * digit
+            return total
 
         slow, fast = n, next_num(n)
         while fast != 1 and slow != fast:
@@ -62,9 +57,12 @@ class Solution:
 
 ## Why it works
 
-This is Floyd's cycle detection applied to the functional graph of `next_num`: every trajectory
-either terminates at the self-loop on 1 or enters a finite cycle, and a pointer moving twice as
-fast as another on a cyclic sequence is guaranteed to meet it inside that cycle. Since the two
-pointers are just two independent runs of the same O(1)-space transform, no history needs to be
-stored, and both pointers converge within `O(log n)` applications because the digit-square sum
-shrinks any large number down to a small bounded range almost immediately.
+Repeated application of `next_num` forms a path in a finite functional graph. If that path reaches
+`1`, the fast pointer eventually reaches `1`. Otherwise it enters a cycle; once both pointers are
+inside, the fast pointer gains one cycle position per iteration and must meet the slow pointer.
+Therefore, the loop exits with `fast == 1` exactly for happy numbers.
+
+**Complexity**
+
+- **Time:** `O(log n)` to process the initial digits, followed by a bounded number of transforms.
+- **Space:** `O(1)` auxiliary space.

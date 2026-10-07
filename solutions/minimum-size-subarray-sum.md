@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an array of positive integers `nums` and an integer `target`, return the length of the shortest contiguous subarray whose sum is at least `target`, or 0 if no such subarray exists.
+Given positive integers `nums` and a positive integer `target`, return the length of the shortest
+contiguous subarray whose sum is at least `target`. Return `0` if no such subarray exists.
 
 **Example**
 
@@ -18,19 +19,20 @@ Input: target = 7, nums = [2,3,1,2,4,3]
 Output: 2
 ```
 
-Explanation: the subarray `[4,3]` sums to 7 and has length 2, which is shorter than any other subarray reaching 7.
+Explanation: `[4, 3]` sums to `7`, and no length-one subarray reaches the target.
 
 ## Intuition
 
-All values are positive, which is the whole game: extending a window can only raise its sum and shrinking it can only lower the sum. So for each right end `r` there is a single tipping point `l` — the furthest left edge whose window still reaches `target` — and `l` never has to move backwards as `r` advances. That turns the O(n²) "try every start" search into one pass where both pointers only go forward.
+Because every value is positive, extending a window can only increase its sum and removing its
+leftmost value can only decrease it. For each right endpoint, repeatedly shrinking a qualifying
+window finds every shorter qualifying window ending there. Neither pointer ever moves backward.
 
 ## Approach
 
-1. Keep `l = 0`, a running `total = 0`, and `best = len(nums) + 1` as a sentinel meaning "no window found".
-2. Walk `r` over `range(len(nums))` and add `nums[r]` to `total`.
-3. While `total >= target`, the window `nums[l..r]` qualifies: record `best = min(best, r - l + 1)`, then subtract `nums[l]` from `total` and advance `l`.
-4. Shrinking *before* moving on is what makes the recorded length minimal for this `r` — the loop stops the moment the window would drop below `target`.
-5. After the loop, return `best` if it is at most `len(nums)`, otherwise `0` — the sentinel survives exactly when no subarray ever reached `target`.
+1. Track a window starting at `l`, its sum `total`, and a sentinel `best = len(nums) + 1`.
+2. Move `r` from left to right and add `nums[r]` to `total`.
+3. While the sum reaches `target`, record the window length, remove `nums[l]`, and advance `l`.
+4. Return `best`, or `0` if the sentinel was never replaced. The array is not mutated.
 
 ## Code
 
@@ -51,4 +53,13 @@ class Solution:
 
 ## Why it works
 
-For the optimal subarray `nums[i..j]`, consider the iteration `r = j`: the inner loop advances `l` past every start whose window still hits `target`, so it necessarily passes through `l = i` and records length `j - i + 1`. Positivity is what licenses never rewinding `l` — once `nums[l..r]` falls short, no window with that same left edge and a smaller right edge can hit `target` either. Each index is added once and removed at most once, so the two pointers together do O(n) work with only scalars kept, O(1) space.
+For a fixed right endpoint `r`, positivity makes window sums strictly decrease as `l` advances.
+The inner loop records every qualifying start and stops immediately after the window becomes too
+small, so it includes the shortest qualifying window ending at `r`. Applying this to every `r`
+includes the globally shortest qualifying subarray. Once a left endpoint is removed, no earlier
+right endpoint could benefit from revisiting it, so advancing `l` only forward loses no candidate.
+
+**Complexity**
+
+- **Time:** `O(n)` because each element enters and leaves the window at most once.
+- **Space:** `O(1)` auxiliary space.

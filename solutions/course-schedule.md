@@ -9,9 +9,9 @@ space: "O(V + E)"
 
 ## Description
 
-Given `numCourses` courses labeled `0` to `numCourses - 1` and a list of prerequisite pairs
-`[course, pre]` meaning `pre` must be taken before `course`, determine whether it is
-possible to finish all courses, i.e. the prerequisite graph contains no cycle.
+Given `numCourses` courses and prerequisite pairs `[course, prerequisite]`, determine
+whether every course can be completed. A valid schedule exists only if the directed
+prerequisite graph has no cycle.
 
 **Example**
 
@@ -20,42 +20,28 @@ Input: numCourses = 2, prerequisites = [[1,0]]
 Output: true
 ```
 
-Explanation: course 1 requires course 0 first, and there is no edge back from 0 to 1, so
-taking course 0 then course 1 finishes both with no cycle.
-
+Course 0 can be taken before course 1, so both courses can be completed.
 
 ## Intuition
 
-The graph is hiding in plain sight: the nodes are the `numCourses` course ids, and each
-pair `[course, pre]` is a directed edge `course -> pre` meaning "I must clear `pre`
-before `course`". A schedule exists exactly when I can keep walking backwards through
-prerequisites and always bottom out — that is, when the graph has no directed cycle.
+A course is impossible to finish only when following prerequisites returns to a course on
+the same dependency path. Merely reaching a previously visited course does not prove a
+cycle because separate paths may share prerequisites.
 
-DFS is the natural fit because a cycle is a *path* property, not a reachability
-property: I need to know whether a node reappears on the branch I am currently standing
-on, and the recursion stack is that branch. Two visited flags are not enough — "seen
-before" alone would flag a diamond (`0 -> 1 -> 3`, `0 -> 2 -> 3`) as a cycle. So each
-node gets three states: unvisited, in-current-path, done.
+Use three DFS states: unvisited, active on the current recursion path, and completely
+checked. Reaching an active course finds a cycle; reaching a checked course reuses an
+already proven result.
 
 ## Approach
 
-1. Build `adj` as a `collections.defaultdict(list)` with `adj[course].append(pre)` for
-   every `[course, pre]` in `prerequisites`. Direction is arbitrary as long as it is
-   consistent; this one reads as "to take `course`, first do these".
-2. Keep `state = [0] * numCourses`: `0` = unvisited, `1` = on the current DFS path,
-   `2` = fully explored and known to be cycle-free.
-3. `dfs(node)` returns `True` if `node` is schedulable:
-   - `state[node] == 1` -> I have re-entered a node still open on this path, so the edge
-     I just followed closes a cycle. Return `False`.
-   - `state[node] == 2` -> already proven fine on an earlier branch. Return `True`
-     immediately; this memo is what keeps the whole run linear.
-   - Otherwise set `state[node] = 1`, recurse into every prerequisite, and bail out on
-     the first `False`.
-4. After all children succeed, set `state[node] = 2` before returning `True`. Demoting
-   from `1` to `2` on the way *out* is the whole trick: the node leaves the current path
-   at exactly the moment the recursion unwinds past it.
-5. The graph may be disconnected and some courses have no prerequisites at all, so run
-   `dfs` from every course: `all(dfs(c) for c in range(numCourses))`.
+1. Build `adj`, where `adj[course]` contains the prerequisites that course depends on.
+2. Store `0` for unvisited, `1` for active, and `2` for fully checked in `state`.
+3. In `dfs(node)`, reject state `1`, accept state `2`, and otherwise mark the node active
+   before recursively checking every prerequisite.
+4. Mark the node checked only after all of its prerequisites succeed. This transition
+   removes it from the current path while preserving the result for later DFS branches.
+5. Start DFS from every course because the graph may be disconnected. A self-prerequisite
+   is detected immediately as an edge back to an active course.
 
 ## Code
 
@@ -88,11 +74,13 @@ class Solution:
 
 ## Why it works
 
-A directed graph admits a valid ordering iff it is acyclic, and DFS finds a cycle iff
-one exists: any cycle must contain a node that DFS enters first, and the recursion from
-that node cannot return before walking the rest of the cycle back into it, at which
-point that node is still in state `1`. State `2` is only ever assigned after every
-descendant returned `True`, so caching it can never hide a cycle — a node marked done
-has no cycle anywhere below it, on this path or any other. Each node flips `0 -> 1 -> 2`
-once and each edge is scanned once from its tail, so the run is `O(V + E)` with
-`O(V + E)` held in `adj`, `state`, and the recursion stack.
+While `dfs(node)` is running, state `1` marks exactly the courses on its recursion path.
+An edge to state `1` therefore closes a directed cycle. Conversely, traversing any directed
+cycle revisits an active course before its call can finish, so DFS detects every cycle. A
+node enters state `2` only after all reachable prerequisites are cycle-free, making that
+result safe to reuse. Thus every DFS succeeds exactly when all courses can be completed.
+
+**Complexity**
+
+- **Time:** `O(V + E)`, because each course and prerequisite edge is processed once.
+- **Space:** `O(V + E)` for the adjacency list, states, and recursion stack.

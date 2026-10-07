@@ -9,7 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Given the root of a binary tree, return the values visible when the tree is viewed from the right side, ordered from the top level down: at each depth, the rightmost node present at that depth.
+Given a binary tree, return the rightmost node value at each depth, from top to bottom.
 
 **Example**
 
@@ -18,21 +18,21 @@ Input: root = [1,2,3,null,5,null,4]
 Output: [1,3,4]
 ```
 
-Explanation: At depth 0 only 1 exists; at depth 1, 3 sits to the right of 2 and is the one visible; at depth 2, the only node is 4 (reached via 3's right child), so the view is [1,3,4].
+The rightmost values at depths zero, one, and two are `1`, `3`, and `4`.
 
 ## Intuition
 
-Standing to the right, what I see at depth `d` is the *rightmost* node at depth `d` — not the right child of anything, since a node's right subtree can be empty while its left subtree keeps going. So this is a level-order question, not a "walk down the right spine" question. Run BFS level by level and keep the last node popped in each round; that node is the rightmost one at its depth by construction.
+The visible node is the rightmost node at each level, not necessarily part of a chain of right
+children. Breadth-first search processes one complete level at a time. If children are enqueued
+left to right, the final node removed from each level is the visible one.
 
 ## Approach
 
-1. Return `[]` if `root` is None.
-2. Set `res = []` and `queue = collections.deque([root])`.
-3. Outer loop while `queue` is non-empty. Invariant: at the top of each round the queue holds exactly the current level, left to right.
-4. Freeze `n = len(queue)` before the inner loop — that is the width of this level, and it must not be re-read as children are appended.
-5. Inner loop over `i in range(n)`: `popleft` a node, and if `i == n - 1` append `node.val` to `res`, because left-to-right order means the last pop of the round is the rightmost node at this depth.
-6. Still inside the inner loop, push `node.left` then `node.right` if they exist — left first, so the next level also comes off left to right and the "last pop" rule keeps holding.
-7. Return `res`.
+1. Return `[]` for an empty tree; otherwise enqueue the root.
+2. At each BFS round, save `n = len(queue)`, the number of nodes in the current level.
+3. Remove exactly `n` nodes from left to right. Append the final node's value to `res`.
+4. Enqueue each node's left child before its right child to preserve order on the next level.
+5. Return one collected value per level.
 
 ## Code
 
@@ -60,4 +60,13 @@ class Solution:
 
 ## Why it works
 
-Pushing left before right preserves left-to-right order within every level, so the final node dequeued in a round is the rightmost node of that depth — exactly what blocks the view of everything behind it. Every depth that contains at least one node produces exactly one round, so `res` has one entry per level and no gaps. Each node is enqueued and dequeued once for O(n) time, and the queue holds at most two adjacent levels, up to about n/2 nodes, for O(n) space.
+At the start of each round, the queue contains exactly one level in left-to-right order. Removing
+the saved number of nodes therefore makes the final removal the level's rightmost node. Enqueuing
+children left first establishes the same invariant for the next round. Thus exactly the visible
+node at every depth is recorded.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(w)` auxiliary queue space, where `w` is the tree's maximum width, plus `O(h)`
+  output space.

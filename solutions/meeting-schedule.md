@@ -9,9 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Given a list `intervals` of meeting time intervals where `intervals[i] = [starti, endi]`,
-determine whether a single person could attend every meeting, i.e. whether any two of the
-intervals overlap.
+Given meeting intervals, determine whether one person can attend all of them without overlap.
 
 **Example**
 
@@ -20,27 +18,22 @@ Input: intervals = [[0,30],[5,10],[15,20]]
 Output: false
 ```
 
-Explanation: `[0,30]` overlaps both `[5,10]` and `[15,20]`, since each of those starts before
-`[0,30]` ends, so the same person cannot attend all three.
+The interval `[0,30]` overlaps both later meetings, so one person cannot attend all three.
 
 ## Intuition
 
-A conflict is a pair of meetings that overlap, but I do not have to test all pairs. Sort by start
-time and any overlap must show up between *neighbours*: if meeting `i` overlaps some later meeting
-`j`, then every meeting between them also starts before `intervals[i]` ends, so in particular
-`i` and `i+1` already conflict. One sort plus one adjacent-pair scan settles it.
+After sorting by start time, an overlap must appear between adjacent intervals. If one interval
+overlaps any later interval, the immediately following interval starts no later and therefore also
+starts before the first interval ends.
+
+Back-to-back meetings do not overlap, so the comparison must be strict.
 
 ## Approach
 
-1. Sort `intervals` in place — plain `intervals.sort()` orders by start, then end, which is all I
-   need.
-2. Scan `i` from 1 to `len(intervals) - 1` and compare each meeting with its predecessor.
-3. If `intervals[i][0] < intervals[i - 1][1]` the new meeting begins before the previous one has
-   ended, so return `False` immediately.
-4. Use strict `<`: a meeting starting exactly when the previous ends, like `[1,5]` then `[5,10]`, is
-   attendable and must not be rejected.
-5. If the loop finishes, no adjacent pair conflicts, so return `True`. An empty or single-meeting
-   list never enters the loop and correctly returns `True`.
+1. Sort `intervals` in place by start time, then end time.
+2. Compare each interval's start with the previous interval's end.
+3. Return `False` if `current_start < previous_end`; equality permits immediate reuse.
+4. Return `True` if no adjacent overlap is found, including for zero or one meeting.
 
 ## Code
 
@@ -58,9 +51,12 @@ class Solution:
 
 ## Why it works
 
-In start order, `intervals[i][0]` is non-decreasing, so if any pair `(i, j)` with `i < j` overlaps
-then `intervals[j][0] < intervals[i][1]` and every index `k` between them satisfies
-`intervals[i][0] <= intervals[k][0] <= intervals[j][0] < intervals[i][1]` — meaning the conflict is
-still visible one step at a time, and in particular at the adjacent pair `(i, i+1)`. Checking
-neighbours therefore loses nothing, which reduces the quadratic pairwise test to a linear scan
-behind an O(n log n) sort; the O(n) space is the sort's working buffer.
+Assume some sorted intervals `i < j` overlap. Since starts are nondecreasing, interval `i + 1`
+starts no later than interval `j`, so it also starts before interval `i` ends. Thus an adjacent
+overlap exists whenever any overlap exists. Conversely, every adjacent overlap is clearly a real
+conflict. The scan therefore returns `True` exactly when all meetings are attendable.
+
+**Complexity**
+
+- **Time:** `O(n log n)` for sorting and `O(n)` for the scan.
+- **Space:** `O(n)` worst case for Python's sort workspace; `intervals` is reordered in place.

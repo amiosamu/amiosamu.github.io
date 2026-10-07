@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given three integers `a`, `b`, `c`, a string is "happy" if it contains no three consecutive identical characters. Build the longest happy string possible using at most `a` occurrences of `'a'`, `b` of `'b'`, and `c` of `'c'`, returning any valid answer of maximum length (or `""` if none can be built).
+Given limits `a`, `b`, and `c` for the corresponding letters, return any longest string that
+uses no more than those limits and never contains three equal consecutive characters.
 
 **Example**
 
@@ -18,21 +19,24 @@ Input: a = 1, b = 1, c = 7
 Output: "ccaccbcc"
 ```
 
-Explanation: `"ccaccbcc"` uses exactly one `'a'`, one `'b'`, and seven `'c'`s, never repeats a character three times in a row, and no longer valid string can be formed from these counts.
+`"ccaccbcc"` uses one `'a'`, one `'b'`, and six `'c'`s without a triple. A seventh `'c'`
+would require a third separator, so length `8` is maximal.
 
 ## Intuition
 
-There is no fixed order to sort into — which letter is safe to append depends on the two characters already written. The greedy is to always take the letter with the most copies left, because the letters that run out last are the ones that end up stranded, and spending the biggest pile first keeps the piles even. The only exception is when that letter would form a third consecutive copy; then I take the runner-up for one character and immediately go back to the leader. Both "leader" and "runner-up" mean *current maximum of a changing multiset*, which is a **max-heap** — `heapq` negated, as always.
+Use the most abundant remaining letter whenever it is legal, because that pile is most likely to be
+stranded later. If it already occupies the final two positions, use the next-most abundant letter
+as a separator. A max-heap maintains both choices as counts change; negated counts adapt Python's
+min-heap implementation.
 
 ## Approach
 
-1. Build `heap = [(-count, ch) for count, ch in ((a, 'a'), (b, 'b'), (c, 'c')) if count]` and `heapify`. Skipping zero counts keeps the heap free of exhausted letters.
-2. Keep `out`, the characters appended so far. Loop while the heap is non-empty.
-3. Pop `(count, ch)` — the letter with the most copies remaining.
-4. If `len(out) >= 2 and out[-1] == out[-2] == ch`, appending it would make three in a row. In that case: if the heap is now empty, `break` — nothing legal is left and the string is finished. Otherwise pop the runner-up `(count2, ch2)`, append `ch2`, push it back if it has copies left (`count2 + 1 < 0`), and push the leader `(count, ch)` back untouched so it is chosen again next round.
-5. Otherwise append `ch` and push `(count + 1, ch)` back if `count + 1 < 0`. Adding 1 to a negated count spends one copy; reaching 0 means the letter is used up and must not go back in.
-6. The runner-up is only ever used for a single character, which is enough — after it, `out[-1] != out[-2]`, so the leader is legal again.
-7. Return `"".join(out)`. There is no failure case; the answer can legitimately be the empty string only when `a = b = c = 0`.
+1. Put every positive count into `heap` as `(-count, ch)` and initialize the output list.
+2. Pop the letter with the greatest remaining count.
+3. If it would create a triple, stop when no alternative exists; otherwise append the runner-up,
+   update its count, and return the blocked leader unchanged.
+4. If the leader is legal, append it and return it to the heap only when copies remain.
+5. Join and return `out`. Zero counts never enter the heap, and all-zero input returns `""`.
 
 ## Code
 
@@ -66,4 +70,15 @@ class Solution:
 
 ## Why it works
 
-Taking the largest available pile is safe by an exchange argument: if a schedule ever writes a scarcer letter while a more plentiful one is legal, swapping them keeps the string happy and leaves the remaining counts no worse, since the plentiful letter is the one that will need slots later. The loop terminates when the only remaining letter is already doubled at the tail, and at that point no longer happy string exists on those counts, so the greedy output is maximal. Every iteration appends exactly one character except the final `break`, so it runs at most `a + b + c` times with O(log 3) heap work each — linear time, constant space.
+Let `M` be the largest letter count and let `O` be the total count of the other letters. Those
+`O` letters create at most `O + 1` gaps, and each gap can contain at most two copies of the dominant
+letter. Thus no happy string can use more than `O + min(M, 2(O + 1))` characters. The greedy rule
+uses all letters unless one dominant letter remains behind a doubled suffix. In that case, every
+other letter has been used as a separator and the rule has filled each available gap with two
+dominant letters whenever possible, reaching the bound `O + 2(O + 1)`. It therefore attains the
+maximum possible length in either case, while the explicit suffix check preserves happiness.
+
+**Complexity**
+
+- **Time:** `O(a + b + c)`; each iteration appends one character and heap size is at most three.
+- **Space:** `O(1)` auxiliary heap space, plus `O(a + b + c)` for the returned string.

@@ -9,8 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a list `intervals` where `intervals[i] = [starti, endi]`, merge all overlapping intervals and
-return a list of the non-overlapping intervals that cover every interval in the input.
+Given a list of intervals, merge all overlapping intervals and return the resulting disjoint
+intervals.
 
 **Example**
 
@@ -19,29 +19,23 @@ Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
 Output: [[1,6],[8,10],[15,18]]
 ```
 
-Explanation: `[1,3]` and `[2,6]` overlap because `2 <= 3`, so they merge into `[1,6]`; `[8,10]` and
-`[15,18]` don't touch anything else and pass through unchanged.
+The first two intervals overlap and merge into `[1,6]`; the remaining intervals stay separate.
 
 ## Intuition
 
-Comparing every pair is O(n^2) and also awkward, because merging two intervals can create a new one
-that overlaps a third. Sorting by start time kills both problems: once the intervals are in start
-order, anything that overlaps the group I am currently building must overlap it *now*, at the front
-of the remaining list. So I only ever need to compare the next interval against the last one in the
-output, and merging becomes a single pass that extends a running end.
+Sorting by start time makes every interval that can extend the current merged group appear before
+any interval separated from it by a gap. The next interval therefore needs comparison only with the
+last output interval.
+
+An overlap extends the current end to the larger end; a gap starts a new output interval.
 
 ## Approach
 
-1. Sort `intervals` by start time.
-2. Seed `res` with a copy of `intervals[0]` (copy it so the input list is not mutated). The problem
-   guarantees at least one interval, so this is safe.
-3. For each remaining `start, end`, compare `start` against `lastEnd = res[-1][1]`.
-4. If `start <= lastEnd` the two touch or overlap, so extend in place:
-   `res[-1][1] = max(lastEnd, end)`. The `max` is essential — the new interval may be fully
-   contained, as `[2,3]` is inside `[1,10]`, and blindly assigning `end` would shrink the group.
-5. Otherwise there is a real gap, so close the current group and start a new one by appending
-   `[start, end]`.
-6. Return `res`.
+1. Sort `intervals` in place by start time and copy the first interval into `res`.
+2. For each remaining interval, compare `start` with `res[-1][1]`.
+3. If they overlap or touch, set the current end to `max(lastEnd, end)`.
+4. Otherwise append a new `[start, end]` interval.
+5. Return `res`. New inner lists prevent merged ends from changing the input intervals themselves.
 
 ## Code
 
@@ -63,9 +57,14 @@ class Solution:
 
 ## Why it works
 
-After sorting, the invariant is that `res` holds disjoint merged intervals and `res[-1]` is the only
-one that can still grow, since every later interval has a start at least as large as `res[-1][0]`
-and every earlier group ended before `res[-1]` began. That makes the single comparison against
-`res[-1][1]` sufficient to decide merge-or-append, and `max` keeps the group's end at the true
-maximum over its members. The sort dominates at O(n log n); the sweep is O(n), and the O(n) space is
-the sort's working buffer, not the output.
+After each iteration, `res` contains the exact merged union of the processed intervals in disjoint
+start order. Only its last interval can overlap the next input because all earlier output intervals
+end before that last group starts. If the next start is within the last group, taking the larger end
+preserves their union. Otherwise there is a gap, so appending is necessary. This maintains the
+invariant by induction and proves the final output is exactly the merged union.
+
+**Complexity**
+
+- **Time:** `O(n log n)` for sorting and `O(n)` for merging.
+- **Space:** `O(n)` for the returned intervals and Python sort workspace. The outer input order is
+  mutated by sorting, but its interval objects are not modified.

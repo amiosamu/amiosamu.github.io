@@ -9,9 +9,8 @@ space: "O(m * n)"
 
 ## Description
 
-Given three strings `s1`, `s2`, and `s3`, determines whether `s3` can be formed by
-interleaving all characters of `s1` and `s2` while preserving each string's own internal
-character order.
+Given strings `s1`, `s2`, and `s3`, return whether `s3` can be formed by interleaving all
+characters of `s1` and `s2` while preserving each source string's order.
 
 **Example**
 
@@ -20,23 +19,27 @@ Input: s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"
 Output: true
 ```
 
-Explanation: reading `s3` left to right, each character matches the next unused character of
-either `s1` or `s2`, so all of `s1` and `s2` are consumed exactly once with their internal
-order preserved.
+Explanation: Reading `s3` left to right can consume every character from `s1` and `s2` in
+their original relative orders.
 
 ## Intuition
 
-`s3[:i+j]` can only be an interleaving of `s1[:i]` and `s2[:j]` if its last character came from the end of `s1` or the end of `s2` — and whichever it came from, everything before it must already be a valid interleaving of the shorter prefixes. That recursive split on "where did the last character come from" is exactly a 2D boolean DP over `(i, j)`.
+If `s3[:i+j]` interleaves `s1[:i]` and `s2[:j]`, its last character comes from either
+`s1[i-1]` or `s2[j-1]`. Removing that character must leave a valid interleaving of the
+corresponding shorter prefixes.
+
+This gives a boolean DP state for every pair of consumed prefix lengths. A total-length
+mismatch can be rejected before allocating the table.
 
 ## Approach
 
-1. If `len(s1) + len(s2) != len(s3)`, return `False` immediately — the lengths can't line up.
-2. Let `m, n = len(s1), len(s2)`. `dp[i][j]` = True if `s3[:i+j]` is an interleaving of `s1[:i]` and `s2[:j]`.
-3. Base case: `dp[0][0] = True`.
-4. First column: `dp[i][0] = dp[i-1][0] and s1[i-1] == s3[i-1]` (s3 built purely from `s1` so far).
-5. First row: `dp[0][j] = dp[0][j-1] and s2[j-1] == s3[j-1]` (s3 built purely from `s2` so far).
-6. For `i` from 1 to `m`, `j` from 1 to `n`: `dp[i][j] = (dp[i-1][j] and s1[i-1] == s3[i+j-1]) or (dp[i][j-1] and s2[j-1] == s3[i+j-1])` — the last character of `s3[:i+j]` either extends a valid interleaving that used `s1` up through `i-1`, or one that used `s2` up through `j-1`.
-7. Return `dp[m][n]`.
+1. Return `False` unless `len(s1) + len(s2) == len(s3)`.
+2. Define `dp[i][j]` to mean that `s3[:i+j]` interleaves `s1[:i]` and `s2[:j]`, and
+   initialize `dp[0][0] = True`.
+3. Fill the first column and row by matching prefixes composed entirely from one source.
+4. For each remaining cell, accept a matching final character from `s1` when
+   `dp[i-1][j]` is true, or from `s2` when `dp[i][j-1]` is true.
+5. Return `dp[m][n]`. Empty source strings are handled by the initialized row or column.
 
 ## Code
 
@@ -61,4 +64,13 @@ class Solution:
 
 ## Why it works
 
-Every character of `s3` is consumed exactly once, from either `s1` or `s2`, so the character at position `i+j-1` must be the one just consumed from `s1[i-1]` or `s2[j-1]` — the OR over those two cases is exhaustive, and each case reduces to a smaller, already-solved `(i, j)` pair. The table has `(m+1)(n+1)` cells each computed in O(1), giving O(m*n) time and space.
+The base state correctly represents three empty prefixes. For any other state, the last
+character of the target prefix must come from the last consumed character of one source.
+The recurrence checks both exhaustive possibilities and requires the preceding prefixes to
+be valid. By induction on `i + j`, every true state describes an interleaving and every
+possible interleaving makes one branch true. Therefore `dp[m][n]` answers the full problem.
+
+**Complexity**
+
+- **Time:** `O(mn)`, where `m = len(s1)` and `n = len(s2)`.
+- **Space:** `O(mn)` for the DP table.

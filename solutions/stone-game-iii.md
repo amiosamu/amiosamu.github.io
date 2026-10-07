@@ -9,10 +9,9 @@ space: "O(n)"
 
 ## Description
 
-Given an array of stone values, Alice and Bob alternate turns (Alice first) each taking 1, 2,
-or 3 stones from the front of the remaining row and adding their values to their own score.
-Both play optimally to maximize their own final score. Return `"Alice"`, `"Bob"`, or `"Tie"`
-depending on who ends with the higher score.
+Alice and Bob alternately take one, two, or three values from the front of `stoneValue` and add
+them to their scores. Alice starts, and both play optimally. Return `"Alice"`, `"Bob"`, or
+`"Tie"` according to the final scores.
 
 **Example**
 
@@ -21,36 +20,24 @@ Input: stoneValue = [1,2,3,7]
 Output: "Bob"
 ```
 
-Explanation: Alice's best move is to take the first three stones (score 6), leaving Bob the
-last stone worth 7; Bob's final score of 7 beats Alice's 6, so Bob wins.
+Explanation: Alice can score `6` by taking three stones, but Bob then takes `7` and wins.
 
 ## Intuition
 
-Tracking both players' absolute scores would need a two-dimensional state, and there is no need:
-the game is symmetric, both players play the same way, and the only thing the final answer needs
-is the *sign of the difference*. So define the state as the best score difference the player to
-move can force from a given suffix. Then whatever the current player takes, the opponent faces
-the same kind of problem on the rest, and their optimal difference simply flips sign — the
-recurrence is `take - dp[next]`.
+Track the best score difference the current player can force from each suffix. After taking some
+value `take`, the opponent becomes the current player on the remaining suffix. Their optimal
+difference counts against the original player, producing `take - dp[next]`. This symmetric state
+avoids tracking separate Alice and Bob totals.
 
 ## Approach
 
-1. Let `n = len(stoneValue)` and `dp[i]` = the maximum value of `(current player's score) -
-   (other player's score)` over the suffix `stoneValue[i:]`, assuming both play optimally from
-   there. Note `dp[i]` is *not* Alice-specific: it is always "whoever moves at `i`".
-2. Base case: `dp[n] = 0` — no stones left, no difference.
-3. Recurrence: `dp[i] = max over k in 1..3 (with i + k <= n) of (sum(stoneValue[i:i+k]) - dp[i+k])`.
-   The subtraction is the minimax step: from `i + k` the roles swap, so the opponent's forced
-   difference counts against me.
-4. Iteration order: `i` from `n - 1` down to `0`, so `dp[i+1]`, `dp[i+2]`, `dp[i+3]` are already
-   computed.
-5. Inner loop: accumulate `take` as `k` grows (`take += stoneValue[i + k]` for `k = 0, 1, 2`)
-   instead of re-slicing, guarded by `i + k < n`. Seed `best` with `-inf`; every `i < n` has at
-   least the `k = 0` option so `best` is always overwritten.
-6. Decide from `dp[0]`, which is Alice's forced difference since she moves first: `> 0` returns
-   `"Alice"`, `< 0` returns `"Bob"`, `== 0` returns `"Tie"`.
-7. Values can be negative, so never assume taking more stones is better — `[1,2,3,-9]` is
-   exactly the case where Alice must take all three to hand Bob the `-9`.
+1. Define `dp[i]` as the maximum current-player score minus opponent score from
+   `stoneValue[i:]`; set `dp[n] = 0`.
+2. Fill states right-to-left. Accumulate `take` while considering one, two, or three available
+   stones, and maximize `take - dp[next]`.
+3. Initialize each `best` to negative infinity because stone values may be negative; every
+   nonempty suffix has at least one legal move.
+4. Interpret `dp[0]`: positive means Alice wins, negative means Bob wins, and zero means a tie.
 
 ## Code
 
@@ -76,10 +63,14 @@ class Solution:
 
 ## Why it works
 
-The identity that makes the one-dimensional state legal is that the score difference from a
-position is player-independent: both players face identical rules, so `diff(i)` for the mover
-is well defined, and the mover's total after taking `take` is `take` minus whatever the opponent
-forces from `i + k`. Maximizing over the only three legal moves therefore explores the entire
-game tree without ever enumerating it, and the right-to-left order resolves each state from
-strictly shorter suffixes. Each of the `n + 1` states does constant work: `O(n)` time and
-`O(n)` space, reducible to `O(1)` by keeping only the last three values.
+Prove the recurrence by backward induction. With no stones, both scores are zero, so `dp[n] = 0`.
+Assume all shorter suffixes are solved optimally. For any legal move at `i`, `take` is added to
+the mover's score, while `dp[next]` is the opponent's optimal advantage afterward; the resulting
+advantage is `take - dp[next]`. Taking the maximum covers every legal first move and chooses the
+optimal one. Thus `dp[0]` is Alice's optimal final score difference, and its sign determines the
+result.
+
+**Complexity**
+
+- **Time:** `O(n)` because each state checks at most three moves.
+- **Space:** `O(n)` for `dp`.

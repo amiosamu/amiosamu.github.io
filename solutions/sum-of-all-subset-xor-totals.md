@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-The XOR total of an array is the XOR of all its elements, or 0 if the array is empty. Given an array `nums`, return the sum of the XOR totals of every possible subset of `nums`.
+The XOR total of an array is the XOR of its elements, with the empty array contributing `0`.
+Given `nums`, return the sum of the XOR totals of all subsets.
 
 **Example**
 
@@ -18,21 +19,22 @@ Input: nums = [1,3]
 Output: 6
 ```
 
-Explanation: the subsets are `[]`, `[1]`, `[3]`, `[1,3]` with XOR totals `0`, `1`, `3`, `1^3 == 2`, and `0 + 1 + 3 + 2 == 6`.
+The four subsets have XOR totals `0`, `1`, `3`, and `1 ^ 3 = 2`, which sum to `6`.
 
 ## Intuition
 
-`nums` has at most 12 elements, so 2^n subsets is 4096 — I can just walk every one of them. The only thing worth noticing is that I never need to materialize a subset: XOR is associative and I build the subset one element at a time, so I can carry the running XOR down the recursion as a plain integer. Each element is a single binary decision — take it (XOR it into `cur`) or skip it — and the answer is the sum of `cur` over all 2^n leaves.
+Each element creates two choices: include it or exclude it. A recursion path therefore identifies
+one subset. Only that path's running XOR matters, so there is no need to allocate the subset
+itself or undo mutations while backtracking.
 
 ## Approach
 
-1. The decision at depth `i` is what to do with `nums[i]`: include it or not. There are only two branches, so no loop is needed.
-2. The "path" is compressed to one integer, `cur`, holding the XOR of everything included so far. That is the whole state — nothing else about which elements were taken matters to the total.
-3. Base case: `i == len(nums)` means every element has been decided, so this leaf is one complete subset and its XOR total is `cur`. Return `cur`.
-4. Recurse twice: `dfs(i + 1, cur ^ nums[i])` for "take" and `dfs(i + 1, cur)` for "skip", and return their sum. Summing the two return values is what accumulates the answer, so there is no result list at all.
-5. Because `cur` is an immutable int passed by value, there is nothing to undo after recursing — the "skip" branch simply gets the untouched `cur`. This is the one problem in the group where explicit backtracking disappears.
-6. No pruning and no duplicate handling: every subset is counted, and repeated values in `nums` produce genuinely distinct subsets (subsets are by index here, not by value), so equal siblings must **not** be skipped.
-7. Start with `dfs(0, 0)` — the empty subset has XOR 0, which correctly contributes 0.
+1. Define `dfs(i, cur)` as the sum for all subsets formed from indices `i` onward, given
+   that selected earlier elements XOR to `cur`.
+2. At index `i`, recurse once with `nums[i]` included and once with it excluded.
+3. When `i == len(nums)`, return `cur` because the path now represents one complete subset.
+4. Add the two branch results and start with `dfs(0, 0)`.
+5. Count equal values at different indices separately; they represent different subset choices.
 
 ## Code
 
@@ -49,6 +51,12 @@ class Solution:
 
 ## Why it works
 
-The recursion tree has exactly one leaf per subset — the path from root to leaf is the sequence of take/skip decisions that names it — and each leaf returns the XOR of its own subset, so the root's sum is the sum over all subsets by construction. Carrying `cur` down instead of rebuilding it at the leaf is valid because XOR is associative, so the order in which elements are folded in doesn't change the result. The tree has 2^(n+1) - 1 nodes with O(1) work each, giving O(2^n) time, and the only memory is the recursion stack of depth n.
+Induct on `i`. At `i == n`, the only remaining choice is the completed subset, and `cur` is its
+XOR. For `i < n`, every subset of the remaining indices either contains index `i` or does not;
+the two recursive calls cover these disjoint cases. Adding their results therefore counts every
+subset exactly once and adds its correct XOR total.
 
-If you want the O(n) version: bit `b` is set in some subset's XOR in exactly half of all subsets whenever any number has bit `b` set, so the answer is `(nums[0] | nums[1] | ... ) << (n - 1)`.
+**Complexity**
+
+- **Time:** `O(2^n)` because the recursion has one leaf per subset.
+- **Space:** `O(n)` for the recursion stack; no subset list is stored.

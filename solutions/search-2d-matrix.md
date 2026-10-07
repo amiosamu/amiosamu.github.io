@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an `m x n` matrix in which each row is sorted in ascending order and the first integer of each row is greater than the last integer of the previous row, and a `target` value, return whether `target` exists anywhere in the matrix.
+Given an `m x n` matrix whose rows are sorted and whose first value in each row exceeds the last
+value of the previous row, return whether `target` occurs in the matrix.
 
 **Example**
 
@@ -18,22 +19,22 @@ Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3
 Output: true
 ```
 
-Explanation: 3 sits in the first row of the matrix, so it is present and `true` is returned.
+Explanation: `3` occurs in the first row, so the result is `true`.
 
 ## Intuition
 
-Each row is sorted and the first value of a row exceeds the last value of the row above it, so reading the matrix row by row gives one globally sorted sequence of `m * n` numbers. That means this is plain binary search on a virtual array — I never build the array, I just convert a flat index `i` into `(i // cols, i % cols)` on the fly. The two-step "binary search the row, then binary search inside it" is the same `O(log(m*n))` and twice the code.
+Reading the matrix in row-major order produces one globally sorted sequence. It need not be
+materialized: flat index `i` corresponds to row `i // cols` and column `i % cols`. Standard
+binary search can therefore operate directly on the matrix with constant extra space.
 
 ## Approach
 
-1. Read `rows = len(matrix)` and `cols = len(matrix[0])`; `cols` is the divisor used for every index conversion, so name it once.
-2. Search space: the flat index interval `[l, r]`, **inclusive on both ends**, with `l = 0`, `r = rows * cols - 1`.
-3. Invariant: if `target` is in the matrix, its flat index lies in `[l, r]`. An empty interval therefore proves absence.
-4. Loop `while l <= r`, `mid = (l + r) // 2`, and read `val = matrix[mid // cols][mid % cols]`.
-5. Three-way compare: `val == target` returns `True`; `val < target` discards `[l, mid]` with `l = mid + 1`; otherwise `r = mid - 1`.
-6. Both updates exclude `mid`, so the interval strictly shrinks and the loop terminates.
-7. On exit `l == r + 1`, the interval is empty and the target is absent — return `False`.
-8. The constraints guarantee at least one row and one column, so `matrix[0]` is safe and `r` starts at `>= 0`.
+1. Treat the `rows * cols` cells as flat indices in the inclusive range `[l, r]`.
+2. Convert `mid` to `matrix[mid // cols][mid % cols]` without allocating a flat array.
+3. Return `True` on equality. If the value is smaller than `target`, discard the left half;
+   otherwise discard the right half.
+4. Return `False` when the interval is empty. The constraints guarantee a nonempty matrix, so
+   reading `matrix[0]` is safe.
 
 ## Code
 
@@ -56,4 +57,13 @@ class Solution:
 
 ## Why it works
 
-The row-major flattening is order-preserving: within a row the values increase, and across a row boundary the problem guarantees `matrix[i][cols-1] < matrix[i+1][0]`, so flat index order equals value order. Once the sequence is sorted, the standard invariant applies — the discarded half provably cannot contain the target — and `divmod` by `cols` is an exact bijection between flat indices and cells, so no element is skipped or visited twice. The interval halves each step over `m * n` cells, giving `O(log(m * n))` time and `O(1)` space.
+Within each row, values increase; across rows, the previous last value is smaller than the next
+first value. Thus row-major order is sorted. The loop invariant is that any occurrence of
+`target` lies in `[l, r]`: comparing the middle value safely removes the half whose values are
+all too small or all too large. The index conversion is a bijection between this range and the
+matrix cells. When the range becomes empty, no occurrence remains.
+
+**Complexity**
+
+- **Time:** `O(log(m * n))` because the flat search interval halves each iteration.
+- **Space:** `O(1)` auxiliary space.

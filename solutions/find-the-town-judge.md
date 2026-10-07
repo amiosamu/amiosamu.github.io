@@ -9,9 +9,9 @@ space: "O(n)"
 
 ## Description
 
-Given `n` people labeled `1` to `n` and a list of `trust` pairs `[a, b]` meaning person `a`
-trusts person `b`, find the town judge: the one person trusted by everyone else who trusts
-nobody themselves. Return that person's label, or `-1` if no such person exists.
+Given `n` people labeled `1` through `n` and pairs `[a, b]` stating that `a` trusts `b`,
+find the person who trusts nobody and is trusted by every other person. Return `-1` when
+no such town judge exists.
 
 **Example**
 
@@ -20,29 +20,24 @@ Input: n = 2, trust = [[1,2]]
 Output: 2
 ```
 
-Explanation: person 1 trusts person 2, person 2 trusts nobody, and person 2 is trusted by
-the only other person (n - 1 = 1 trust), so person 2 is the judge.
-
+Explanation: Person `2` trusts nobody and is trusted by the only other person.
 
 ## Intuition
 
-`trust` is a directed graph: the people are the nodes and `[a, b]` is an edge `a -> b`
-meaning "a trusts b". The judge is stated purely in degree terms — in-degree `n - 1`
-(everybody else trusts them) and out-degree `0` (they trust nobody).
+Treat each trust pair as a directed edge. The judge must have in-degree `n - 1` and
+out-degree `0`. A single score can track both conditions:
+`score[p] = indegree(p) - outdegree(p)`.
 
-I do not need two arrays for that. Keep one `score[p] = indegree(p) - outdegree(p)`: `+1`
-when `p` is trusted, `-1` when `p` trusts. Nobody trusts themselves, so in-degree can never
-exceed `n - 1`, which means `score[p] == n - 1` forces in-degree to be exactly `n - 1` *and*
-out-degree to be exactly `0`. One number identifies the judge.
+Because trust pairs are distinct and nobody trusts themselves, an in-degree cannot exceed
+`n - 1`. A score of `n - 1` can therefore occur only for the judge.
 
 ## Approach
 
-1. Allocate `score = [0] * (n + 1)` so people `1..n` index directly and slot `0` is unused.
-2. For each `a, b` in `trust`: `score[a] -= 1` and `score[b] += 1`.
-3. Scan `i` from `1` to `n` and return `i` the moment `score[i] == n - 1`.
-4. If the scan finds nobody, return `-1`.
-5. The `n == 1`, `trust == []` case needs no special handling: `score[1] == 0 == n - 1`, so
-   person 1 is correctly reported as the judge.
+1. Allocate `score` with `n + 1` entries so each label can be used as an index.
+2. For every pair `[a, b]`, subtract one from `score[a]` and add one to `score[b]`.
+3. Return the label whose score is `n - 1`.
+4. Return `-1` if there is no such label. For `n == 1`, the untouched score is `0`, which
+   correctly equals `n - 1`.
 
 ## Code
 
@@ -64,9 +59,12 @@ class Solution:
 
 ## Why it works
 
-Since `[a, a]` never appears, in-degree is capped at `n - 1` and out-degree is non-negative,
-so `indegree - outdegree == n - 1` is achievable only by `indegree = n - 1, outdegree = 0` —
-exactly the judge's definition, so the test is both sound and complete. At most one node can
-score `n - 1`: if two did, each would have to be trusted by the other, giving both a non-zero
-out-degree and dropping their scores. Building the tally is one pass over the edges and the
-scan is one pass over the people, so `O(E + n)` time and `O(n)` space.
+For each person, the computed score equals in-degree minus out-degree. If a person is the
+judge, that score is `(n - 1) - 0 = n - 1`. Conversely, since in-degree is at most `n - 1`
+and out-degree is nonnegative, reaching `n - 1` requires both judge conditions exactly.
+Thus the scan returns the judge if one exists and rejects every other person.
+
+**Complexity**
+
+- **Time:** `O(E + n)`, where `E` is the number of trust pairs.
+- **Space:** `O(n)` for the score array.

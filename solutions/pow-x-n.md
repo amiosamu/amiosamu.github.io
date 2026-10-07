@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given a float `x` and an integer `n`, compute `x` raised to the power `n` (`x^n`) without
-relying on a built-in power operator. `n` may be negative, which means computing the power
-of the reciprocal `1/x`.
+Given a floating-point base `x` and integer exponent `n`, compute `x` raised to `n`. A negative
+exponent represents the corresponding power of `1 / x`.
 
 **Example**
 
@@ -20,26 +19,24 @@ Input: x = 2.00000, n = 10
 Output: 1024.00000
 ```
 
-Explanation: 2 raised to the 10th power is 1024, since 2*2*...*2 (ten times) equals 1024.
+Explanation: `2^10 = 1024`.
 
 ## Intuition
 
-Multiplying `x` by itself `n` times is O(n); but `x^n` can be built from `(x*x)^(n/2)` (with an
-extra factor of `x` peeled off when `n` is odd), which halves the exponent every step - the
-classic fast/binary exponentiation trick. A negative `n` just means computing `(1/x)^(-n)`, so
-normalizing that up front leaves only a non-negative exponent to deal with in the main loop.
+Binary exponentiation uses `x^(2e) = (x * x)^e` to halve even exponents. For an odd exponent,
+one factor of `x` first moves into the result, leaving an even exponent. Normalizing a negative
+exponent to a positive exponent of the reciprocal lets the same loop handle both signs.
 
 ## Approach
 
-1. If `n < 0`, replace `x` with `1 / x` and `n` with `-n`, since `x^n = (1/x)^(-n)`; from here
-   on `n >= 0`.
-2. Initialize `result = 1`.
-3. While `n > 0`:
-   - if `n` is odd, multiply `result` by `x` and decrement `n` by 1 - this peels off one factor
-     of `x` for the current low bit of `n`.
-   - otherwise, square `x` in place (`x *= x`) and halve `n` (`n //= 2`) - this is the step that
-     does the actual work-halving.
-4. Return `result` once `n` reaches 0.
+1. If `n < 0`, replace `x` with `1 / x` and negate `n`. The remaining exponent is
+   nonnegative.
+2. Initialize `result = 1`. Maintain the invariant that `result * x^n` equals the requested
+   value after normalization.
+3. While `n > 0`, move one factor of `x` into `result` when `n` is odd. When `n` is even,
+   square `x` and halve `n`.
+4. Return `result` when the remaining exponent reaches zero. The local variables are modified,
+   but the caller's numeric arguments are immutable.
 
 ## Code
 
@@ -63,8 +60,13 @@ class Solution:
 
 ## Why it works
 
-Writing `n` in binary, `x^n` is the product of `x^(2^k)` over every set bit `k`; repeatedly
-squaring `x` builds exactly those powers-of-two values in sequence, and multiplying one into
-`result` whenever the current low bit of `n` is 1 reconstructs the full product. Each iteration
-either halves `n` or clears its lowest bit, so the loop runs `O(log n)` times instead of `O(n)`,
-using only a constant amount of extra state.
+After sign normalization, let the current variables be `result`, `x`, and `n`. Initially,
+`result * x^n` is the desired power. If `n` is odd, replacing the pair with
+`result * x` and `n - 1` preserves that product. If `n` is even, replacing `x` with `x^2` and
+`n` with `n / 2` also preserves it. The exponent strictly decreases, so eventually `n = 0`;
+the invariant then says `result` is the desired value.
+
+**Complexity**
+
+- **Time:** `O(log |n|)` because every one or two iterations at least halve the exponent.
+- **Space:** `O(1)`.

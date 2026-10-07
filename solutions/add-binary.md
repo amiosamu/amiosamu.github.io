@@ -23,25 +23,19 @@ Explanation: 1010 is 10 and 1011 is 11 in decimal; 10 + 11 = 21, which is 10101 
 
 ## Intuition
 
-`int(a, 2) + int(b, 2)` and `bin(...)` would pass in Python because ints are arbitrary
-precision, but that dodges the exercise and does not translate to a language with fixed-width
-integers. The real solve is grade-school addition in base 2: walk both strings from the right,
-add the two digits plus the carry, and note that the running total is always in `0..3` — so the
-output digit is `total & 1` and the new carry is `total >> 1`.
+Binary addition follows the same right-to-left process as decimal addition. At each position,
+add both available digits and the incoming carry. The low bit of that total is the result digit,
+and the remaining high bit is the next carry.
 
 ## Approach
 
-1. Set `i = len(a) - 1`, `j = len(b) - 1`, `carry = 0`, and `res = []` to collect digits
-   reversed.
-2. Loop while `i >= 0 or j >= 0 or carry` — the `carry` clause is what emits the final leading
-   1 when the sum is one digit wider than both inputs.
-3. Inside the loop, start `total = carry`; if `i >= 0` add `int(a[i])` and decrement `i`;
-   if `j >= 0` add `int(b[j])` and decrement `j`. This is how unequal lengths are handled
-   without padding either string.
-4. Append `str(total & 1)` to `res` and set `carry = total >> 1`.
-5. Return `"".join(reversed(res))`.
-6. Trace `a = "1010"`, `b = "1011"`: digits emitted right to left are `1, 0, 1, 0`, then the
-   loop runs once more on `carry = 1` and emits `1`, so reversed the result is `"10101"`.
+1. Set `i` and `j` to the final indices of `a` and `b`. Keep `carry` and a reversed digit
+   list `res`.
+2. While either string has a digit left or `carry` is nonzero, add each available digit to
+   `carry`. Missing leading digits contribute zero.
+3. Append `total & 1`, the low bit of the sum, and update `carry = total >> 1`.
+4. Reverse the collected digits and join them. The loop condition preserves a final leading
+   `1` when the sum grows by one bit.
 
 ## Code
 
@@ -66,8 +60,13 @@ class Solution:
 
 ## Why it works
 
-The invariant is that after processing position `k`, `res` holds the correct low `k + 1` bits of
-`a + b` and `carry` holds the value that overflows into position `k + 1`. Since `total` is at most
-`1 + 1 + 1 = 3`, `total & 1` is the digit and `total >> 1` is the carry — exactly the definition of
-base-2 addition. The loop runs `max(n, m) + 1` times at most, and the only storage is the answer
-string.
+After each iteration, `res` contains the correct processed suffix of the sum in reverse order,
+and `carry` is exactly the value owed to the next position. The total is at most three, so its
+low bit and high bit are precisely the output digit and carry. This invariant extends by one
+position per iteration and proves the final reversed string is the complete sum.
+
+**Complexity**
+
+- **Time:** `O(max(n, m))`.
+- **Space:** `O(max(n, m))` for the returned digits; auxiliary state besides the output is
+  `O(1)`.

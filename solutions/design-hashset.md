@@ -9,41 +9,35 @@ space: "O(n + k)"
 
 ## Description
 
-Design a HashSet without using any built-in hash table library, supporting `add(key)`
-(insert a non-negative integer key), `remove(key)` (delete it if present), and
-`contains(key)` (report whether it's currently stored).
+Design a hash set without a built-in hash table. Support adding, removing, and testing
+membership for non-negative integer keys.
 
 **Example**
 
 ```
-Input: ["MyHashSet", "add", "add", "contains", "contains", "add", "contains", "remove", "contains"], [[], [1], [2], [1], [3], [2], [2], [2], [2]]
+Input:
+operations = ["MyHashSet", "add", "add", "contains", "contains", "add",
+              "contains", "remove", "contains"]
+arguments = [[], [1], [2], [1], [3], [2], [2], [2], [2]]
 Output: [null, null, null, true, false, null, true, null, false]
 ```
 
-Explanation: After `add(1)` and `add(2)`, `contains(1)` is `true` and `contains(3)` is
-`false`; adding `2` again changes nothing; after `remove(2)`, `contains(2)` flips back to
-`false`.
+Adding 2 twice stores only one copy. After removing it, `contains(2)` returns `false`.
 
 ## Intuition
 
-Keys go up to `10^6`, so a plain boolean array of that size actually works — but it's not
-what the problem is asking for. The real structure is a fixed array of `k` buckets plus a
-hash that maps a key to a bucket: `key % k`. Collisions are handled by chaining, i.e. each
-bucket is a small list scanned linearly. Picking `k` prime (1009 here) keeps keys with
-common factors — a very likely pattern in test input — from piling into the same bucket.
+Map each key to a fixed bucket using `key % size`. Because multiple keys can select the
+same bucket, store each bucket as a list and scan that collision chain. Adding only absent
+keys preserves set semantics, while removing an absent key does nothing.
 
 ## Approach
 
-1. In `__init__`, fix `self.size = 1009` (prime) and build `self.buckets` as a list of
-   `size` empty lists. Build them with a comprehension, never `[[]] * size`, which would
-   alias one list into every slot.
-2. Define the bucket of a key as `self.buckets[key % self.size]`.
-3. `add(key)`: get the bucket; append only if `key not in bucket`, so the set stays free
-   of duplicates.
-4. `remove(key)`: get the bucket; `bucket.remove(key)` if present, otherwise do nothing —
-   removing an absent key must not raise.
-5. `contains(key)`: return `key in bucket`, a linear scan of that one chain.
-6. Keys are non-negative in this problem, so `%` never yields a negative index.
+1. Allocate 1009 distinct bucket lists. A prime bucket count helps distribute patterned
+   integer keys.
+2. Select the same chain for every operation with `buckets[key % size]`.
+3. In `add`, append only if the key is absent; this prevents duplicate entries.
+4. In `remove`, mutate the chain only when the key is present. In `contains`, return the
+   chain membership result without changing the set.
 
 ## Code
 
@@ -69,9 +63,13 @@ class MyHashSet:
 
 ## Why it works
 
-`key % size` is a function of the key alone, so a key always lands in the same bucket and
-searching that one chain is equivalent to searching the whole set — that's the entire
-correctness argument. `add`'s membership check keeps at most one copy per key, which is
-what makes `remove` a single deletion. With `n` keys spread over `k` buckets each chain
-averages `n / k` entries, so operations are `O(1)` on average (`O(n)` in the pathological
-all-collide case), and space is `O(n + k)`.
+The invariant is that every stored key appears exactly once in the bucket chosen by its
+hash. `add` establishes or preserves that fact, and `remove` removes exactly that entry
+when it exists. Since `contains` computes the same bucket, its membership test is true
+exactly for stored keys.
+
+**Complexity**
+
+- **Time:** `O(1)` average per operation with well-distributed keys. `add`, `remove`, and
+  `contains` are each `O(n)` in the worst case when all keys share one bucket.
+- **Space:** `O(n + k)` for `n` keys and `k = 1009` buckets.

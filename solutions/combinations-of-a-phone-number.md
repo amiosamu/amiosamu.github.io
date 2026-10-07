@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a string `digits` containing digits from 2-9, return every letter combination the number could represent on a phone keypad (e.g. digit 2 maps to letters "abc"), in any order.
+Given a string containing digits `2` through `9`, return every letter combination represented
+by the corresponding phone keypad keys, in any order.
 
 **Example**
 
@@ -18,22 +19,24 @@ Input: digits = "23"
 Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
 ```
 
-Explanation: Digit '2' maps to letters "abc" and digit '3' maps to "def", so the output pairs each of the 3 letters for '2' with each of the 3 letters for '3', giving 3 * 3 = 9 combinations.
+Digit `2` contributes one of `abc` and digit `3` contributes one of `def`, producing nine
+pairs.
 
 ## Intuition
 
-This is a cartesian product, not a search: digit `i` contributes exactly one letter to the output, chosen from that digit's 3 or 4 keypad letters, independently of every other digit. So the recursion tree has fixed depth `len(digits)`, branching 3 or 4 at each level, and every leaf is a valid answer — nothing is ever rejected. The only real decisions are the keypad table and the empty-input case, which must return `[]` rather than `[""]`.
+The answer is a Cartesian product. At depth `i`, choose one letter mapped from `digits[i]`.
+Every path has exactly `len(digits)` choices and is valid, so no pruning is needed. Empty input
+is handled separately because the required result is `[]`, not a list containing an empty
+string.
 
 ## Approach
 
-1. Guard `if not digits: return []` up front. Without it the recursion immediately hits its base case and returns `[""]`, which the problem counts as wrong.
-2. Build `pad`, a dict from digit character to its letters: `2`→`"abc"` … `7`→`"pqrs"`, `8`→`"tuv"`, `9`→`"wxyz"`. Only 7 and 9 have four letters.
-3. The decision at depth `i` is which letter of `pad[digits[i]]` to take; the loop over that string enumerates the siblings.
-4. `path` holds the letters chosen so far, one per digit consumed; `res` collects finished strings.
-5. Base case: `i == len(digits)` — every digit has contributed, so append `"".join(path)` and return.
-6. `"".join(path)` is the copy step: `path` is a single list mutated by the whole traversal, and joining snapshots it into a fresh immutable string, so later mutations can't corrupt what's already in `res`.
-7. Body: `path.append(ch)`, `dfs(i + 1)`, `path.pop()` — undo before the next letter so `path` always has exactly `i` entries on entry to depth `i`.
-8. No pruning and no duplicate rule: the keypad letter sets are disjoint, digits are consumed in fixed order, so no two leaves can collide and no branch can dead-end.
+1. Return `[]` immediately for empty `digits`, then define the digit-to-letters mapping.
+2. Let `dfs(i)` choose the letter for position `i`; `path` stores one letter for every digit
+   before `i`.
+3. Append each candidate letter, recurse to `i + 1`, and pop it to restore `path` for the next
+   choice.
+4. At `i == len(digits)`, join `path` into a new string and append it to `res`.
 
 ## Code
 
@@ -61,4 +64,12 @@ class Solution:
 
 ## Why it works
 
-Position `i` of every output comes from `pad[digits[i]]` and from nowhere else, so the set of valid answers is exactly the cartesian product of those letter sets — and a depth-first walk that fixes one factor per level enumerates a cartesian product exactly once per tuple. The `path.pop()` restores the invariant "`path` holds one letter per digit already fixed", which is what lets the sibling iterations share one buffer. There are at most 4^n leaves, each joined in O(n), giving O(n * 4^n) time and O(n) auxiliary space for `path` and the stack.
+On entry to `dfs(i)`, `path` contains exactly one valid letter for each of the first `i` digits.
+Appending a mapped letter preserves that invariant for `i + 1`, and popping restores it for the
+next sibling. Thus every leaf is valid. Conversely, every valid combination determines one
+choice at each depth, so it reaches exactly one leaf.
+
+**Complexity**
+
+- **Time:** `O(n * 4^n)` in the worst case because up to `4^n` strings of length `n` are built.
+- **Space:** `O(n)` auxiliary recursion and path space, plus `O(n * 4^n)` output space.

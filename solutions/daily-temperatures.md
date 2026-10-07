@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a list `temperatures` of daily temperatures, return an array where each element is the number of days you would have to wait after that day to reach a strictly warmer temperature, or 0 if there is no future day that is warmer.
+Given daily `temperatures`, return how many days each day must wait for a strictly warmer
+temperature. Return `0` for a day with no warmer future day.
 
 **Example**
 
@@ -18,21 +19,27 @@ Input: temperatures = [73,74,75,71,69,72,76,73]
 Output: [1,1,4,2,1,1,0,0]
 ```
 
-Explanation: day 0 (73) waits 1 day for 74; day 2 (75) has to wait until index 6 (76), which is 4 days later; the last two days never see a warmer temperature, so they get 0.
+Day 0 waits one day for 74, while day 2 waits four days for 76. The final two days have
+no warmer future temperature.
 
 ## Intuition
 
-Brute force asks, for each day, "scan right until something warmer" — O(n²), and it re-scans the same cold stretch over and over. The insight is that a day is only *waiting* as long as every day since has been colder, so the set of unresolved days at any moment has strictly decreasing temperatures. Keep that set on a stack: when today is warmer than the top, today is by definition the first warmer day for it, because every day in between was colder still. Each day gets answered exactly once, when it is popped.
+A left-to-right scan only needs to retain days that have not yet found a warmer
+temperature. Store their indices on a monotonic stack. When the current temperature is
+warmer than the stack's top, the current day is the first valid answer for that index.
+
+Equal temperatures remain unresolved, so the temperatures at the stored indices are
+non-increasing, not strictly decreasing. The stack stores indices because each answer is
+an index difference rather than a temperature.
 
 ## Approach
 
-1. Allocate `res = [0] * len(temperatures)`. Zero is already the correct answer for a day that never warms up, so I never write it explicitly.
-2. Keep `stack` holding **indices** of days still waiting for a warmer day. The temperatures at those indices are strictly decreasing from bottom to top.
-3. Iterate `for i, t in enumerate(temperatures)`.
-4. While `stack` is non-empty and `temperatures[stack[-1]] < t`: pop `j`. **Popping day `j` means today is the first day warmer than day `j`** — every day between `j` and `i` was on the stack under `i` at some point and was colder, so none of them qualified. Record `res[j] = i - j`.
-5. Use strict `<` so equal temperatures do not resolve anything: the problem wants a strictly warmer day, so an equal day must stay on the stack.
-6. After the while loop, push `i`. It is now the smallest unresolved temperature, so the decreasing invariant holds.
-7. Anything left on the stack at the end never found a warmer day and keeps its `0`. Return `res`.
+1. Initialize `res` with zeros and keep `stack` as indices of unresolved days.
+2. For each index `i` and temperature `t`, pop while `t` is strictly warmer than the
+   temperature at the top index.
+3. For each popped index `j`, set `res[j] = i - j`; no earlier day after `j` was warmer.
+4. Push `i`. Equal values stay unresolved, and indices left after the scan keep their
+   initial zero. An empty input naturally returns an empty result.
 
 ## Code
 
@@ -51,4 +58,14 @@ class Solution:
 
 ## Why it works
 
-The invariant is that the stack holds exactly the days not yet answered, and their temperatures decrease from bottom to top — which is forced, since a day is only unanswered while nothing warmer has appeared after it. So when day `i` beats the top, it beats it for the first time, and popping in order also correctly answers everything below that `i` beats. Indices rather than values are stored because the answer is a distance, and `i - j` needs the position. Every index is pushed once and popped at most once, so the total work is O(n) despite the nested loop, with an O(n) stack.
+Before processing index `i`, the stack contains unresolved earlier indices in increasing
+index order, with non-increasing temperatures. If `temperatures[i]` exceeds the top value,
+all intervening days have failed to resolve that top index, so `i` is its first warmer day.
+Popping preserves the invariant until the current index can be pushed. Any index remaining
+after the scan has no warmer value to its right and correctly keeps answer zero.
+
+**Complexity**
+
+- **Time:** `O(n)` because every index is pushed once and popped at most once.
+- **Space:** `O(n)` auxiliary space for the stack.
+- **Output:** `O(n)` for the result list.

@@ -9,9 +9,8 @@ space: "O(n^2)"
 
 ## Description
 
-Given an even-length array `piles` where Alice and Bob alternately remove a pile from either
-end of the row (Alice moves first) and each plays to maximize their own total stones,
-determines whether Alice is guaranteed to win.
+Given an even-length array `piles`, Alice and Bob alternately remove one pile from either end.
+Alice starts, and both maximize their own stones. Return whether Alice can guarantee a win.
 
 **Example**
 
@@ -20,19 +19,22 @@ Input: piles = [5,3,4,5]
 Output: true
 ```
 
-Explanation: if Alice takes the first pile (5), the remaining row `[3,4,5]` leaves Bob no way
-to stop Alice from finishing with more stones than him, so Alice wins.
+Explanation: Alice can choose an end so that her final total is greater than Bob's.
 
 ## Intuition
 
-Instead of tracking each player's score separately, track the difference the player-to-move can force on the remaining range `piles[i..j]`. Whichever end they take, the opponent then plays optimally on what's left, so the best achievable difference is the pile just taken minus the opponent's best difference on the remainder.
+Track the score difference the player to move can force on each interval. Taking either end adds
+that pile to the current player's score, then gives the opponent the same type of problem on the
+remaining interval. The opponent's optimal advantage must therefore be subtracted.
 
 ## Approach
 
-1. Let `n = len(piles)`. `dp[i][j]` = the maximum `(current player's stones - opponent's stones)` achievable from the subarray `piles[i..j]`, with the current player choosing which end to take.
-2. Base case: `dp[i][i] = piles[i]` — with one pile left, take it.
-3. For interval length from 2 up to `n`, and each `i` with `j = i + length - 1`: `dp[i][j] = max(piles[i] - dp[i+1][j], piles[j] - dp[i][j-1])` — take the left pile and subtract the opponent's best net on `piles[i+1..j]`, or take the right pile and subtract the opponent's best net on `piles[i..j-1]`.
-4. The answer is `dp[0][n-1] > 0` — Alice, who moves first on the full array, can force a strictly positive difference.
+1. Define `dp[i][j]` as the maximum current-player score minus opponent score on
+   `piles[i..j]`.
+2. Set `dp[i][i] = piles[i]`, since the only move takes the remaining pile.
+3. Fill intervals by increasing length using
+   `max(piles[i] - dp[i + 1][j], piles[j] - dp[i][j - 1])`.
+4. Return whether `dp[0][n - 1] > 0`, meaning Alice can force a positive difference.
 
 ## Code
 
@@ -52,4 +54,14 @@ class Solution:
 
 ## Why it works
 
-Every stone in `piles[i..j]` ends up with exactly one player, so "my best difference" is always "the pile I take" minus "the opponent's best difference on the rest" — a zero-sum recurrence — and considering both choices (take left or take right) makes the max truly optimal for both sides. The table has O(n^2) cells each computed in O(1), giving O(n^2) time and space.
+Use induction on interval length. For length one, the current player takes the only pile, so the
+base value is exact. For a longer interval, the first move must take either the left or right
+pile. By the induction hypothesis, the corresponding smaller interval stores the opponent's
+optimal advantage. Subtracting it gives the current player's final advantage for that move, and
+taking the larger of the only two legal choices is optimal. Thus the full-interval value is
+Alice's forced advantage.
+
+**Complexity**
+
+- **Time:** `O(n^2)` because every interval is computed once in constant time.
+- **Space:** `O(n^2)` for the DP table.

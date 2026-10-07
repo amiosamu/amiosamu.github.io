@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given the head of a linked list and an integer `n`, remove the `n`th node counting from the end of the list, and return the head of the resulting list.
+Given a linked-list head and integer `n`, remove the `n`th node from the end and return the new
+head.
 
 **Example**
 
@@ -18,29 +19,21 @@ Input: head = [1,2,3,4,5], n = 2
 Output: [1,2,3,5]
 ```
 
-Explanation: Counting from the end, the 2nd node is the one holding 4; removing it leaves [1,2,3,5].
+Explanation: The second node from the end contains `4`, so unlinking it leaves `[1,2,3,5]`.
 
 ## Intuition
 
-"nth from the end" is only awkward because a singly linked list has no length and no way back.
-Fix the gap instead of the position: put two pointers exactly `n` links apart and slide them
-together. When the leading one falls off the end, the trailing one is sitting `n` nodes from the
-end — one pass, no length count. Deleting requires the node *before* the target, so the trailing
-pointer starts at a dummy rather than at `head`.
+A singly linked list cannot move backward from the tail. Instead, keep a fixed gap between two
+pointers: advance `fast` by `n` nodes, then move `fast` and `slow` together. Starting `slow` at a
+dummy node makes it stop immediately before the target, including when the target is the head.
 
 ## Approach
 
-1. `dummy = ListNode(0, head)` and `slow = dummy`. The dummy is there purely so that removing
-   the head itself needs no special case: it gives the head a predecessor to rewire.
-2. `fast = head`, then advance it `n` times with `for _ in range(n): fast = fast.next`. The
-   constraints guarantee `1 <= n <= len`, so this cannot run past the end.
-3. Now `fast` is `n` nodes ahead of `slow.next`. Walk both while `fast` is non-`None`:
-   `slow = slow.next`, `fast = fast.next`.
-4. When `fast` becomes `None`, the invariant "`fast` is `n` nodes past `slow`" places `slow.next`
-   exactly at the node to delete.
-5. Unlink with `slow.next = slow.next.next`.
-6. Return `dummy.next`, not `head` — if the head was the node removed, `head` is now dangling
-   while `dummy.next` is the correct new head.
+1. Create `dummy = ListNode(0, head)`, set `slow = dummy`, and set `fast = head`.
+2. Advance `fast` exactly `n` times. Valid input guarantees these advances are defined.
+3. Move both pointers until `fast` is `None`. At that point `slow.next` is the target node.
+4. Bypass the target with `slow.next = slow.next.next` and return `dummy.next`. This mutates one
+   link in the original list; the dummy handles removal of the original head.
 
 ## Code
 
@@ -61,8 +54,12 @@ class Solution:
 
 ## Why it works
 
-After the priming loop the offset between `slow` and `fast` is fixed at `n + 1` links (`slow`
-sits one behind `head`), and the shared advance preserves it. So the moment `fast` is one past
-the last node, `slow` is `n + 1` from that same point, i.e. `slow.next` is the nth from the end.
-Both loops together traverse the list once, so O(n) time with three pointers of extra state,
-O(1) space.
+After priming, `fast` is `n` nodes ahead of `slow.next`. Advancing both pointers preserves this
+relationship. When `fast` reaches the position after the tail, exactly `n` nodes remain from
+`slow.next` through the tail, so `slow.next` is the `n`th node from the end. Bypassing it preserves
+the order and links of every other node.
+
+**Complexity**
+
+- **Time:** `O(L)` for a list of length `L`.
+- **Space:** `O(1)` auxiliary space.

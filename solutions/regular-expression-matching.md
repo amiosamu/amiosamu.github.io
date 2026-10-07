@@ -9,9 +9,8 @@ space: "O(m * n)"
 
 ## Description
 
-Given an input string `s` and a pattern `p` containing `.` (matches any single character) and
-`*` (matches zero or more occurrences of the preceding element), determines whether `p`
-matches the entire string `s`.
+Given a string `s` and pattern `p`, determine whether the pattern matches the entire string.
+`.` matches any single character, and `*` matches zero or more copies of the preceding element.
 
 **Example**
 
@@ -20,22 +19,26 @@ Input: s = "aa", p = "a"
 Output: false
 ```
 
-Explanation: the pattern `"a"` has no `*` and can only match a single character, but `s` has
-two, so the whole string cannot be matched.
+Explanation: The pattern consumes one `a`, but a full match must consume both characters.
 
 ## Intuition
 
-Backtracking on a `*` branch — try using it zero more times, or one more time — re-explores the same `(i, j)` prefix pair over and over, so memoizing "does `s[:i]` match `p[:j]`" turns it into a grid DP. Only two pattern constructs matter: a literal or `.` that must consume exactly one character, and a `*` quantifier whose count is resolved entirely by looking one column back in the pattern.
+Naive backtracking revisits the same text and pattern prefixes whenever `*` can consume different
+numbers of characters. A dynamic-programming state can record whether `s[:i]` matches `p[:j]`.
+A literal or `.` consumes one character from each prefix. A starred element either consumes zero
+characters or consumes one matching character while remaining available.
 
 ## Approach
 
-1. Let `m, n = len(s), len(p)`. `dp[i][j]` = True if `s[:i]` matches `p[:j]`.
-2. Base case: `dp[0][0] = True` (empty matches empty).
-3. Fill `dp[0][j]` for `j` from 1 to `n`: only possible if `p[j-1] == '*'` and `dp[0][j-2]` is True (the preceding element is used zero times).
-4. For `i` from 1 to `m`, `j` from 1 to `n`:
-5. If `p[j-1] == '*'`: `dp[i][j] = dp[i][j-2]` (use "x*" zero times) OR, when `p[j-2] == '.'` or `p[j-2] == s[i-1]` (the starred element can absorb the current text character), also OR in `dp[i-1][j]` (consume one more text character while keeping "x*" available).
-6. Else (a plain literal or `.`): `dp[i][j] = dp[i-1][j-1]` if `p[j-1] == '.'` or `p[j-1] == s[i-1]`, else `False`.
-7. Return `dp[m][n]`.
+1. Define `dp[i][j]` to mean that `s[:i]` matches `p[:j]`, and set `dp[0][0] = True`.
+2. Initialize the empty-text row. A pattern prefix can match empty only when its final `x*`
+   is omitted and the preceding pattern prefix also matches empty.
+3. For a literal or `.`, set `dp[i][j]` from `dp[i - 1][j - 1]` only when the final
+   characters match.
+4. For `*`, first omit the preceding element with `dp[i][j - 2]`. If that element matches
+   `s[i - 1]`, also allow `dp[i - 1][j]`, consuming one occurrence while retaining `x*`.
+5. Return `dp[m][n]`. The code assumes the problem's valid-pattern constraint, so every `*`
+   has a preceding element.
 
 ## Code
 
@@ -62,4 +65,14 @@ class Solution:
 
 ## Why it works
 
-`dp[i][j]` enumerates the only two ways a pattern column can be consumed — a plain character matched one-for-one, or a `*` quantifier whose occurrence count is decided by trying "zero more" (fall back to `dp[i][j-2]`) versus "one more" (fall back to `dp[i-1][j]`) — and both fallbacks point at strictly smaller subproblems, so filling the table in row-major order is safe and covers every match. Each of the O(m*n) cells does O(1) work.
+We prove each state by considering the final pattern construct. If it is a literal or `.`, a match
+exists exactly when the final text character matches and the two shorter prefixes match. If it is
+`x*`, every match either uses zero copies of `x`, represented by `dp[i][j - 2]`, or at least one
+copy. In the latter case the final text character must match `x`, and removing that character
+leaves `dp[i - 1][j]`. These cases are exhaustive and the table evaluates their smaller states
+first, so `dp[m][n]` is correct.
+
+**Complexity**
+
+- **Time:** `O(m * n)` for the `m + 1` by `n + 1` table.
+- **Space:** `O(m * n)` for the table.

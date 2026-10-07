@@ -9,7 +9,9 @@ space: "O(capacity)"
 
 ## Description
 
-Design a fixed-capacity cache supporting `get(key)` (return the value or -1, and count as a use) and `put(key, value)` (insert or update, counting as a use), where a full cache evicts the least frequently used key, breaking ties by evicting the least recently used among those with the minimum frequency.
+Design a fixed-capacity cache with `get(key)` and `put(key, value)`. Reads and updates count as
+uses. When insertion requires eviction, remove the least frequently used key; among equal
+frequencies, remove the least recently used key.
 
 **Example**
 
@@ -18,40 +20,29 @@ Input: ["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get
 Output: [null, null, null, 1, null, -1, 3, null, -1, 3, 4]
 ```
 
-Explanation: With capacity 2, after get(1) key 1 has frequency 2 versus key 2's frequency 1, so putting key 3 evicts key 2 (lower frequency); get(2) then returns -1 while get(3) returns 3. Putting key 4 next evicts key 1, the least frequently used survivor at that point, so the final get(1) returns -1 while get(3) and get(4) return 3 and 4.
+After `get(1)`, inserting key `3` evicts key `2`, whose frequency is lower. After `get(3)`,
+keys `1` and `3` tie at frequency two, so inserting key `4` evicts the older key `1`.
 
 ## Intuition
 
-LFU is LRU with a second dimension: evict the least-used key, and break ties by least-recently
-used. Scanning for the minimum frequency is O(n), so bucket the keys by frequency and keep each
-bucket in access order — then eviction is "pop the front of the lowest non-empty bucket". The
-part that makes it O(1) is the observation that a frequency only ever increases by exactly one,
-so when the current minimum bucket empties out because its last key was promoted, the new
-minimum is `minfreq + 1` and nothing has to be searched.
+Group keys by frequency and preserve recency order inside each group. Eviction then removes the
+oldest key from the minimum-frequency group. `OrderedDict` provides constant-time deletion,
+insertion at the newest end, and removal from the oldest end. A separate `minfreq` avoids scanning
+the frequency groups.
 
 ## Approach
 
-1. State: `self.vals` (key -> value), `self.freq` (key -> use count), `self.buckets` (count ->
-   `collections.OrderedDict` used as an ordered set of keys, oldest first), and `self.minfreq`.
-2. `_bump(key)` — the shared promotion helper, in this order:
-   `f = self.freq[key]`; `del self.buckets[f][key]`; if that bucket is now empty,
-   `del self.buckets[f]` and, if `self.minfreq == f`, set `self.minfreq = f + 1`;
-   then `self.freq[key] = f + 1` and `self.buckets[f + 1][key] = None`.
-   Re-inserting into the new bucket puts the key at the *back*, which is exactly the recency
-   order the tie-break needs.
-3. `get(key)`: return `-1` on a miss. Otherwise `_bump(key)` and return `self.vals[key]`. A read
-   is a use.
-4. `put(key, value)`: return immediately if `self.cap == 0` — a zero-capacity cache stores
-   nothing, and without this guard the eviction branch would pop from an empty bucket.
-5. If the key is already present, overwrite `self.vals[key]`, `_bump(key)` and return. An update
-   is a use, but it is not an insertion, so no eviction can happen.
-6. Otherwise, if `len(self.vals) == self.cap`, evict first:
-   `evict, _ = self.buckets[self.minfreq].popitem(last=False)` takes the oldest key in the
-   lowest bucket; drop the bucket if it is now empty, then `del self.vals[evict]` and
-   `del self.freq[evict]`.
-7. Insert the new key with `self.vals[key] = value`, `self.freq[key] = 1`,
-   `self.buckets[1][key] = None`, and `self.minfreq = 1`. Resetting `minfreq` to 1 here is
-   mandatory — a brand-new key is always the least frequently used.
+1. Store values in `vals`, each key's count in `freq`, and ordered key sets in `buckets[count]`.
+   In every bucket, the first key is least recent and the last key is most recent.
+2. `_bump(key)` removes the key from frequency `f`, deletes an emptied bucket, then appends the key
+   to bucket `f + 1`. If the emptied bucket was `minfreq`, advance `minfreq` to `f + 1`.
+3. `get` returns `-1` on a miss. On a hit it promotes the key before returning its value.
+4. `put` ignores a zero-capacity cache. Updating an existing key changes its value and promotes it
+   without eviction.
+5. For a new key at capacity, remove the first key from `buckets[minfreq]` and delete its value and
+   frequency records.
+6. Insert every new key at frequency one and set `minfreq = 1`; a new key is necessarily at the
+   minimum frequency.
 
 ## Code
 
@@ -103,12 +94,15 @@ class LFUCache:
 
 ## Why it works
 
-The invariant is that `buckets[f]` contains exactly the live keys whose use count is `f`, in
-increasing order of last access, and `minfreq` is the smallest `f` with a non-empty bucket — so
-`popitem(last=False)` on `buckets[minfreq]` returns precisely the least frequently used key,
-oldest first among ties, which is the eviction rule verbatim. `minfreq` stays correct because
-the only two events that can invalidate it are an insertion (which creates a key at frequency 1,
-handled by setting it to 1) and a promotion that empties the current minimum bucket (whose key
-moved to `f + 1`, so `f + 1` is now non-empty and minimal). Every operation is a fixed number of
-dict and `OrderedDict` operations, all O(1), and the structures together hold one entry per live
-key, so O(capacity) space.
+The invariant is that each live key appears in exactly one `buckets[f]`, where `f` equals its
+recorded frequency; keys in that bucket run from least to most recent; and `minfreq` names the
+smallest non-empty bucket. Promotion removes a key from its old bucket and appends it to `f + 1`,
+so membership, frequency, and recency remain synchronized. If promotion empties the minimum
+bucket, `f + 1` is non-empty because it receives that key, and no lower non-empty bucket can exist.
+Insertion creates frequency one and resets the minimum. Therefore eviction from the front of
+`buckets[minfreq]` selects exactly the LFU key and then the LRU key among ties.
+
+**Complexity**
+
+- **Time:** `O(1)` average time for both `get` and `put`.
+- **Space:** `O(capacity)` across all maps and frequency buckets.

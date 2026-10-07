@@ -9,10 +9,9 @@ space: "O(n log M)"
 
 ## Description
 
-Given an array `nums`, determine whether it is possible to traverse between every pair of
-indices, where a direct move between index `i` and index `j` is allowed exactly when
-`gcd(nums[i], nums[j]) > 1`. Return `True` if every pair of indices is connected by some
-sequence of such moves, `False` otherwise.
+Given `nums`, allow a move between indices `i` and `j` when
+`gcd(nums[i], nums[j]) > 1`. Return whether every pair of indices is connected by a
+sequence of such moves.
 
 **Example**
 
@@ -21,22 +20,29 @@ Input: nums = [2,3,6]
 Output: true
 ```
 
-Explanation: `gcd(2, 6) = 2 > 1` and `gcd(3, 6) = 3 > 1`, so both index 0 and index 1 are
-directly connected to index 2, which links all three indices into a single component.
+Explanation: Both `2` and `3` share a factor with `6`, so index `2` connects all indices.
 
 ## Intuition
 
-The question is whether the graph "connect `i` and `j` when `gcd(nums[i], nums[j]) > 1`" is a single connected component. Building it directly needs all O(n²) pairs. The insight is that `gcd > 1` means the two numbers share a prime, so instead of linking numbers to numbers I link each number to the *primes* it contains: two numbers sharing prime `p` end up in the same component through `p`, transitively and for free. In practice I don't even need node ids for primes — I just remember the first index that used each prime and union the current index with it. Everything then reduces to one union-find over `n` indices.
+Two values have a greatest common divisor above one exactly when they share a prime factor.
+Instead of testing all `O(n^2)` index pairs, factor each value and join indices that share
+a prime.
+
+For each prime, it is enough to remember one previously seen index. Unioning every later
+index with that representative connects all indices containing the prime, and union-find
+also captures paths formed through several different primes.
 
 ## Approach
 
-1. Handle the two degenerate cases first: `n == 1` is trivially connected, and if `n > 1` and any element is `1`, that element shares no prime with anything, so return `False`.
-2. Set up union-find over the indices `0..n-1`: `par = list(range(n))`, `rank = [1] * n`, an iterative `find` with path halving, and a `union` that merges the smaller tree into the larger.
-3. Keep `primeToIndex`, a map from a prime to the first index whose value was divisible by it.
-4. For each index `i` and value `num`, factorise a copy `x` by trial division: for `p` from `2` while `p * p <= x`, divide `x` by `p` completely whenever `p` divides it.
-5. Each time a prime `p` is found, union `i` with `primeToIndex[p]` if the prime has been seen, otherwise record `primeToIndex[p] = i`.
-6. After the loop, if `x > 1` it is a leftover prime factor larger than the square root — apply the same seen/record step to it. Forgetting this misses numbers like `26 = 2 * 13`.
-7. Finally, check every index shares a root with index `0`; return that.
+1. Return `True` for one value. For multiple values, return `False` if any value is `1`,
+   because that index cannot have an edge.
+2. Initialize union-find over indices. `par` stores parents, while `rank` stores component
+   sizes for weighted unions.
+3. Factor each value by trial division. Remove all copies of a discovered prime, then
+   union the current index with the representative stored in `primeToIndex`.
+4. Process a remaining `x > 1` after trial division; it is the value's final prime factor.
+5. Return whether every index has the same root as index `0`. Factorization uses a copy of
+   each number and does not mutate `nums`.
 
 ## Code
 
@@ -93,4 +99,14 @@ class Solution:
 
 ## Why it works
 
-Union-find components are closed under transitivity, which is exactly the relation "some path exists", so the answer is just "is there one component" — and traversal between every pair is possible precisely when all indices are connected. Linking each index only to the *first* index carrying each prime is enough: all indices containing `p` get chained to that same representative, so they are mutually connected without materialising the O(n²) edges. Trial division up to the square root, with the leftover handled explicitly, finds every prime factor, so no edge is missed. Factorising each of `n` numbers costs O(sqrt(M)) for `M` the maximum value, and the near-constant union-find operations do not add to it; the map holds at most one entry per distinct prime, and each number has at most `log M` of them, so space is O(n log M).
+All indices containing a prime `p` are unioned with the same representative, so every
+direct graph edge implied by `p` lies within one union-find component. Conversely, each
+union joins indices sharing a prime and therefore corresponds to a valid graph edge.
+Union-find components thus equal the graph's connected components. Trial division plus
+the leftover-prime check finds every distinct prime factor, so the final root comparison
+is true exactly when all indices are mutually reachable.
+
+**Complexity**
+
+- **Time:** `O(n sqrt(M))`, where `M = max(nums)`; union-find work is lower order.
+- **Space:** `O(n log M)` in the stated upper bound for parents and prime representatives.

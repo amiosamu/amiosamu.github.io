@@ -3,13 +3,14 @@
 # https://leetcode.com/problems/decode-string/
 draft: false
 pattern: "Stack of pending prefix and count"
-time: "O(m)"
-space: "O(m)"
+time: "O(n + m * d)"
+space: "O(n + m)"
 ---
 
 ## Description
 
-Given an encoded string `s` made of letters and bracketed repeat groups of the form `k[encoded_string]`, return the fully decoded string, where each bracketed group is expanded `k` times and groups may nest arbitrarily deep.
+Given an encoded string containing letters and groups of the form `k[encoded_string]`,
+return its decoded value. Repeat counts may have multiple digits, and groups may be nested.
 
 **Example**
 
@@ -18,21 +19,26 @@ Input: s = "3[a]2[bc]"
 Output: "aaabcbc"
 ```
 
-Explanation: `3[a]` expands to `"aaa"` and `2[bc]` expands to `"bcbc"`; concatenating the two pieces gives `"aaabcbc"`.
+The groups expand to `"aaa"` and `"bcbc"`, which concatenate to `"aaabcbc"`.
 
 ## Intuition
 
-The encoding nests, so this is a parsing problem: `3[a2[c]]` needs the inner `2[c]` resolved before the outer repeat can be applied. Recursion would work, but the same thing falls out of one pass if I keep only two live registers — `cur`, the string being built at the current depth, and `num`, the multiplier being read — and push the pair onto a stack whenever a `[` opens a deeper level. A `]` then pops the parent's half-built string and its count, and stitches `parent + cur * k`. Digits can be multi-character, so the count is accumulated with `num * 10 + digit` rather than read as a single char.
+Nested groups must be completed from the inside out. `cur` stores the decoded text at the
+current nesting level, while the stack saves each enclosing prefix and repeat count.
+
+An opening bracket starts a new level. A closing bracket finishes that level by repeating
+the current chunks and appending the repeated group to its saved parent. Counts are
+accumulated digit by digit, so values such as `12` are handled correctly.
 
 ## Approach
 
-1. Keep `stack` (pairs of a parent string and its repeat count), `cur = ""`, and `num = 0`.
-2. Scan `s` one character `c` at a time.
-3. If `c.isdigit()`, do `num = num * 10 + int(c)` — this handles counts like `10`.
-4. If `c == "["`, push `(cur, num)` and reset both `cur = ""` and `num = 0`. The push saves the parent's progress so the child can build on a clean buffer.
-5. If `c == "]"`, pop `(prev, k)` and set `cur = prev + cur * k`. The finished child block is repeated and appended to whatever the parent had built before the bracket.
-6. Otherwise `c` is a letter: append it with `cur += c`.
-7. Return `cur`. The input is guaranteed well-formed, so the stack is empty at the end and `cur` holds the whole decoded string.
+1. Track current-level text chunks in `cur`, the pending number in `num`, and enclosing
+   `(parent_chunks, repeat)` pairs in `stack`.
+2. Accumulate each digit with `num = num * 10 + int(c)`.
+3. On `[`, save `(cur, num)` and reset both values for the nested group.
+4. On `]`, join the completed level, repeat it `k` times, append it to `prev`, and continue
+   building that parent. Append ordinary letters as chunks without repeatedly copying text.
+5. Join `cur` after the well-formed input closes every saved level.
 
 ## Code
 
@@ -40,7 +46,7 @@ The encoding nests, so this is a parsing problem: `3[a2[c]]` needs the inner `2[
 class Solution:
     def decodeString(self, s: str) -> str:
         stack = []
-        cur = ""
+        cur = []
         num = 0
 
         for c in s:
@@ -48,16 +54,28 @@ class Solution:
                 num = num * 10 + int(c)
             elif c == "[":
                 stack.append((cur, num))
-                cur, num = "", 0
+                cur, num = [], 0
             elif c == "]":
                 prev, k = stack.pop()
-                cur = prev + cur * k
+                prev.append("".join(cur) * k)
+                cur = prev
             else:
-                cur += c
+                cur.append(c)
 
-        return cur
+        return "".join(cur)
 ```
 
 ## Why it works
 
-The invariant is that `cur` always holds the fully decoded text of the current bracket level so far, and the stack holds the same fact for every enclosing level, frozen at the moment its `[` was read. So when a `]` arrives, `cur` is already completely decoded — every nested block inside it was collapsed by an earlier `]` — which is why a single multiply-and-append finishes the level correctly. Each character is handled once and the string building totals the length of the decoded output, so with `m` as that output length the run is O(m) time and O(m) space, the stack depth being bounded by the nesting depth.
+After each input character, joining `cur` yields the decoded prefix of the current level,
+and each stack entry preserves its parent prefix and repeat count. When `]` is read, every
+nested group in `cur` is already decoded. Repeating that text and appending it to the saved
+parent therefore produces exactly the decoded parent prefix and preserves the invariant.
+At depth zero, joining `cur` gives the complete answer.
+
+**Complexity**
+
+- **Time:** `O(n + m * d)` in the worst case, where `n` is encoded length, `m` is decoded
+  length, and `d` is nesting depth; immutable strings may be recopied at each level.
+- **Space:** `O(n + m)` for stack state and intermediate decoded chunks.
+- **Output:** `O(m)` for the decoded string.

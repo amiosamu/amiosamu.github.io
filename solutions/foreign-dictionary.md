@@ -9,10 +9,8 @@ space: "O(V + E)"
 
 ## Description
 
-Given a list of `words` from an alien language, sorted lexicographically according to that
-language's unknown letter order, derive an order of the letters that is consistent with the
-sorting. Return any valid ordering as a single string, or `""` if the input is contradictory
-or otherwise cannot correspond to any valid alphabet.
+Given alien-language `words` sorted by an unknown alphabet, return any character ordering
+consistent with the list. Return `""` if no valid ordering exists.
 
 **Example**
 
@@ -21,39 +19,30 @@ Input: words = ["wrt","wrf","er","ett","rftt"]
 Output: "wertf"
 ```
 
-Explanation: Comparing each pair of adjacent words at their first differing letter yields
-the constraints `t < f`, `w < e`, `r < t`, and `e < r`; the string "wertf" is one letter
-ordering consistent with all of them.
+Explanation: Adjacent comparisons give `t < f`, `w < e`, `r < t`, and `e < r`, which
+are all satisfied by `"wertf"`.
 
 ## Intuition
 
-A sorted word list tells me almost nothing about most letter pairs. All I can extract
-from two adjacent words is **one** fact: at their first differing position, the left
-word's letter precedes the right word's letter. Everything after that position is
-unconstrained, which is why the `break` matters.
+For adjacent words, only their first differing characters determine their relative order.
+That pair creates a directed precedence edge. Characters after the mismatch add no valid
+constraint.
 
-Those facts are edges in a precedence DAG over letters, and any valid alphabet is a
-topological order of it. Two failure modes fall out naturally: a cycle in the edges
-(contradictory constraints), and the prefix violation `["abc", "ab"]` where a longer
-word sorts before its own prefix — impossible in any alphabet, and it produces no edge
-at all, so it has to be checked explicitly.
+A valid alphabet is a topological ordering of this graph. A cycle makes the constraints
+inconsistent. A longer word before its exact prefix, such as `"abc"` before `"ab"`, is
+also invalid and must be detected separately because it creates no edge.
 
 ## Approach
 
-1. Build `adj` as `{char: set()}` and `indegree` as `{char: 0}` over every character
-   appearing anywhere in `words`. Letters that never appear must not be in the output.
-2. For each adjacent pair `w1, w2` with `min_len = min(len(w1), len(w2))`:
-   - If `len(w1) > len(w2)` and `w1[:min_len] == w2[:min_len]`, return `""` — the prefix
-     violation.
-   - Otherwise scan `j` in `range(min_len)`, and at the first `w1[j] != w2[j]` add the
-     edge `w1[j] -> w2[j]` and `break`. Use a set so a repeated pair does not
-     double-count `indegree`.
-3. Kahn: seed a deque with every character of indegree 0, pop one at a time, append it
-   to `res`, and decrement each neighbour's indegree, enqueueing on 0.
-4. If `len(res) != len(adj)` some letters are stuck in a cycle, so return `""`.
-   Otherwise `"".join(res)`.
-5. Any valid order is accepted, so the arbitrary tie-breaking among indegree-0 letters
-   is fine.
+1. Create an adjacency set and an indegree count for every character appearing in
+   `words`, including characters with no ordering edges.
+2. Compare each adjacent word pair. Reject a longer word followed by its exact prefix;
+   otherwise add one edge for the first mismatch and stop comparing that pair.
+3. Use sets for neighbors so a repeated constraint increments indegree only once.
+4. Run Kahn's algorithm: enqueue all zero-indegree characters, emit them, and decrement
+   their neighbors' indegrees.
+5. Return the emitted characters if all were processed. Otherwise, a cycle remains, so
+   return `""`. Any ordering among simultaneous zero-indegree characters is valid.
 
 ## Code
 
@@ -68,7 +57,7 @@ class Solution:
         for i in range(len(words) - 1):
             w1, w2 = words[i], words[i + 1]
             min_len = min(len(w1), len(w2))
-            if len(w1) > len(w2) and w1[:min_len] == w2[:min_len]:
+            if len(w1) > len(w2) and w1.startswith(w2):
                 return ""
             for j in range(min_len):
                 if w1[j] != w2[j]:
@@ -92,11 +81,14 @@ class Solution:
 
 ## Why it works
 
-The extracted edges are exactly the constraints the input implies — no more, since
-characters past the first mismatch are genuinely free, and no fewer, since sortedness of
-non-adjacent pairs is implied by transitivity of the adjacent ones. Kahn's outputs a
-letter only once every letter that must precede it is already placed, so the result
-satisfies every edge; if it stops short, the remaining letters all have positive
-indegree, which means a cycle and no valid alphabet exists. Building the graph is
-`O(C)` in total input length, and Kahn's visits each of the at most 26 letters and each
-edge once: `O(C + V + E)`.
+The first mismatch of each adjacent pair is a necessary ordering constraint, while later
+characters do not affect that pair's lexical order. After excluding invalid prefixes, any
+alphabet satisfying all these edges orders every adjacent pair correctly and therefore
+the entire list. Kahn's algorithm emits a character only after all its predecessors, so a
+complete result satisfies every constraint. If it cannot emit every character, the
+remaining directed graph contains a cycle and no alphabet can satisfy it.
+
+**Complexity**
+
+- **Time:** `O(C + V + E)`, where `C` is the input size and `V`, `E` are graph sizes.
+- **Space:** `O(V + E)` for the graph, indegrees, queue, and result.

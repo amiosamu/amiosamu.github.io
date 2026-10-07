@@ -9,9 +9,8 @@ space: "O(m * n)"
 
 ## Description
 
-Given an `m x n` binary grid where `1` marks land and `0` marks water, find the largest
-island (a group of `1`s connected horizontally or vertically) and return its area in number
-of cells, or `0` if there is no land.
+Given an `m x n` binary grid, return the area of its largest island. Land cells contain `1`,
+water cells contain `0`, and land is connected only horizontally or vertically.
 
 **Example**
 
@@ -20,36 +19,25 @@ Input: grid = [[1,1,0],[1,1,0],[0,0,1]]
 Output: 4
 ```
 
-Explanation: the top-left `2 x 2` block of `1`s forms a 4-cell island, while the bottom-right
-`1` is its own separate 1-cell island, so the largest area is 4.
+The top-left block is a four-cell island; the bottom-right land cell has area one.
 
 
 ## Intuition
 
-Same graph as Number of Islands: nodes are the `1` cells, edges join land cells sharing a
-side, and an island is a connected component. The only change is that I want each component's
-*size* rather than a count of them, and size is just how many cells the flood fill consumes —
-so I count pops and keep a running max.
+Treat each land cell as a graph vertex connected to its four land neighbors. A flood fill visits
+one connected component, and the number of visited cells is that island's area.
 
-Connectivity, not distance, is what I need, so DFS is as good as BFS. I sink cells by writing
-`0` into the grid instead of keeping a separate `visited` set: it costs nothing extra and the
-sunk cell can never be re-entered. I sink at *push* time for the same reason BFS marks
-visited on enqueue — two cells on the stack must not be able to push the same neighbour twice
-and inflate the area. The stack is explicit because a 50 × 50 grid of all land gives a
-recursion depth of 2500, past CPython's default limit.
+Mark cells as water when pushing them onto an explicit DFS stack. This avoids both a separate
+visited set and duplicate pushes. It intentionally mutates `grid`, and the explicit stack avoids
+recursion-depth limits on a large island.
 
 ## Approach
 
-1. `rows, cols = len(grid), len(grid[0])`; `best = 0`.
-2. Sweep every cell; `continue` unless `grid[r][c] == 1`.
-3. Start a fill: `area = 0`, `stack = [(r, c)]`, and sink the seed with `grid[r][c] = 0`.
-4. While the stack is non-empty, pop `(cr, cc)` and `area += 1` — every cell is counted
-   exactly once, at pop.
-5. For each of the four neighbours `(cr±1, cc)`, `(cr, cc±1)`: if it is in bounds and equals
-   `1`, sink it (`grid[nr][nc] = 0`) **before** pushing, then push.
-6. After the fill drains, `best = max(best, area)`.
-7. Return `best`. An all-water grid never enters step 3, so `best` stays `0`, which is the
-   required answer.
+1. Scan every grid cell and skip water.
+2. For unseen land, push it onto a stack, change it to `0`, and initialize `area = 0`.
+3. Pop cells, count them, and push each in-bounds land neighbor after changing it to `0`.
+4. When the stack empties, update `best` with that component's area.
+5. Return `best`; an all-water grid leaves it at `0`.
 
 ## Code
 
@@ -83,10 +71,13 @@ class Solution:
 
 ## Why it works
 
-Sinking a cell the instant it is pushed means the set of cells that ever reach the stack is
-exactly the connected component of the seed, each appearing once — so `area` counts that
-component's cells with no double counting and no omission. Every island is reached because
-the sweep visits every cell and the first surviving `1` of an island seeds its fill, while
-already-consumed islands are now zeros and are skipped. Each cell is sunk and popped at most
-once with 4 neighbour checks, so the whole scan is `O(m * n)`, and the stack can hold
-`O(m * n)` cells when the grid is one big island.
+For each fill, the stack contains discovered but uncounted cells from the seed's component. Marking
+at push time ensures each such cell appears once. Every pushed neighbor is connected to the seed,
+and every connected land cell is eventually reached by following its path from the seed. Thus
+`area` is exactly the component size. The outer scan starts one fill per island, so `best` is the
+largest area.
+
+**Complexity**
+
+- **Time:** `O(m * n)` because every cell is processed at most once.
+- **Space:** `O(m * n)` in the worst case for the explicit stack; `grid` is mutated in place.

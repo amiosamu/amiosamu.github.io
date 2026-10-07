@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-A number `pick` between 1 and `n` has already been chosen, and the only way to learn anything about it is by calling the provided API `guess(num)`, which returns `-1` if `pick` is lower than `num`, `1` if `pick` is higher, and `0` if `num` equals `pick`. Given `n`, find `pick` using as few calls as possible.
+A hidden integer `pick` lies in `[1, n]`. The provided `guess(num)` API returns `-1` when
+`num` is too high, `1` when it is too low, and `0` when it equals `pick`. Return `pick`.
 
 **Example**
 
@@ -18,22 +19,22 @@ Input: n = 10, pick = 6
 Output: 6
 ```
 
-Explanation: Calling `guess(6)` returns 0, confirming that 6 is the chosen number.
+Explanation: `guess(6)` returns `0`, identifying the hidden number.
 
 ## Intuition
 
-There is no array here, but there is the same structure: the hidden `pick` sits somewhere in `[1, n]` and `guess(num)` tells me which side of `num` it is on. That is exactly the three-way comparison of a normal binary search with `guess` standing in for `nums[mid] - target`, so the same loop applies unchanged. The only thing worth getting right is the sign convention: `guess` returns `-1` when my guess is *too high*, which is the opposite of what the name suggests.
+The API provides the same three-way comparison used by binary search. A negative result
+discards the midpoint and everything above it; a positive result discards the midpoint and
+everything below it. The sign is from the hidden number's perspective: `-1` means the
+argument passed to `guess` is too high.
 
 ## Approach
 
-1. Search space: the integer interval `[l, r]`, **inclusive on both ends**, initialised to `l = 1`, `r = n`.
-2. Loop invariant: `pick` is always inside `[l, r]`. It holds at the start by the problem's guarantee.
-3. Monotone predicate: `guess(num) < 0` (num is too high) is false on the prefix `[1, pick]` and true on the suffix `(pick, n]` — the sign of `guess` is monotone in `num`, which is what makes halving legal.
-4. Loop `while l <= r`, `mid = (l + r) // 2`, and call `guess(mid)` once into `res`.
-5. `res == 0` means `mid` is the pick — return it.
-6. `res < 0` means `mid` is too high, so the pick lies strictly left: `r = mid - 1`. Otherwise the pick lies strictly right: `l = mid + 1`.
-7. Both branches exclude `mid`, so the interval strictly shrinks and the loop terminates.
-8. Because `pick` is guaranteed to be in `[1, n]`, the invariant means the interval can never empty without a hit — the loop always returns from inside, and the trailing `return -1` only exists to satisfy the signature.
+1. Initialize the inclusive search range as `[l, r] = [1, n]`.
+2. Call `guess(mid)` once for the range midpoint. Return `mid` when the result is zero.
+3. If the result is negative, set `r = mid - 1`; the hidden number is lower.
+4. Otherwise set `l = mid + 1`; the hidden number is higher.
+5. The hidden number is guaranteed to exist, so the final `-1` is only a defensive return.
 
 ## Code
 
@@ -55,4 +56,13 @@ class Solution:
 
 ## Why it works
 
-The invariant "`pick ∈ [l, r]`" is preserved by both updates: `guess` is an exact comparison, so when it says `mid` is too high, every value `>= mid` is also too high and can be dropped. Since the interval always contains the answer and always shrinks by at least one element while excluding `mid`, the loop must land on `pick` before the interval empties. Each call halves the range of `n` candidates, so it costs `O(log n)` guesses and `O(1)` space.
+Initially, `pick` is inside the search interval. The API result identifies which side of
+`mid` contains it, so each update removes only values that cannot equal `pick` and preserves
+the invariant. The interval strictly shrinks after every nonzero result. Because it always
+contains the guaranteed answer, the loop must eventually call `guess` with `pick` and return
+it.
+
+**Complexity**
+
+- **Time:** `O(log n)` API calls.
+- **Space:** `O(1)` auxiliary space.

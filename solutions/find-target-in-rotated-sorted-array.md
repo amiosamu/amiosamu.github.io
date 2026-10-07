@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-An array of distinct integers, originally sorted in ascending order, has been rotated at an unknown pivot. Given the rotated array `nums` and a `target` value, return the index of `target` in `nums`, or `-1` if it is not present, in O(log n) time.
+Given an ascending array of distinct integers rotated at an unknown pivot, return the index
+of `target`, or `-1` if `target` is absent. The solution must run in `O(log n)` time.
 
 **Example**
 
@@ -18,22 +19,27 @@ Input: nums = [4,5,6,7,0,1,2], target = 0
 Output: 4
 ```
 
-Explanation: `nums[4] == 0`, so index 4 is returned.
+Explanation: `nums[4]` equals the target `0`.
 
 ## Intuition
 
-Rotation destroys the global order, so there is no single monotone predicate over the whole array to search on. What survives is local: wherever I cut at `mid`, at least one of the two halves is a contiguous un-rotated run, because the array contains only one break point and it can sit in only one half. In a sorted half I can decide membership with two comparisons against its endpoints; if the target is in there I recurse into it, otherwise it must be in the other half. That is still one probe per halving, so `O(log n)` in a single pass.
+Rotation introduces one break in sorted order. For any midpoint, at least one of the ranges
+`[l, mid]` and `[mid, r]` does not contain that break and is therefore sorted.
+
+Once the sorted half is known, its endpoint values determine whether it can contain the
+target. The search keeps that half when it contains the target and otherwise keeps the
+other half.
 
 ## Approach
 
-1. Search space: the index interval `[l, r]`, **inclusive on both ends**, with `l = 0`, `r = len(nums) - 1`.
-2. Invariant: if `target` is in `nums`, its index is in `[l, r]`, and `nums[l..r]` is itself a rotated sorted array (possibly with zero rotation).
-3. Loop `while l <= r`, `mid = (l + r) // 2`. Return `mid` immediately if `nums[mid] == target`.
-4. Decide which side is clean with `nums[l] <= nums[mid]`: true means `[l, mid]` is sorted (the `<=` handles `l == mid`), false means the break is in the left half and therefore `[mid, r]` is sorted.
-5. Left half sorted: the target lives there iff `nums[l] <= target < nums[mid]`, in which case `r = mid - 1`; otherwise `l = mid + 1`.
-6. Right half sorted: the target lives there iff `nums[mid] < target <= nums[r]`, in which case `l = mid + 1`; otherwise `r = mid - 1`.
-7. Every branch excludes `mid`, so the interval strictly shrinks and the loop terminates.
-8. On exit `l == r + 1`, the interval is empty and by the invariant the target is absent — return `-1`. Distinct values are what make the strict/non-strict boundaries above unambiguous.
+1. Search the inclusive interval `[l, r]`. Return `mid` immediately when
+   `nums[mid] == target`.
+2. If `nums[l] <= nums[mid]`, the left half is sorted. Keep it only when
+   `nums[l] <= target < nums[mid]`; otherwise keep the right half.
+3. Otherwise, the right half is sorted. Keep it only when
+   `nums[mid] < target <= nums[r]`; otherwise keep the left half.
+4. Return `-1` if the interval becomes empty. Distinct values make the sorted-half tests
+   unambiguous, including when `l == mid`.
 
 ## Code
 
@@ -60,4 +66,13 @@ class Solution:
 
 ## Why it works
 
-There is exactly one descent in the array, so it can lie in at most one of `[l, mid]` and `[mid, r]`; whichever half is free of it is fully sorted and a two-sided range check decides membership there exactly. When the check says "in the sorted half" the other half is provably excluded, and when it says "not in the sorted half" that half is excluded — either way one probe kills half the interval while preserving the invariant that the surviving range is itself a rotated sorted array. The interval halves every iteration, giving `O(log n)` time and `O(1)` space; the two-pass alternative (find the minimum first, then binary search the correct run) has the same cost.
+If the target exists, its index remains in `[l, r]`. At least one half is sorted, and the
+range check is exact on that half because all values are distinct. The algorithm therefore
+discards only a half that cannot contain the target, preserving the invariant. Each update
+also removes `mid`, so the search terminates. A found index is correct by direct comparison;
+an empty interval proves the target is absent.
+
+**Complexity**
+
+- **Time:** `O(log n)` because the remaining interval is halved each iteration.
+- **Space:** `O(1)` auxiliary space.

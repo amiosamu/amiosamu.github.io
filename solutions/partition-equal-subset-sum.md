@@ -19,30 +19,22 @@ Input: nums = [1,5,11,5]
 Output: true
 ```
 
-Explanation: the subsets `[1,5,5]` and `[11]` both sum to 11, so an equal split exists.
+Explanation: `[1, 5, 5]` and `[11]` both sum to `11`.
 
 ## Intuition
 
-Two subsets that split evenly means each one sums to `total / 2`, so the second subset is just
-the complement — I only ever need to find *one* subset hitting `target = total // 2`. An odd
-total is immediately impossible. What is left is the subset-sum decision problem: which totals
-in `0..target` are reachable using each number at most once. The reachable set is small
-(`target + 1` booleans), which is why an exponential subset search collapses to a table.
+An equal partition exists exactly when one subset sums to half of the total; all remaining values
+then form the other half. An odd total is impossible. For an even total, track which sums up to
+`target` are reachable, processing each number once as a 0/1 knapsack item.
 
 ## Approach
 
-1. `total = sum(nums)`; if `total % 2` is nonzero, return `False` — no split can be equal.
-2. Set `target = total // 2`. Let `dp` be a boolean list of length `target + 1` where `dp[t]`
-   is `True` iff some subset of the numbers processed so far sums to exactly `t`.
-3. Base case: `dp[0] = True` (the empty subset), everything else `False`.
-4. Recurrence, processing one number `n` at a time: `dp[t] = dp[t] or dp[t - n]` for every
-   `t >= n` — either skip `n` or use it once on top of a sum of `t - n`.
-5. Iteration order matters: the inner loop runs `t` **downward**, `range(target, n - 1, -1)`.
-   Descending means `dp[t - n]` still holds the value from *before* `n` was introduced, which
-   is what keeps each number to a single use. An ascending loop would silently turn this into
-   unbounded knapsack.
-6. Early exit: after finishing a number, if `dp[target]` is `True` return `True`.
-7. Return `dp[target]` after all numbers.
+1. Compute `total`; return `False` if it is odd, and set `target = total // 2` otherwise.
+2. Let `dp[t]` mean that a subset of processed values sums to `t`. Initialize only `dp[0]` true.
+3. For each number `n`, scan `t` downward from `target` to `n` and set
+   `dp[t] = dp[t] or dp[t - n]`.
+4. Scanning downward prevents the current number from being reused in the same iteration.
+5. Return early when `target` becomes reachable; otherwise return `dp[target]` at the end.
 
 ## Code
 
@@ -68,9 +60,13 @@ class Solution:
 
 ## Why it works
 
-`dp` is the exact set of subset sums of the prefix processed so far, maintained inductively:
-adding `n` extends every reachable sum `t - n` to `t`, and the descending sweep guarantees the
-`dp[t - n]` being read belongs to the previous prefix, so `n` is never counted twice within one
-subset. Reaching `target` therefore certifies a real subset, whose complement sums to `target`
-too. `n` numbers times `S = total // 2` cells gives `O(n * S)` time and `O(S)` space — this is
-pseudo-polynomial, which is fine here because the constraints cap `total` at 20000.
+After processing a prefix of `nums`, `dp[t]` is true exactly for sums achievable from that prefix.
+For a new number `n`, an achievable sum either excludes it and keeps the old `dp[t]`, or includes
+it on top of an old sum `t - n`. The descending scan ensures that `dp[t - n]` still describes the
+previous prefix, so each array element is used at most once. By induction, reaching `target`
+corresponds to a real subset whose complement has the same sum, and every such subset is detected.
+
+**Complexity**
+
+- **Time:** `O(n * S)`, where `S = sum(nums) // 2`.
+- **Space:** `O(S)` auxiliary space.

@@ -25,32 +25,20 @@ Explanation: the 4 combinations summing to 5 are `5`, `2+2+1`, `2+1+1+1`, and `1
 
 ## Intuition
 
-The trap is counting *permutations* instead of *combinations*: a naive `dp[a] += dp[a - c]`
-with coins on the inner loop counts `1+2` and `2+1` as different answers. Fixing it is an
-ordering trick — decide the coins in a fixed order, one coin type fully processed before the
-next is introduced. Then every combination is built exactly once, in the canonical order of the
-coin list, and the count is right.
+The loop order determines what is counted. Processing one coin denomination at a time forces
+every combination into a canonical denomination order, so arrangements such as `1 + 2` and
+`2 + 1` are not counted separately. Sweeping amounts upward allows the current coin to be used
+again, as required by the unlimited supply.
 
 ## Approach
 
-1. `dp[i][a]` is the number of distinct combinations summing to `a` using only the first `i`
-   coin types, each usable any number of times.
-2. Recurrence, two cases: either coin `i` is used zero times (`dp[i-1][a]`) or it is used at
-   least once, which leaves `a - coins[i]` still allowed to use coin `i` again
-   (`dp[i][a - coins[i]]`, note the `i` not `i-1`). So
-   `dp[i][a] = dp[i-1][a] + dp[i][a - coins[i]]` for `a >= coins[i]`, and `dp[i-1][a]`
-   otherwise. The two cases are disjoint — they differ in whether coin `i` appears at all.
-3. Base case: the padding row `dp[0][0] = 1` — there is exactly one way to make zero, the empty
-   selection — and `dp[0][a] = 0` for `a > 0`.
-4. Roll to one array `dp` of length `amount + 1` with `dp[0] = 1`. The outer loop runs over
-   coins `c`, the inner over amounts.
-5. The inner sweep must run **upward**, `range(c, amount + 1)`, so that `dp[a - c]` has already
-   been updated for the current coin — that is what encodes "use coin `c` again" and gives
-   unbounded reuse. Sweeping downward would restrict each coin to one use (0/1 knapsack).
-6. The coin loop must be **outside** the amount loop. Swapping the two loops is the permutation
-   bug: it would let a combination be assembled in any coin order and count each ordering
-   separately.
-7. Return `dp[amount]`.
+1. Let `dp[a]` be the number of combinations totaling `a` using only coin types processed so
+   far. Initialize `dp[0] = 1` for the empty combination.
+2. For each denomination `c`, sweep `a` upward from `c` through `amount`.
+3. Add `dp[a - c]` to `dp[a]`. Those combinations gain one `c`, and the upward sweep permits
+   repeated copies of `c`.
+4. Return `dp[amount]`. Keeping coins in the outer loop prevents different orders of the same
+   multiset from being counted separately; neither input nor `coins` is mutated.
 
 ## Code
 
@@ -69,9 +57,12 @@ class Solution:
 
 ## Why it works
 
-Fixing the coin order turns every multiset of coins into a unique sequence of "how many of coin
-1, then how many of coin 2, ..." decisions, so the recurrence enumerates each combination
-exactly once — the split on whether coin `i` is used at all is exhaustive and non-overlapping.
-Nothing about *which* coins produced a partial amount is retained, only the amount itself, which
-is exactly why counts for the same `a` can be merged into a single cell. The loops touch `n *
-amount` cells with one addition each: `O(n * amount)` time, `O(amount)` space.
+After processing a coin `c`, `dp[a]` counts exactly the combinations for `a` using all coin
+types seen so far. The old value counts combinations without `c`; `dp[a - c]` counts those
+ending with at least one `c`. These cases are disjoint and exhaustive. The upward sweep makes
+the invariant true for unlimited copies, and induction over the coin types proves the result.
+
+**Complexity**
+
+- **Time:** `O(n * amount)`, where `n` is the number of coin denominations.
+- **Space:** `O(amount)`.

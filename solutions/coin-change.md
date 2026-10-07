@@ -25,29 +25,21 @@ three.
 
 ## Intuition
 
-Greedy — always take the largest coin that fits — is wrong for arbitrary denominations:
-`coins = [1, 3, 4]`, `amount = 6` gives `4 + 1 + 1` when `3 + 3` is better. The right framing is
-that the coins in an optimal solution are unordered, so fix any one of them as "the last coin
-used": if it has value `c`, the rest must be an optimal way to make `amount - c`. That turns the
-search into a scan over `amount + 1` subproblems, each trying every coin once.
+Greedy choice is not reliable for arbitrary denominations. Instead, consider the last coin `c`
+in an optimal solution for amount `a`. Removing it leaves an optimal solution for `a - c`;
+otherwise that remainder could be improved and so could the original solution. This gives a
+bottom-up recurrence over smaller amounts.
 
 ## Approach
 
-1. State: `dp[a]` is the fewest coins that sum to exactly `a`, considering only amounts from `0`
-   to `a`. Coins are unlimited, so there is no second dimension — the same coin may be reused.
-2. Base case: `dp[0] = 0`. Every other cell starts at the sentinel `amount + 1`, which is
-   unreachable as a real answer since every coin has value at least `1`, so no solution can use
-   more than `amount` coins. Using this instead of `float("inf")` keeps everything an int and
-   makes the final "was it filled in" test a plain comparison.
-3. Recurrence: `dp[a] = 1 + min(dp[a - c] for c in coins if c <= a)`, and `dp[a]` stays at the
-   sentinel when no coin fits or every predecessor is itself unreachable.
-4. Iteration direction: increasing `a` from `1` to `amount`, inner loop over `coins`. Since
-   `c >= 1`, `a - c < a`, so every cell read is already final.
-5. Guard with `if c <= a` before indexing — a negative index would silently wrap around in
-   Python and read the wrong end of the table.
-6. Answer: `dp[amount]`, or `-1` if it is still above `amount`, meaning no combination reaches
-   the target.
-7. `amount = 0` returns `0` without entering the loop, which is correct.
+1. Let `dp[a]` be the minimum number of coins needed for exactly `a`. Set `dp[0] = 0` and use
+   `amount + 1` as an unreachable sentinel for every positive amount.
+2. Process amounts from 1 through `amount`, so every predecessor `dp[a - c]` is final before
+   it is read.
+3. For each coin `c <= a`, update `dp[a]` with `dp[a - c] + 1`. The same denomination can be
+   reused because the state records only the remaining amount.
+4. Return `dp[amount]`, or `-1` if it still exceeds `amount`. An amount of zero returns zero
+   without entering the loops, and the input list is not mutated.
 
 ## Code
 
@@ -66,9 +58,12 @@ class Solution:
 
 ## Why it works
 
-Any multiset of coins summing to `a` has some coin `c` in it, and removing it leaves a multiset
-summing to `a - c`; if that remainder were not minimal you could swap in a smaller one and beat
-the original, so optimal substructure holds and taking the min over all `c` covers every
-possibility. Unbounded reuse is automatic because `dp[a - c]` is free to use `c` again — nothing
-in the state records which coins were spent. Filling `amount` cells with an inner loop over the
-coins is `O(amount * len(coins))` time and one table of `O(amount)` space.
+Assume `dp[0]` through `dp[a - 1]` are correct. Every solution for `a` has a final coin `c`, and
+its remaining coins form a solution for `a - c`; replacing a nonminimal remainder would improve
+the whole solution. Therefore the minimum over all valid `dp[a - c] + 1` is both attainable and
+no larger than any solution. Induction establishes correctness through `dp[amount]`.
+
+**Complexity**
+
+- **Time:** `O(amount * len(coins))`.
+- **Space:** `O(amount)`.

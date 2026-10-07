@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an array `nums` where `nums[i]` is the amount of money stored in house `i`, all
-houses arranged in a line, return the maximum total amount that can be robbed without
-robbing two directly adjacent houses (adjacent houses trigger a connected alarm).
+Given money in houses arranged in a line, return the maximum amount that can be robbed
+without choosing two adjacent houses.
 
 **Example**
 
@@ -20,35 +19,27 @@ Input: nums = [1,2,3,1]
 Output: 4
 ```
 
-Explanation: Robbing house 0 and house 2 gives `1 + 3 = 4`; robbing houses 1 and 3 instead
-gives only `2 + 1 = 3`, so skipping to houses 0 and 2 is better.
+Explanation: Robbing houses `0` and `2` gives `1 + 3 = 4`.
 
 ## Intuition
 
-The greedy "always take the bigger neighbour" idea dies on `[2, 1, 1, 2]` — you must skip two
-adjacent-to-nothing houses in the middle to take both ends. The structural fact is that after
-deciding houses `0..i`, the only thing the future needs to know is the best total you can have
-*ending at or before* `i`, split by whether house `i` itself was taken. Robbing house `i` forces
-skipping `i - 1`, so `dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])` — take or skip, two cells
-back.
+For each house, an optimal plan either skips it and keeps the previous optimum, or robs it
+and adds its value to the optimum ending two positions earlier. This gives the recurrence
+`dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])`.
+
+Only the previous two states are needed, so the full table can be replaced with two rolling
+variables.
 
 ## Approach
 
-1. State: `dp[i]` is the maximum loot obtainable from the first `i` houses, `nums[0..i-1]`,
-   considering only that prefix. Indexing by *count* rather than position keeps the base cases
-   free of negative indices.
-2. Recurrence: `dp[i] = max(dp[i - 1], dp[i - 2] + nums[i - 1])` — either skip house `i - 1` and
-   inherit the best from the shorter prefix, or rob it and add the best prefix that stops two
-   houses short.
-3. Base cases: `dp[0] = 0` (no houses, no loot) and `dp[1] = nums[0]`. With the rolling form
-   below both collapse to seeding a pair of zeros.
-4. Iteration direction: increasing `i` — left to right over `nums`.
-5. Answer: `dp[n]`.
-6. Rolling form: keep `rob1 = dp[i - 2]` and `rob2 = dp[i - 1]`, both starting at `0`. For each
-   `n` in `nums`, do `rob1, rob2 = rob2, max(rob1 + n, rob2)`. The simultaneous assignment is
-   load-bearing — computing `rob2` first would feed the stale `rob1` into the wrong slot.
-7. Return `rob2`. The empty-array and single-house cases fall out of the same loop with no
-   special casing.
+1. Initialize `rob1 = rob2 = 0`, representing the optima for the two prefixes before the
+   first house.
+2. For each amount `n`, compute the better of robbing it (`rob1 + n`) and skipping it
+   (`rob2`).
+3. Simultaneously assign `rob1, rob2 = rob2, best` so both values come from the previous
+   iteration.
+4. Return `rob2`. The same loop handles an empty list and a single house, and it does not
+   mutate `nums`.
 
 ## Code
 
@@ -65,9 +56,13 @@ class Solution:
 
 ## Why it works
 
-Every valid selection over the first `i` houses either omits house `i - 1`, in which case it is
-a valid selection over the first `i - 1`, or includes it, in which case it omits `i - 2` and its
-remainder is a valid selection over the first `i - 2` — the two branches are exhaustive and
-non-overlapping, so maximizing over both is correct. Because all the loot values are
-non-negative, `dp` is non-decreasing and `dp[n]` is the global best, not just the best ending at
-the last house. One pass, two scalars: O(n) time, O(1) space.
+For any prefix, every valid selection either excludes its last house or includes it. The
+first case has value at most the previous prefix optimum. The second must exclude the
+previous house, so its value is the current amount plus the optimum two prefixes back.
+These exhaustive cases establish the recurrence by induction. The rolling variables store
+exactly those two required states, so the returned value is the full-prefix optimum.
+
+**Complexity**
+
+- **Time:** `O(n)` for one pass through the houses.
+- **Space:** `O(1)` auxiliary space.

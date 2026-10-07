@@ -9,7 +9,8 @@ space: "O(n + m)"
 
 ## Description
 
-Given the roots of two binary trees root and subRoot, determine whether subRoot appears somewhere inside root as a complete subtree: a node of root whose value and entire descendant structure exactly match subRoot, not merely a node with a matching value.
+Given binary-tree roots `root` and `subRoot`, return whether some node in `root` begins a
+subtree with exactly the same structure and values as `subRoot`.
 
 **Example**
 
@@ -18,20 +19,22 @@ Input: root = [3,4,5,1,2], subRoot = [4,1,2]
 Output: true
 ```
 
-Explanation: The node valued 4 in root, together with its children 1 and 2, has exactly the same shape and values as subRoot, so subRoot occurs as a subtree of root.
+The node valued `4`, together with its descendants, exactly matches `subRoot`.
 
 ## Intuition
 
-A subtree isn't just a matching value somewhere — it's a node of `root` whose *entire* structure below equals `subRoot`. So the problem decomposes into two independent recursions: an outer scan that offers each node of `root` as a candidate anchor, and the Same Tree check that decides whether a given pair matches all the way down. Both walk in pre-order — the outer one because the anchor must be tested before descending past it, the inner one because a mismatch at the top should stop the comparison immediately.
+A matching root value is not enough; every corresponding descendant and missing child must also
+match. Separate the work into two recursions: one visits every possible anchor in `root`, and the
+other compares the complete trees rooted at one candidate and `subRoot`.
 
 ## Approach
 
-1. Write `isSameTree(p, q)` first, exactly as in Same Tree: both None → True; one None or values unequal → False; otherwise recurse on `(p.left, q.left)` and `(p.right, q.right)` joined by `and`.
-2. In `isSubtree`, guard the empty cases: `subRoot` None → True (the empty tree is a subtree of anything); `root` None with `subRoot` non-None → False. Order matters, check `subRoot` first. LeetCode's constraints keep both non-empty, but the recursion generates None `root` on its own.
-3. Anchor test: if `isSameTree(root, subRoot)` is True, return True — this node works as the anchor.
-4. Otherwise recurse: `return self.isSubtree(root.left, subRoot) or self.isSubtree(root.right, subRoot)`. `subRoot` never changes; only the candidate anchor moves.
-5. `or` short-circuits, so once a match is found in the left subtree the right one is never scanned.
-6. Do **not** try to prune the scan by only anchoring where `root.val == subRoot.val` and then returning that result — a value can match at a node whose structure doesn't, and a valid anchor may sit deeper. The full `or` recursion is what keeps it correct.
+1. In `isSameTree`, return `True` when both nodes are absent and `False` when only one is
+   absent or their values differ.
+2. Otherwise compare both corresponding child pairs; both comparisons must succeed.
+3. In `isSubtree`, treat an empty `subRoot` as a match and an empty candidate as a failure.
+4. Test the current `root` as an anchor, then recursively test its left and right children.
+5. Keep searching after a same-valued anchor fails because another occurrence may match deeper.
 
 ## Code
 
@@ -56,4 +59,13 @@ class Solution:
 
 ## Why it works
 
-If `subRoot` occurs as a subtree at all, it occurs anchored at some node of `root`, and the outer recursion visits every node of `root` as a candidate — so no occurrence can be missed; conversely a True only ever comes from `isSameTree` returning True on a full structural comparison, so no false positive slips through. The cost is one Same Tree check per anchor: O(m) work at each of the n nodes gives O(n · m), which is fine for the constraints (a linear-time solution exists by serializing both trees and running KMP, if the interviewer pushes). Space is the two nested call stacks, O(h_root + h_sub), which is O(n + m) when both trees are chains.
+By structural induction, `isSameTree(p, q)` is true exactly when the two rooted trees are
+identical: the base cases classify empty or mismatched roots, and the recursive case requires
+equal roots and identical left and right subtrees. The outer recursion tests every node of `root`
+as an anchor. Therefore it finds every possible occurrence, and it returns true only after a
+complete structural comparison succeeds.
+
+**Complexity**
+
+- **Time:** `O(n * m)` in the worst case for `n` nodes in `root` and `m` in `subRoot`.
+- **Space:** `O(h_root + h_sub)` recursion depth, at most `O(n + m)`.

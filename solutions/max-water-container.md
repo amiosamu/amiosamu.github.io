@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an integer array `height` where `height[i]` is the height of a vertical line at position `i`, find two lines that together with the x-axis form a container, and return the maximum amount of water it can hold.
+Given vertical line heights in `height`, choose two lines that form a container with the x-axis
+and return its maximum possible area.
 
 **Example**
 
@@ -18,20 +19,23 @@ Input: height = [1,8,6,2,5,4,8,3,7]
 Output: 49
 ```
 
-Explanation: The lines at indices 1 and 8 have heights 8 and 7; the container spans width `8 - 1 == 7` and is capped by the shorter line, `min(8,7) == 7`, giving area `7 * 7 == 49`.
+Indices 1 and 8 give width 7 and limiting height 7, so their area is `7 * 7 == 49`.
 
 ## Intuition
 
-Trying every pair is O(n²). Start instead with the widest possible container, `l = 0` and `r = n - 1`, and ask which wall can safely be discarded. The area is `(r - l) * min(height[l], height[r])`, so the shorter wall caps it. Keeping the shorter wall and moving the taller one inward strictly loses width and cannot gain height — the `min` is still bounded by that same short wall — so every container using the shorter wall is already no better than the one just measured. That makes it safe to throw the shorter wall away, and each step removes one line, so the whole scan is linear.
+Start with the widest container. Its shorter wall limits the area. Moving the taller wall inward
+reduces width while retaining the same height limit, so it cannot improve any container that keeps
+the shorter wall.
+
+Therefore, after measuring a pair, discard its shorter wall. Equal walls allow either one to be
+discarded safely.
 
 ## Approach
 
-1. Set `l, r = 0, len(height) - 1` and `res = 0`.
-2. Loop while `l < r`.
-3. Measure the current container: `(r - l) * min(height[l], height[r])`, and fold it into `res` with `max`.
-4. Move the pointer at the shorter wall: if `height[l] < height[r]` do `l += 1`, else `r -= 1`.
-5. Ties don't matter — when the walls are equal, both of them are capped by the same height, so discarding either one is safe; the `else` branch just picks the right.
-6. Return `res`. With fewer than two lines the loop never runs and `0` is returned, which is correct.
+1. Set `l` and `r` to the two ends and initialize `res = 0`.
+2. Compute the current area and update `res`.
+3. Move the pointer at the shorter wall; on a tie, the code moves `r`.
+4. Continue until the pointers meet, then return `res`.
 
 ## Code
 
@@ -51,4 +55,13 @@ class Solution:
 
 ## Why it works
 
-The exchange argument: suppose `height[l] < height[r]` and the optimal container uses line `l`. Its partner is some `j <= r`, so its width is `j - l <= r - l` and its height is `min(height[l], height[j]) <= height[l] = min(height[l], height[r])`. Both factors are dominated by the container just measured, so discarding `l` cannot discard the unique optimum. By induction the optimum always stays inside `[l, r]`, and it is measured when the pointers reach it. Each iteration shrinks the window by one, so at most `n - 1` containers are measured: O(n) time, O(1) space.
+Suppose `height[l] <= height[r]`. Any container using `l` and an index inside the current window
+has no greater width and is still limited to height at most `height[l]`. It cannot beat the pair
+just measured, so discarding `l` cannot lose a better answer. The symmetric argument applies when
+the right wall is shorter. By induction, every discarded endpoint has already achieved its best
+possible area, so the maximum measured area is globally optimal.
+
+**Complexity**
+
+- **Time:** `O(n)` because one pointer moves on every iteration.
+- **Space:** `O(1)` auxiliary space.

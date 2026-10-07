@@ -9,7 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given an integer array `prices` where `prices[i]` is the price of a stock on day `i`, return the maximum profit achievable. Any number of transactions is allowed, but a new position cannot be opened before the previous one is closed (no buying while already holding a share).
+Given daily stock prices, return the maximum profit from any number of transactions. At most one
+share may be held at a time.
 
 **Example**
 
@@ -18,20 +19,20 @@ Input: prices = [7,1,5,3,6,4]
 Output: 7
 ```
 
-Explanation: Buy at 1 (day 1) and sell at 5 (day 2) for a profit of 4, then buy at 3 (day 3) and sell at 6 (day 4) for a profit of 3; 4 + 3 == 7 total.
+Buying at 1 and selling at 5 earns 4; buying at 3 and selling at 6 earns 3 more.
 
 ## Intuition
 
-With unlimited transactions there is nothing to plan. Holding through a rise from day `i` to day `j` earns `prices[j] - prices[i]`, and that telescopes into the sum of the day-to-day differences along the way — so any long hold is worth exactly the same as buying and selling on each individual day inside it. Since I can also decline any day, I keep the positive differences and drop the negative ones, and that upper bound is achievable: it corresponds to buying at every local minimum and selling at every local maximum.
+Profit across a rising interval equals the sum of its positive day-to-day changes. Therefore a
+long transaction over that interval earns the same amount as collecting each increase. Negative
+or zero changes add no useful profit and can be skipped.
 
 ## Approach
 
-1. Set `profit = 0`.
-2. Walk `i` from `1` to `len(prices) - 1`, comparing each day with the one before it.
-3. If `prices[i] > prices[i - 1]`, add `prices[i] - prices[i - 1]` to `profit`.
-4. Skip the day otherwise — a falling day is never held through.
-5. Return `profit`. Arrays of length 0 or 1 return `0` because the loop never runs.
-6. There is no need to track a buy price or a holding flag; the differences already encode the trades.
+1. Initialize `profit = 0`.
+2. Compare every price with the previous day's price.
+3. Add the difference when it is positive; otherwise add nothing.
+4. Return `profit`. Fewer than two prices naturally produce zero.
 
 ## Code
 
@@ -47,4 +48,12 @@ class Solution:
 
 ## Why it works
 
-Any legal set of non-overlapping trades has total profit equal to a sum of consecutive daily differences, and that sum is at most the sum of the *positive* differences — so the value computed is an upper bound on every strategy. It is also attainable: the runs of consecutive rising days are disjoint intervals, so buying at the start of each run and selling at its end is a legal transaction sequence earning exactly this amount. One pass with a single accumulator gives O(n) time and O(1) space.
+Every transaction's profit telescopes into daily differences, so any legal strategy earns at most
+the sum of all positive differences. That bound is attainable by buying at the start of each
+maximal rising run and selling at its end. The algorithm computes exactly this attainable upper
+bound and is therefore optimal.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(1)`.

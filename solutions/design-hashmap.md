@@ -9,42 +9,39 @@ space: "O(n + k)"
 
 ## Description
 
-Design a HashMap without using any built-in hash table library, supporting
-`put(key, value)` (insert, or overwrite if the key already exists), `get(key)` (return
-its value, or `-1` if the key is absent), and `remove(key)` (delete it if present).
+Design a hash map without a built-in hash table. Support inserting or updating a key,
+retrieving its value, and removing it. `get` returns `-1` for an absent key.
 
 **Example**
 
 ```
-Input: ["MyHashMap", "put", "put", "get", "get", "put", "get", "remove", "get"], [[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]
+Input:
+operations = ["MyHashMap", "put", "put", "get", "get", "put", "get",
+              "remove", "get"]
+arguments = [[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]
 Output: [null, null, null, 1, -1, null, 1, null, -1]
 ```
 
-Explanation: `get(1)` returns `1` from the first `put`; `get(3)` returns `-1` since `3`
-was never inserted; `put(2, 1)` overwrites the earlier `(2, 2)`, so `get(2)` returns `1`;
-after `remove(2)`, `get(2)` returns `-1` again.
+`put(2, 1)` replaces the earlier value for key 2. Removing key 2 makes the following
+lookup return `-1`.
 
 ## Intuition
 
-Same skeleton as Design HashSet — a fixed array of `k` buckets, `key % k` to choose one,
-chaining for collisions — except each chain entry is a `(key, value)` pair instead of a
-bare key. The one new wrinkle is that `put` has two jobs: overwrite if the key is already
-in the chain, append if it isn't. Getting that wrong gives you a map with two entries for
-the same key, where `get` returns whichever is found first.
+Hash each key to one of a fixed number of buckets with `key % size`. A bucket stores a
+list of `(key, value)` pairs, so distinct keys with the same hash can coexist. Every
+operation scans only that chain.
+
+The important update rule is to replace an existing pair rather than append a second
+copy. This keeps each key unique and makes retrieval and removal unambiguous.
 
 ## Approach
 
-1. `__init__`: `self.size = 1009` (prime, to scatter keys that share factors) and
-   `self.buckets = [[] for _ in range(self.size)]` — a comprehension, so the buckets are
-   distinct lists.
-2. The bucket for a key is always `self.buckets[key % self.size]`.
-3. `put(key, value)`: scan the bucket with `enumerate`; if some entry has a matching key,
-   replace that slot with `(key, value)` and return. If the scan finishes, append the pair.
-4. `get(key)`: scan the bucket and return `v` on a key match; return `-1` if the chain ends
-   without one — `-1` is the problem's "not found" sentinel.
-5. `remove(key)`: scan the bucket for the index of the matching key, `pop(i)`, return.
-   A missing key is a no-op, not an error.
-6. Every method touches exactly one bucket, so the three scans are all short.
+1. Create 1009 distinct bucket lists; the prime bucket count helps distribute common
+   integer patterns.
+2. For every operation, select `buckets[key % size]`.
+3. In `put`, replace the matching pair in place if found; otherwise append `(key, value)`.
+4. In `get`, return the matching value or `-1` after the chain ends without mutating it.
+5. In `remove`, pop the matching pair if present; an absent key is a no-op.
 
 ## Code
 
@@ -78,9 +75,13 @@ class MyHashMap:
 
 ## Why it works
 
-Because `key % size` depends only on the key, every operation on a key is confined to one
-bucket, so scanning that chain is the same as scanning the whole map. `put`'s
-overwrite-or-append keeps the invariant that a key appears at most once in its chain,
-which is what lets `get` return on the first match and `remove` stop after one `pop`.
-Chains average `n / k` entries for `n` stored keys, giving `O(1)` average time per
-operation and `O(n + k)` space.
+The invariant is that each stored key appears exactly once in the bucket selected by its
+hash. `put` preserves this by replacing or appending, and `remove` preserves it by deleting
+only the matching pair. Since the same deterministic hash chooses the bucket for `get`, a
+key is found there if and only if it is present in the map.
+
+**Complexity**
+
+- **Time:** `O(1)` average per operation with well-distributed keys. `put`, `get`, and
+  `remove` are each `O(n)` in the worst case when all keys share one bucket.
+- **Space:** `O(n + k)` for `n` entries and `k = 1009` buckets.

@@ -20,26 +20,20 @@ Input: nums = [2,7,11,15], target = 9
 Output: [0,1]
 ```
 
-Explanation: `nums[0] + nums[1] == 2 + 7 == 9`, so indices 0 and 1 are returned.
+The values at indices `0` and `1` sum to `9`.
 
 ## Intuition
 
-The brute force is to try every pair, but that re-asks the same question `n` times:
-"have I already seen the number that completes this one?" A hash map answers that
-in constant time, so one pass is enough.
-
-The key reframe is that I don't search for *a pair* — I search for `target - x`
-while walking the array, and every element I've already passed is a candidate.
+For each value `x`, the required partner is `target - x`. A hash map of previously visited values
+answers whether that partner exists in expected constant time, reducing pair search to one pass.
 
 ## Approach
 
-1. Keep a dict `seen` mapping value → index of everything passed so far.
-2. For each `i, x` from `enumerate(nums)`, compute `complement = target - x`.
-3. If the complement is already in `seen`, the answer is `[seen[complement], i]`.
-4. Otherwise record `seen[x] = i` and move on.
-5. Checking before inserting is what makes duplicates safe — with `nums = [3, 3]`
-   and `target = 6`, the second `3` finds the first one instead of matching itself.
-6. Return `[]` after the loop; the problem guarantees a solution, so this line never fires.
+1. Keep `seen`, mapping each previously visited value to its index.
+2. For each `nums[i]`, compute `complement = target - nums[i]`.
+3. If the complement is present, return its stored index and `i`.
+4. Otherwise store the current value after checking, which prevents an element matching itself.
+5. Retain a defensive empty return although the input guarantees one valid pair.
 
 ## Code
 
@@ -59,8 +53,13 @@ class Solution:
 
 ## Why it works
 
-Every valid pair has a later index `j`; when the loop reaches `j`, its partner is already
-in `seen` by the invariant that `seen` holds all indices `< j`, so no pair can be missed
-and the first one found is reported. Insert-after-check guarantees the two indices are
-distinct, which is the only correctness trap here. One pass with `O(1)` dict operations
-is `O(n)` time, and `seen` can grow to every element, so `O(n)` space.
+Before iteration `i`, the invariant is that `seen` contains values from exactly the processed
+prefix. For any valid pair with earlier index `j` and later index `i`, `nums[j]` is therefore in
+`seen` when `i` is processed, so the lookup finds it. Conversely, every returned index comes from
+the earlier prefix and its value is the current complement, proving the indices are distinct and
+their values sum to `target`.
+
+**Complexity**
+
+- **Time:** `O(n)` expected time for hash-map operations.
+- **Space:** `O(n)` in the worst case for `seen`.

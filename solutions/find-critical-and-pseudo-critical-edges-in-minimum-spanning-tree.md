@@ -3,16 +3,15 @@
 # https://leetcode.com/problems/find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree/
 draft: false
 pattern: "Kruskal rerun per edge, excluded and forced"
-time: "O(E^2 * a(V))"
+time: "O(E^2 * alpha(V))"
 space: "O(V + E)"
 ---
 
 ## Description
 
-Given `n` nodes and a list of weighted `edges`, find every edge that is critical — its
-removal increases the minimum spanning tree (MST) weight or disconnects the graph, meaning
-no MST can avoid it — and every edge that is pseudo-critical — some but not all MSTs use it.
-Return `[critical, pseudo]`, each a list of the edges' original indices into `edges`.
+Given a connected weighted graph, classify its edges by original index. A critical edge
+appears in every minimum spanning tree (MST); a pseudo-critical edge appears in at least
+one MST but is not critical. Return `[critical, pseudo]`.
 
 **Example**
 
@@ -21,25 +20,31 @@ Input: n = 5, edges = [[0,1,1],[1,2,1],[2,3,2],[0,3,2],[0,4,3],[3,4,3],[1,4,6]]
 Output: [[0,1],[2,3,4,5]]
 ```
 
-Explanation: The MST weight is 7, built from edges 0 and 1 (weight 1 each) plus two of the
-weight-2/weight-3 edges; edges 0 and 1 are unavoidable low-weight connectors so removing
-either raises the total, making them critical, while edges 2, 3, 4, and 5 can each be
-swapped into some MST without changing the total of 7.
+The MST weight is 7. Edges 0 and 1 are unavoidable, while each of edges 2 through 5 can
+participate in an MST of the same weight.
 
 ## Intuition
 
-Both labels are definitions about the MST *weight*, so I never need to enumerate spanning trees — I just need to rerun Kruskal twice per edge and compare against the baseline weight. An edge is critical if deleting it makes the best achievable weight worse (or disconnects the graph): no MST can avoid it. Otherwise it is pseudo-critical if forcing it in still achieves the baseline weight: some MST uses it. Everything else appears in no MST at all. The one bookkeeping trap is that Kruskal needs the edges sorted by weight while the answer wants original indices, so each edge carries its original position along with it.
+Use Kruskal's algorithm as a classification test. Excluding an edge computes the best tree
+that avoids it; a larger weight or disconnection proves the edge critical. If the edge is
+not critical, forcing it first and still obtaining the baseline weight proves that some MST
+contains it.
+
+Sorting loses the input order, so attach each edge's original index. Fresh union-find state
+is required for every test, and union by rank with path compression keeps each run within
+the standard inverse-Ackermann bound.
 
 ## Approach
 
-1. Build `indexed = [e + [i] for i, e in enumerate(edges)]` so each entry is `[u, v, w, originalIndex]`, then sort by weight `e[2]`. The copy avoids mutating the input.
-2. Write `find(par, x)` as iterative union-find with path halving (`par[x] = par[par[x]]`), and do the union inline as `par[find(u)] = find(v)`.
-3. Write `mst(skip, force)` returning the total weight of a spanning tree built by Kruskal, with defaults `-1` meaning "no edge skipped / forced".
-4. Inside `mst`: fresh `par = list(range(n))`, `weight = 0`, `count = 0` (edges taken). If `force != -1`, union its endpoints and charge its weight *before* the loop, so the forced edge is in the tree regardless of order.
-5. Then sweep the sorted edges by position `i`, skipping `i == skip`, and union whenever the roots differ, adding `w` and incrementing `count`. The forced edge, if revisited, is a no-op since its endpoints already share a root.
-6. Return `weight if count == n - 1 else float("inf")` — the infinity is what makes a bridge come out critical when removing it disconnects the graph.
-7. Compute `base = mst()`, then for each sorted position `i` with original index `orig`: if `mst(skip=i) > base` append `orig` to `critical`; elif `mst(force=i) == base` append it to `pseudo`.
-8. Return `[critical, pseudo]`. The `elif` is load-bearing: a critical edge also satisfies the forced test, so it must be classified first.
+1. Copy each edge as `[u, v, weight, original_index]` and sort by weight.
+2. In `mst(skip, force)`, allocate `parent` and `rank` with exactly `n` entries because
+   valid vertex IDs are `0..n - 1`. Also track total weight and accepted-edge count.
+3. If `force` is set, union that edge first and include its weight. Then run Kruskal in
+   sorted order, omitting `skip`; revisiting the forced edge cannot join its endpoints.
+4. Return the weight only after accepting `n - 1` edges; otherwise return infinity to
+   represent disconnection.
+5. Compare every exclusion with the baseline first. Only non-critical edges are then
+   forced and classified as pseudo-critical when their result equals the baseline.
 
 ## Code
 
@@ -49,27 +54,38 @@ class Solution:
         indexed = [e + [i] for i, e in enumerate(edges)]
         indexed.sort(key=lambda e: e[2])
 
-        def find(par, x):
-            while par[x] != x:
-                par[x] = par[par[x]]
-                x = par[x]
-            return x
-
         def mst(skip=-1, force=-1):
-            par = list(range(n))
+            parent = list(range(n))
+            rank = [0] * n
             weight = 0
             count = 0
+
+            def find(x):
+                while parent[x] != x:
+                    parent[x] = parent[parent[x]]
+                    x = parent[x]
+                return x
+
+            def union(a, b):
+                ra, rb = find(a), find(b)
+                if ra == rb:
+                    return False
+                if rank[ra] < rank[rb]:
+                    ra, rb = rb, ra
+                parent[rb] = ra
+                if rank[ra] == rank[rb]:
+                    rank[ra] += 1
+                return True
+
             if force != -1:
                 u, v, w, _ = indexed[force]
-                par[find(par, u)] = find(par, v)
-                weight += w
-                count += 1
+                if union(u, v):
+                    weight += w
+                    count += 1
             for i, (u, v, w, _) in enumerate(indexed):
                 if i == skip:
                     continue
-                ru, rv = find(par, u), find(par, v)
-                if ru != rv:
-                    par[ru] = rv
+                if union(u, v):
                     weight += w
                     count += 1
             return weight if count == n - 1 else float("inf")
@@ -89,4 +105,16 @@ class Solution:
 
 ## Why it works
 
-Kruskal returns the true minimum weight for whatever edge set it is given, so `mst(skip=i)` is the best weight achievable *without* edge `i` and `mst(force=i)` the best achievable *with* it. If the former exceeds `base`, every minimum spanning tree must contain `i`, which is the definition of critical; if the latter equals `base`, the tree Kruskal built is itself an MST containing `i`, so `i` is in at least one MST. Forcing works because the greedy exchange property is unaffected by starting from a partial forest — Kruskal completes any forest to a minimum-weight spanning tree containing it. Sorting is O(E log E) and each of the `2E + 1` Kruskal runs is O(E a(V)), giving O(E² a(V)) time with O(V + E) space for the parents and the indexed edge list.
+Kruskal returns the minimum tree weight available under the supplied restriction. If
+excluding edge `i` raises that weight or disconnects the graph, no baseline MST can omit
+`i`, so it is critical. Otherwise, forcing `i` creates a one-edge forest. Kruskal's cut
+property completes that forest with the least possible additional weight, so equality with
+the baseline constructs an MST containing `i` and proves it pseudo-critical. The `elif`
+keeps critical edges out of the second category.
+
+**Complexity**
+
+- **Time:** `O(E log E + E^2 alpha(V))`, dominated by `O(E)` Kruskal runs with ranked,
+  path-compressed union-find.
+- **Space:** `O(V + E)` for indexed edges and per-run union-find arrays.
+- **Output:** `O(E)` for the two classification lists.

@@ -21,40 +21,22 @@ Input: obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]
 Output: 2
 ```
 
-Explanation: the obstacle sits in the middle cell, so only two down/right paths avoid it: go
-right along the top then down the right column, or down the left column then right along the
-bottom.
+The two valid routes pass around the center obstacle on opposite sides.
 
 ## Intuition
 
-Same additive count as Unique Paths — a cell's route count is the sum of the cell above and the
-cell to the left — with one extra rule: a blocked cell has zero routes through it. Writing `0`
-into an obstacle rather than special-casing it makes the obstacle propagate on its own, since
-anything downstream that adds it in contributes nothing. The combinatorial closed form dies
-here, but the table does not care.
+Every path into an open cell arrives from above or from the left, so its count is the sum of those
+two predecessor counts. A blocked cell has count zero. A one-dimensional array can represent the
+previous row and the already-updated portion of the current row at the same time.
 
 ## Approach
 
-1. `dp[i][j]` is the number of down/right routes from `(0, 0)` to `(i, j)` that avoid every
-   obstacle, considering only the cells on rows `0..i`.
-2. Recurrence, three cases. If `obstacleGrid[i][j] == 1` then `dp[i][j] = 0`, no route may
-   stand there. Otherwise the last move was down or right, disjoint alternatives, so
-   `dp[i][j] = dp[i-1][j] + dp[i][j-1]` with out-of-grid neighbours read as `0`.
-3. Base case: `dp[0][0] = 1` if the start is clear, else `0` — and note the start or the target
-   can themselves be obstacles, in which case the answer is `0` and this falls out with no
-   special handling.
-4. Roll the table to a single array `row` of length `n` holding the row above. Initialize
-   `row = [0] * n` and `row[0] = 1`; this is a *virtual* row above row 0 whose single `1` seeds
-   the start cell.
-5. Sweep `i` from `0` to `m - 1`, and inside sweep `j` **left to right** from `0` to `n - 1`.
-   At `(i, j)`: if the cell is an obstacle set `row[j] = 0`; else if `j > 0` do
-   `row[j] += row[j - 1]`; else leave `row[0]` alone.
-6. Left-to-right is forced for the same reason as in Unique Paths: `row[j]` must still be the
-   value from row `i-1` when read, while `row[j-1]` must already be the value from row `i`.
-7. Leaving `row[0]` untouched carries the first column down correctly — it stays `1` until an
-   obstacle in column 0 zeroes it, after which every cell below it is unreachable, which is
-   exactly right.
-8. Return `row[n - 1]`, which holds `dp[m-1][n-1]`.
+1. Initialize `row` with zeros and set `row[0] = 1` as a virtual path into the start.
+2. Scan each row from left to right. Before updating, `row[j]` is the count from above and
+   `row[j - 1]` is the count from the left.
+3. Set `row[j] = 0` at an obstacle so no path can enter or continue through it.
+4. At an open non-first-column cell, add `row[j - 1]` into `row[j]`.
+5. Return the final column count; blocked starts or destinations naturally produce zero.
 
 ## Code
 
@@ -77,9 +59,13 @@ class Solution:
 
 ## Why it works
 
-Splitting on the last move partitions the obstacle-free routes into two disjoint sets, and
-setting a blocked cell to `0` removes exactly the routes that would pass through it — no valid
-route is lost, no invalid one survives. The subproblems are path-independent because whether a
-route can continue from `(i, j)` depends only on the obstacles ahead of `(i, j)`, so the count
-of prefixes reaching it can be collapsed to one integer. Every cell is visited once with `O(1)`
-work: `O(m * n)` time, `O(n)` space for the rolling row.
+After processing cell `(i, j)`, maintain that `row[j]` equals the number of valid paths to that
+cell. An obstacle correctly sets this count to zero. Otherwise every valid path arrives uniquely
+from above or left, whose counts are `row[j]` before the update and `row[j - 1]` after its update.
+Their sum is therefore exact. Row-major induction proves the invariant for every cell, including
+the destination.
+
+**Complexity**
+
+- **Time:** `O(m * n)` because every cell is processed once.
+- **Space:** `O(n)` for the rolling row.

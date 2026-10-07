@@ -9,8 +9,8 @@ space: "O(m * n)"
 
 ## Description
 
-Given two strings `word1` and `word2`, returns the minimum number of single-character insert,
-delete, or replace operations needed to turn `word1` into `word2`.
+Given `word1` and `word2`, return the minimum number of single-character insertions,
+deletions, and replacements needed to transform `word1` into `word2`.
 
 **Example**
 
@@ -19,20 +19,24 @@ Input: word1 = "horse", word2 = "ros"
 Output: 3
 ```
 
-Explanation: `horse` -> `rorse` (replace `h` with `r`) -> `rose` (delete `r`) -> `ros`
-(delete `e`), three operations in total.
+Replace `h` with `r`, then delete the second `r` and the final `e`.
 
 ## Intuition
 
-The minimum number of operations to turn `word1[:i]` into `word2[:j]` only depends on three smaller prefix pairs, because whatever the *last* operation applied was — insert, delete, or replace/match — it reduces the problem to one of those three. That turns a search over edit sequences into a grid DP.
+Consider the final characters of two prefixes. If they match, no new edit is needed. If
+they differ, the final edit must replace the source character, delete it, or insert the
+target character. Each choice leaves a smaller prefix problem, forming a two-dimensional
+dynamic program.
 
 ## Approach
 
-1. Let `m, n = len(word1), len(word2)`. `dp[i][j]` = edit distance between `word1[:i]` and `word2[:j]`.
-2. Base cases: `dp[i][0] = i` (delete all `i` characters of `word1`'s prefix), `dp[0][j] = j` (insert all `j` characters of `word2`'s prefix).
-3. For `i` from 1 to `m`, `j` from 1 to `n`: if `word1[i-1] == word2[j-1]`, `dp[i][j] = dp[i-1][j-1]` — the characters already match, no operation spent.
-4. Otherwise `dp[i][j] = 1 + min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1])`, covering replace, delete from `word1`, and insert into `word1` respectively.
-5. Return `dp[m][n]`.
+1. Let `dp[i][j]` be the edit distance from `word1[:i]` to `word2[:j]`.
+2. Initialize `dp[i][0] = i` for deletions and `dp[0][j] = j` for insertions.
+3. For matching final characters, copy `dp[i - 1][j - 1]`.
+4. Otherwise add one to the minimum of replacement `dp[i - 1][j - 1]`, deletion
+   `dp[i - 1][j]`, and insertion `dp[i][j - 1]`.
+5. Return `dp[m][n]` after filling the table in row order. The initialized row and column
+   also handle either input being empty.
 
 ## Code
 
@@ -56,4 +60,14 @@ class Solution:
 
 ## Why it works
 
-Any sequence of edits turning `word1[:i]` into `word2[:j]` must end in one of exactly three moves — match/replace the last characters, delete `word1`'s last character, or insert `word2`'s last character — and each move reduces to a strictly smaller subproblem that's already computed, so taking the min over all three gives the true optimum. Filling the `(m+1) x (n+1)` table row by row costs O(m*n) time and the table itself is the only auxiliary space, O(m*n).
+Induct on `i + j`. The empty-prefix rows and columns are optimal because every character
+must be inserted or deleted. For non-empty prefixes with equal final characters, an
+optimal transformation can leave them matched and use the optimal smaller diagonal
+problem. Otherwise its final edit is exactly a replacement, deletion, or insertion.
+Removing that edit leaves the corresponding smaller subproblem. One plus their minimum is
+therefore achievable and no greater than the cost of any valid transformation.
+
+**Complexity**
+
+- **Time:** `O(m * n)` for the DP table.
+- **Space:** `O(m * n)` for the DP table.

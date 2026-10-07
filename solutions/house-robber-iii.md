@@ -9,7 +9,8 @@ space: "O(h)"
 
 ## Description
 
-Given the root of a binary tree where each node's value is the money in that house, choose a subset of nodes to rob that maximizes the total money collected, under the rule that no two directly connected nodes — a node and its parent, or a node and its child — can both be robbed.
+Given a binary tree whose node values are amounts of money, return the maximum amount that
+can be robbed without choosing two directly connected nodes.
 
 **Example**
 
@@ -18,21 +19,27 @@ Input: root = [3,2,3,null,3,null,1]
 Output: 7
 ```
 
-Explanation: Robbing the root (3) together with its two grandchildren (the 3 hanging off the left child and the 1 hanging off the right child) totals 3 + 3 + 1 = 7 while skipping the two direct children (2 and 3), which satisfies the no-adjacent-robbing rule and beats any other selection.
+Explanation: Robbing the root and its two grandchildren gives `3 + 3 + 1 = 7` while
+skipping both children.
 
 ## Intuition
 
-A single number per subtree isn't enough: knowing the best haul from a child's subtree doesn't say whether that haul *used the child*, and that's exactly what the parent needs to know, since robbing a node forbids robbing its children. So every subtree reports two numbers — the best total if I rob its root, and the best total if I don't. With both in hand the parent's choice is arithmetic, and the "skip a house, then you may take the grandchildren" reasoning falls out instead of being special-cased.
+A parent needs to know whether each child's optimum includes that child. Therefore each
+subtree returns two values: the best total when its root is robbed and the best total when
+its root is skipped.
+
+Once the current node's state is fixed, its left and right subtrees are independent. Their
+appropriate totals can be added in a postorder traversal.
 
 ## Approach
 
-1. Write `dfs(node)` returning a tuple `(rob, skip)` with an exact contract: `rob` is the maximum money from `node`'s subtree **given that `node` itself is robbed**, and `skip` is the maximum **given that `node` is not robbed**. Note `skip` is not "the best without any constraint on children" — the children are free to be robbed or not.
-2. Base case: `node` is None, return `(0, 0)`.
-3. Post-order: unpack `l_rob, l_skip = dfs(node.left)` and `r_rob, r_skip = dfs(node.right)` before deciding anything, because the answer at a node is a function of its children's answers.
-4. `rob = node.val + l_skip + r_skip` — taking this house forces both children to be skipped, so only their `skip` values are admissible.
-5. `skip = max(l_rob, l_skip) + max(r_rob, r_skip)` — not taking this house frees each child independently, so take the better option on each side. This is where the grandchildren come in for free: `l_rob` already accounts for them.
-6. Return `(rob, skip)`.
-7. The answer is `max(dfs(root))` — the root is unconstrained, so take the better of its two cases. Returns 0 for an empty tree.
+1. Define `dfs(node)` to return `(rob, skip)`, the conditional optima for `node`'s
+   subtree. Return `(0, 0)` for a missing node.
+2. Recursively compute both states for the left and right children.
+3. Set `rob = node.val + l_skip + r_skip`, because robbing `node` excludes both children.
+4. Set `skip = max(l_rob, l_skip) + max(r_rob, r_skip)`, because each child is then
+   unconstrained.
+5. Return `max(dfs(root))`. This also returns zero for an empty tree and does not mutate it.
 
 ## Code
 
@@ -53,4 +60,13 @@ class Solution:
 
 ## Why it works
 
-The only constraint linking subtrees is parent-child adjacency, so once I fix whether a node is robbed, its two subtrees become completely independent problems and their optima can simply be added — that is what makes the two-state recurrence exact rather than greedy. Both cases are enumerated at every node, so no valid selection is missed and no invalid one (a node together with a child) is ever counted, since `rob` reaches only into `skip` values. Each node is visited once producing O(1) arithmetic, giving O(n) time and O(h) stack — O(n) on a skewed tree.
+By induction on subtree height, `dfs` returns both stated optima. The claim is trivial for a
+missing node. If the node is robbed, both children must be skipped, so `rob` combines the
+only legal child states. If it is skipped, each child may independently use its better state,
+which gives `skip`. These cases cover every valid selection without allowing a parent-child
+pair. Taking the larger root state is therefore globally optimal.
+
+**Complexity**
+
+- **Time:** `O(n)` because each node is processed once.
+- **Space:** `O(h)` for recursion depth, where `h` is the tree height.

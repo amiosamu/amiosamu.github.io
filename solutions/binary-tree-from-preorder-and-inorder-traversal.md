@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given two integer arrays preorder and inorder, holding the preorder and inorder traversals of the same binary tree with all-unique node values, reconstruct and return that binary tree.
+Given the preorder and inorder traversals of a binary tree with unique values, reconstruct and
+return the tree.
 
 **Example**
 
@@ -18,21 +19,24 @@ Input: preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
 Output: [3,9,20,null,null,15,7]
 ```
 
-Explanation: preorder[0] = 3 names the root; in inorder, 3 splits the array into [9] on the left and [15,20,7] on the right, so 9 is the entire left subtree and 20 (with children 15 and 7) is the right subtree, matching [3,9,20,null,null,15,7].
+Preorder identifies `3` as the root. Its inorder position separates `[9]` from `[15,20,7]`,
+which are the root's left and right subtrees.
 
 ## Intuition
 
-Two facts do all the work: pre-order starts with the root, and in-order puts everything in the left subtree *before* the root and everything in the right subtree after it. So `preorder[0]` names the root, finding it in `inorder` tells me the left subtree has exactly `mid - lo` nodes, and that count is enough to know where each side's slice of `preorder` begins. The naive version slices four lists per call, which is O(n²); instead I keep one global pointer into `preorder` and pass only index bounds into `inorder`, and I pre-hash value → in-order index so the split is O(1) instead of a scan.
+Preorder visits each subtree's root first. Inorder places that root between all values in its left
+and right subtrees. A cursor consumes roots from preorder, while an index map splits each inorder
+range in constant time. Passing bounds avoids repeated array slicing.
 
 ## Approach
 
-1. Build `index = {val: i for i, val in enumerate(inorder)}`. Values are unique, which is what makes this lookup well defined.
-2. Keep a single cursor `pre = 0` into `preorder`, declared `nonlocal` inside the helper. Invariant: `pre` always points at the root of the subtree the current call is about to build.
-3. Write `build(lo, hi)` returning the root of the subtree occupying `inorder[lo..hi]` inclusive.
-4. Base case: `lo > hi`, return None — an empty range is an empty subtree, and note it consumes nothing from `preorder`.
-5. Read `val = preorder[pre]`, create `root = TreeNode(val)`, look up `mid = index[val]`, then advance `pre += 1`.
-6. Recurse **left first**: `root.left = build(lo, mid - 1)`, then `root.right = build(mid + 1, hi)`. The order is not optional — pre-order lays out the entire left subtree before the right one, so the left call must consume its block of `preorder` before the right call starts reading.
-7. Return `root`, and kick off with `build(0, len(inorder) - 1)`.
+1. Map each unique value to its index in `inorder`, and initialize preorder cursor `pre = 0`.
+2. Let `build(lo, hi)` construct the subtree represented by the inclusive inorder range. Return
+   `None` when the range is empty.
+3. Create the root from `preorder[pre]`, advance `pre`, and find its split index `mid`.
+4. Build `[lo, mid - 1]` before `[mid + 1, hi]`. This left-first order matches preorder's
+   root-left-right sequence.
+5. Return the root built for the full inorder range. Empty traversals produce `None`.
 
 ## Code
 
@@ -58,4 +62,13 @@ class Solution:
 
 ## Why it works
 
-The in-order sequence of a subtree is (left subtree)(root)(right subtree), so splitting `inorder[lo..hi]` at the root's position separates the two sides with no ambiguity; the pre-order sequence is (root)(left subtree)(right subtree), so a left-first recursion that advances one step per node keeps `pre` aligned with the next subtree root without any slicing. Unique values are what make the split unambiguous — with duplicates the pair of traversals wouldn't determine the tree. Each node is created once with O(1) map lookups, so it's O(n) time, and space is O(n) for the map plus O(h) for the recursion.
+By induction on the inorder range length, `build(lo, hi)` returns the unique corresponding
+subtree. The first unconsumed preorder value is its root, and the root's inorder index partitions
+the remaining values into its left and right subtrees. The recursive calls construct those
+smaller ranges in preorder order, completing the same subtree.
+
+**Complexity**
+
+- **Time:** `O(n)` because each node is created once and each index lookup is constant time.
+- **Space:** `O(n)` for the index map and up to `O(h)` recursion depth; the returned tree uses
+  `O(n)` space.

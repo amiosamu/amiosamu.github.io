@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Design an algorithm to serialize a binary tree into a string and deserialize that string back into a tree with the same structure and values, without relying on any particular way the tree was built.
+Design methods to serialize a binary tree into a string and deserialize that string into a tree
+with the same values and structure.
 
 **Example**
 
@@ -18,21 +19,24 @@ Input: root = [1,2,3,null,null,4,5]
 Output: [1,2,3,null,null,4,5]
 ```
 
-Explanation: `serialize(root)` encodes the tree into a string, and `deserialize` on that string rebuilds a tree identical to the original, so the round trip returns the same structure it started with.
+Explanation: Serializing and then deserializing the tree reconstructs the original structure.
 
 ## Intuition
 
-A traversal alone doesn't determine a tree — that's why "Construct Binary Tree from Preorder and Inorder" needs two of them. But the reason a single pre-order is ambiguous is that missing children are invisible; if I write an explicit marker for every None, the ambiguity disappears, because the reader then knows exactly when a subtree ends. Pre-order is the order to pick: it emits the root before its subtrees, so the reader can create a node and then immediately recurse to fill its children in the same order they were written, consuming the stream strictly left to right with no index arithmetic.
+Preorder alone is ambiguous because missing children are invisible. Writing a marker for every
+`None` child removes that ambiguity: each token now says either "this subtree is empty" or
+"create a node and decode two child subtrees." Preorder lets the decoder create each node
+before recursively filling its left and right children.
 
 ## Approach
 
-1. **serialize** — walk pre-order, appending to a list `parts` and joining once at the end (repeated string concatenation would be O(n²)).
-2. In `dfs(node)`: if `node` is None append `"#"` and return; otherwise append `str(node.val)`, then `dfs(node.left)`, then `dfs(node.right)`.
-3. Join `parts` with `","`. The separator matters because values are multi-digit and can be negative (`-1000 <= val <= 1000`), so the digits of adjacent nodes must not run together.
-4. **deserialize** — split on `","` and wrap in an iterator: `vals = iter(data.split(","))`. The iterator *is* the cursor; `next(vals)` both reads and advances, which is what keeps the two recursions in lockstep without a shared index variable.
-5. In `build()`: read `val = next(vals)`. If it is `"#"`, return None — the marker is what terminates a branch. Otherwise create `TreeNode(int(val))`, then set `.left = build()` and **then** `.right = build()`.
-6. The left-before-right order is not optional: it must mirror the order `serialize` wrote them, since the whole left subtree occupies a contiguous run of the stream before the right subtree starts.
-7. `build()` returns the root. An empty tree round-trips as `"#"` and rebuilds as None, so no special case is needed on either side.
+1. During serialization, append `"#"` for `None`; otherwise append the node value, then
+   serialize its left and right children.
+2. Join tokens with commas so multi-digit and negative values remain separated.
+3. During deserialization, consume the split tokens through an iterator. Return `None` for
+   `"#"`; otherwise create a node from the integer token.
+4. Decode the left subtree and then the right subtree, matching the encoder's order.
+5. An empty tree becomes the single token `"#"`, so it requires no special outer case.
 
 ## Code
 
@@ -69,4 +73,15 @@ class Codec:
 
 ## Why it works
 
-With null markers the encoding is a full pre-order of the *extended* tree, in which every real node has exactly two children, and such a sequence is uniquely decodable: reading a token tells you immediately whether to stop or to consume two subtrees, so `build` and `dfs` traverse the same shape in the same order and the iterator's position after decoding a subtree is exactly where the encoder finished writing it. Each node contributes one token and one None-marker per empty slot — at most 2n + 1 tokens — so both directions are O(n) time and O(n) space for the string, plus O(h) recursion.
+Prove round-trip correctness by induction on a subtree. An empty subtree serializes as `"#"`
+and deserializes to `None`. For a real node, the first token reconstructs its value. By the
+induction hypothesis, the following contiguous token sequences reconstruct its left and right
+subtrees, in that order. Thus the rebuilt subtree has exactly the original value and structure.
+The iterator advances once per token, so sibling boundaries are consumed correctly.
+
+**Complexity**
+
+- **Time:** `O(n)` for either operation because each real or null node position is processed
+  once.
+- **Space:** `O(n)` for tokens and serialized data, plus `O(h)` recursion; the rebuilt tree is
+  output space.

@@ -9,7 +9,8 @@ space: "O(k)"
 
 ## Description
 
-Given an array of points on the 2D plane and an integer `k`, return the `k` points closest to the origin `(0, 0)` by Euclidean distance, in any order.
+Given points in the two-dimensional plane and an integer `k`, return the `k` points closest
+to the origin `(0, 0)` in any order.
 
 **Example**
 
@@ -18,19 +19,22 @@ Input: points = [[1,3],[-2,2]], k = 1
 Output: [[-2,2]]
 ```
 
-Explanation: `[-2,2]` has squared distance `(-2)^2 + 2^2 == 8`, while `[1,3]` has `1^2 + 3^2 == 10`, so the single closest point is `[-2,2]`.
+The squared distances are `8` for `[-2,2]` and `10` for `[1,3]`, so `[-2,2]` is closer.
 
 ## Intuition
 
-Sorting all n points by distance gives the answer in O(n log n), but it computes far more than I asked for — a full ordering of the far-away points I am about to throw away. The only fact I need while scanning is "is this point closer than the worst of the k I am currently holding?", and that is one comparison against the maximum of a k-sized set. So I keep a **max-heap of size k**: the farthest of my current best k sits at the root, and each new point either evicts it or is evicted itself. `heapq` is a min-heap, so I store the squared distance negated.
+Only the best `k` points seen so far matter. A size-`k` max-heap exposes the farthest retained
+point, allowing each new point to compete for a place without sorting the entire input. Python's
+`heapq` is a min-heap, so negated squared distances make the farthest point the smallest tuple.
 
 ## Approach
 
-1. Keep `heap`, a list of tuples `(-(x*x + y*y), x, y)`. The negation makes `heap[0]` the *farthest* point currently held.
-2. For each `x, y` in `points`: `heappush` the tuple, then if `len(heap) > k`, `heappop` once. The pop removes the largest negated-distance, i.e. the farthest point, so the heap never exceeds k and always holds the k closest seen so far.
-3. Never take a square root — comparing `x² + y²` orders points exactly the same way as comparing `√(x² + y²)`, and stays in integers.
-4. Ties in the tuple fall through to `x` then `y`. That is harmless here: any k points at the tied distance form a valid answer, the comparison just needs to be total so Python never tries to order two lists.
-5. After the scan the heap *is* the answer set (in no particular order, which the problem allows). Return `[[x, y] for _, x, y in heap]`.
+1. Store each point as `(-(x * x + y * y), x, y)` in `heap`.
+2. Push every point, then pop once whenever the heap grows beyond `k` entries.
+3. Because the most negative distance is popped, each removal discards the farthest candidate.
+4. Use squared distance; square roots would preserve the ordering but add unnecessary work.
+5. Convert the remaining tuples back to points. Coordinate tie-breaking is harmless because any
+   points at the same boundary distance are valid.
 
 ## Code
 
@@ -50,5 +54,12 @@ class Solution:
 
 ## Why it works
 
-The invariant is that after processing each point the heap holds exactly the k closest points among those seen (or all of them, while fewer than k have been seen). It survives a step because the element discarded is the farthest of the k+1 candidates, and a point that is not in the top k of a prefix can never be in the top k of the whole set. Each point costs one push plus at most one pop on a heap capped at k, so O(n log k) time and O(k) space — strictly better than sorting when k is small.
+After each input point, the heap contains the `k` closest processed points, or all processed points
+if fewer than `k` exist. Pushing preserves all possible candidates. If removal is needed, the heap
+root has the greatest squared distance, so removing it leaves exactly the closest `k`. Induction
+over the input proves that the final heap is a valid answer.
 
+**Complexity**
+
+- **Time:** `O(n log k)` for `n` points.
+- **Space:** `O(k)` auxiliary space, plus `O(k)` for the returned list.

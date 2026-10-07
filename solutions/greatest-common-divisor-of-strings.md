@@ -9,9 +9,8 @@ space: "O(n + m)"
 
 ## Description
 
-Given two strings `str1` and `str2`, return the largest string `t` such that `str1` and `str2` are
-each equal to `t` repeated some whole number of times, or the empty string `""` if no such `t`
-exists.
+Given strings `str1` and `str2`, return the longest string that can be repeated to form
+each input exactly. Return `""` if no such string exists.
 
 **Example**
 
@@ -20,30 +19,25 @@ Input: str1 = "ABCABC", str2 = "ABC"
 Output: "ABC"
 ```
 
-Explanation: `"ABC"` repeated twice is `"ABCABC"` and repeated once is `"ABC"`, so `"ABC"` divides
-both, and it is already the longer string's full length, so nothing larger is possible.
+Explanation: Repeating `"ABC"` twice forms `str1`, and repeating it once forms `str2`.
 
 ## Intuition
 
-If some string `t` divides both, then `str1` is `t` repeated `a` times and `str2` is `t` repeated
-`b` times, so `str1 + str2` and `str2 + str1` are both just `t` repeated `a + b` times — they must
-be equal. The converse also holds, so `str1 + str2 == str2 + str1` is a complete test for "a
-common divisor exists at all". Once I know one exists, every divisor's length divides both
-`len(str1)` and `len(str2)`, so the longest possible is `gcd` of the two lengths, and the prefix of
-that length is forced (any divisor is a prefix of `str1`).
+If both strings consist of repetitions of the same unit, concatenating them in either order
+produces the same sequence. The equality `str1 + str2 == str2 + str1` is also sufficient:
+it means both strings share one repeating primitive pattern.
+
+Any common divisor string has a length dividing both input lengths. The greatest possible
+length is therefore their numeric greatest common divisor, and its content must be the
+corresponding prefix of `str1`.
 
 ## Approach
 
-1. If `str1 + str2 != str2 + str1`, return `""`. Nothing else in the function has to worry about
-   mismatched content after this line.
-2. Otherwise compute `g = gcd(len(str1), len(str2))` with an inline Euclid loop:
-   `while b: a, b = b, a % b`, then return `a`.
-3. Return `str1[:g]`.
-4. No divisibility re-check is needed at the end: step 1 already guarantees both strings are
-   repetitions of a common unit, and step 2 picks the largest length compatible with both.
-5. Edge cases: `str1 == str2` gives `g == len(str1)` and returns the whole string. Strings of
-   coprime lengths like `"ABABAB"` and `"ABAB"` give `g == gcd(6, 4) == 2` -> `"AB"`.
-   `"LEET"` / `"CODE"` fails the concatenation test and returns `""`.
+1. Compare `str1 + str2` with `str2 + str1`. Return `""` if they differ.
+2. Apply Euclid's algorithm to the two lengths; after the loop, `a` is their greatest
+   common divisor.
+3. Return `str1[:a]`. This slice allocates the returned divisor string.
+4. Equal strings return the entire string, while incompatible content fails at step 1.
 
 ## Code
 
@@ -60,9 +54,13 @@ class Solution:
 
 ## Why it works
 
-`str1 + str2 == str2 + str1` says the two strings commute, and commuting strings over a free
-monoid are both powers of a single common string — that is the theorem doing all the work here.
-Given that, the set of valid divisor lengths is exactly the common divisors of the two lengths, so
-`gcd` is the maximum, and the divisor of that length must be `str1`'s prefix since `str1` starts
-with it. Building the two concatenations costs `O(n + m)` time and space; Euclid on the lengths
-adds only `O(log min(n, m))`.
+If a common divisor exists, both concatenation orders are repetitions of it and are equal.
+Conversely, equality of the concatenations forces both strings to have the same repeating
+pattern, so a common divisor exists. Its length must divide both input lengths; choosing
+their greatest common divisor gives the longest valid length. Since every divisor starts
+`str1`, the prefix of that length is the required string.
+
+**Complexity**
+
+- **Time:** `O(n + m)` for concatenation comparison and the returned slice.
+- **Space:** `O(n + m)` for the temporary concatenated strings in Python.

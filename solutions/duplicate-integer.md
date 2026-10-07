@@ -9,8 +9,7 @@ space: "O(n)"
 
 ## Description
 
-Given an integer array `nums`, return `true` if any value appears at least twice in the
-array, and `false` if every element is distinct.
+Given an integer array `nums`, return whether any value appears more than once.
 
 **Example**
 
@@ -19,25 +18,21 @@ Input: nums = [1,2,3,1]
 Output: true
 ```
 
-Explanation: The value `1` appears at both index 0 and index 3, so the array contains a
-duplicate.
+The value 1 appears at indices 0 and 3.
 
 ## Intuition
 
-A duplicate exists exactly when the array has fewer distinct values than elements —
-that is the one-liner `len(set(nums)) < len(nums)`. The streaming version is worth
-writing out because it can exit early: the moment a repeat shows up there is nothing
-left to learn, so the rest of the array never gets read.
+A set records values already encountered. Before inserting each value, test whether it is
+present. A match proves a duplicate immediately; completing the scan without one proves all
+values are distinct. The input list is only read, not sorted or otherwise mutated.
 
 ## Approach
 
-1. Keep a `seen` set of the values already passed.
-2. For each `x` in `nums`, check `x in seen` **before** inserting — if it's there, return `True`.
-3. Otherwise `seen.add(x)` and continue.
-4. If the loop finishes, every value was distinct, so return `False`.
-5. Alternative: sort first and compare adjacent pairs. That drops the extra space to `O(1)`
-   (ignoring the sort's own stack) but costs `O(n log n)` time. The set trade is usually
-   the one worth making.
+1. Initialize an empty `seen` set.
+2. For each value `x`, return `True` if `x` is already in `seen`.
+3. Otherwise add `x` to `seen` and continue.
+4. Return `False` after the loop because no equal pair was found. Empty and one-element
+   inputs reach this case directly.
 
 ## Code
 
@@ -56,9 +51,12 @@ class Solution:
 
 ## Why it works
 
-The loop invariant is that `seen` holds exactly the elements at indices `< i`, so the
-membership test at index `i` asks precisely "does `nums[i]` equal an earlier element?" —
-which is the definition of a duplicate. If no index ever answers yes, no pair anywhere
-in the array is equal. Each element costs one `O(1)` hash lookup and at most one insert,
-so it is `O(n)` time (often far less, since it returns on the first repeat) and `O(n)`
-space for the set.
+Before processing index `i`, `seen` contains exactly the values at earlier indices. Thus a
+successful membership test is precisely a pair of equal values at different indices. If
+every test fails, every value differs from all values before it, so the array has no
+duplicate.
+
+**Complexity**
+
+- **Time:** `O(n)` expected time for hash lookups and insertions.
+- **Space:** `O(n)` for the set.

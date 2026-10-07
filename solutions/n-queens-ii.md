@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an integer `n`, return the number of distinct ways to place `n` queens on an `n x n` chessboard so that no two queens share a row, column, or diagonal.
+Given `n`, return the number of distinct ways to place `n` queens on an `n x n` board so that
+no two queens share a row, column, or diagonal.
 
 **Example**
 
@@ -18,20 +19,22 @@ Input: n = 4
 Output: 2
 ```
 
-Explanation: There are exactly two non-attacking arrangements of 4 queens on a 4x4 board, so the count returned is 2.
+Explanation: A `4 x 4` board has exactly two non-attacking queen arrangements.
 
 ## Intuition
 
-Same problem as N Queens, minus the requirement to reconstruct the boards — I only need how many valid placements exist, so there's no reason to build or store an `n x n` grid. Same row-by-row column search, same three conflict sets for column and both diagonals, but each successful leaf just contributes `1` to a running count instead of a formatted board.
+Placing one queen per row removes row conflicts by construction. A candidate `(row, col)` is safe
+exactly when `col`, `row - col`, and `row + col` have not been used. Backtracking can enumerate
+all safe column choices while storing only those three conflict sets. A completed placement
+contributes one to the count, so no board representation is needed.
 
 ## Approach
 
-1. Maintain `cols`, `diag1` (`row - col` values), `diag2` (`row + col` values) as sets tracking occupied columns and diagonals.
-2. `backtrack(row)`: if `row == n`, every row has a queen placed safely — return `1`.
-3. Otherwise set `count = 0` and try every `col` from `0` to `n - 1`, skipping any where `col in cols`, `row - col in diag1`, or `row + col in diag2`.
-4. For a valid `col`, add `col`, `row - col`, `row + col` to the sets, add `backtrack(row + 1)` into `count`, then remove those three values again before trying the next column.
-5. Return `count` once every column at this row has been tried.
-6. Call `backtrack(0)` and return the result.
+1. Maintain sets for occupied columns and both diagonal identifiers.
+2. In `backtrack(row)`, return `1` when `row == n`; a complete valid placement was found.
+3. Try each column not present in any conflict set, add its three identifiers, and recurse.
+4. Remove the identifiers after recursion so the next branch sees the original state.
+5. Sum all successful descendants and return `backtrack(0)`.
 
 ## Code
 
@@ -63,4 +66,13 @@ class Solution:
 
 ## Why it works
 
-The recursion enumerates exactly the same safe row-by-row assignments as N Queens, so every unit it returns corresponds to one full, conflict-free board, and summing `backtrack(row + 1)` over every safe column at `row` counts each completed board exactly once with no double-counting or gaps. Dropping the board means the only state carried is the three O(n)-sized sets plus the recursion stack, so space falls from O(n^2) to O(n); the time bound is unchanged since it's the same search tree, just without materializing a grid at each leaf.
+At recursion depth `row`, exactly one safe queen has been placed in each earlier row, and the sets
+describe all columns and diagonals they attack. The membership checks therefore accept exactly the
+safe placements in the current row. Trying every accepted column covers every valid continuation;
+undoing the placement keeps branches independent. Every complete board has a unique sequence of
+column choices, so reaching `row == n` counts each solution exactly once.
+
+**Complexity**
+
+- **Time:** `O(n!)` as a standard upper bound on the pruned row-by-row search.
+- **Space:** `O(n)` auxiliary space for conflict sets and recursion depth.

@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given `trips` where `trips[i] = [numPassengers, from, to]` describes passengers picked up at `from` and dropped off at `to`, and a car with a fixed `capacity`, return whether it is possible to pick up and drop off all passengers for every trip without ever exceeding capacity.
+Each trip `[passengers, start, end]` picks up a group at `start` and drops it off at `end`.
+Given the car's `capacity`, return whether every trip can be completed without exceeding it.
 
 **Example**
 
@@ -18,21 +19,23 @@ Input: trips = [[2,1,5],[3,3,7]], capacity = 4
 Output: false
 ```
 
-Explanation: between locations 3 and 5 both trips overlap, carrying `2 + 3 == 5` passengers at once, which exceeds the capacity of 4.
+Both groups are in the car between locations 3 and 5, requiring five seats when only four are
+available.
 
 ## Intuition
 
-Sorting the trips by pickup location gets the events in the order the car meets them, but that alone is not enough: the passengers who leave between two pickups are not in pickup order, they are in *drop-off* order. So I sort once by `start` to drive the sweep, and keep the riders currently on board in a **min-heap keyed by `end`** — at each new pickup the only thing I need is the earliest drop-off, and I keep popping while it is at or before the current location. The occupancy only ever peaks at a pickup, so checking capacity there is sufficient.
+Sweep pickups from left to right. Before each pickup, remove every group whose drop-off is at
+or before that location. A min-heap ordered by drop-off exposes those groups in the required
+order. Occupancy can increase only at a pickup, so capacity only needs to be checked there.
 
 ## Approach
 
-1. Sort `trips` by `start`: `trips.sort(key=lambda t: t[1])`. The problem's tuples are `[numPassengers, start, end]`, so the pickup is index 1.
-2. Keep `onboard`, a min-heap of `(end, numPassengers)`, and a running total `passengers`.
-3. For each `numPassengers, start, end` in sorted order: first drop off everyone who is already done — `while onboard and onboard[0][0] <= start`, pop and subtract that group's count from `passengers`. The `<=` matters: a passenger leaving exactly at this location frees their seat before the new ones board.
-4. Then add `numPassengers` to `passengers` and push `(end, numPassengers)` onto the heap.
-5. If `passengers > capacity` at any point after boarding, return `False` immediately.
-6. Heap ties on `end` fall through to the passenger count, which is irrelevant — every entry with `end <= start` gets popped regardless of order.
-7. If the loop finishes, return `True`.
+1. Sort `trips` in place by pickup location. This mutates the input order.
+2. Maintain `onboard`, a min-heap of `(end, count)`, and `passengers`, the current occupancy.
+3. At each `start`, pop all entries with `end <= start` and subtract their counts. Drop-offs at
+   the pickup location happen first and free their seats.
+4. Add the new group, reject immediately if capacity is exceeded, and otherwise push its
+   drop-off entry. If every pickup succeeds, return `True`.
 
 ## Code
 
@@ -60,4 +63,12 @@ class Solution:
 
 ## Why it works
 
-Occupancy is a step function that only increases at pickups, so if capacity is ever exceeded it is exceeded at some pickup, and checking there catches every violation. Processing pickups left to right and draining the heap of drop-offs that are behind us keeps `passengers` equal to the true occupancy just after each boarding — the heap gives the earliest pending drop-off in O(1), which is the only one worth testing against `start`. Each trip is pushed and popped once, so the sweep is O(n) heap operations at O(log n) each, dominated by the initial sort: O(n log n) time, O(n) space.
+Before each group boards, the heap contains exactly the groups whose trips have started but not
+ended, and `passengers` is their total size. Removing every `end <= start` preserves this
+invariant; adding the new group then gives the exact occupancy after the pickup. Since occupancy
+only rises at pickups, every violation is detected and returning `True` means none exists.
+
+**Complexity**
+
+- **Time:** `O(n log n)` for sorting and at most one heap push and pop per trip.
+- **Space:** `O(n)` for the heap. The input list is sorted in place.

@@ -25,19 +25,14 @@ Explanation: The output is `nums` followed by `nums` again, so `ans` has length 
 
 ## Intuition
 
-`ans[i] = nums[i % n]` is just a fancy way of saying "the array twice", so in Python
-the whole problem is `return nums + nums`. The version worth being able to write is the
-index one: value `nums[i]` lands in exactly two slots, `i` and `i + n`, so a single pass
-fills a pre-sized array of length `2n` with no modulo and no appends.
+Each value `nums[i]` appears at indices `i` and `i + n` in the result. Since the output size is
+known, preallocate it and fill both positions in one pass. The input array is only read.
 
 ## Approach
 
-1. Let `n = len(nums)` and allocate `ans = [0] * (2 * n)` up front — the output size is known.
-2. Loop over `nums` with `enumerate`, giving index `i` and value `x`.
-3. Write `x` to `ans[i]` (the first copy) and to `ans[i + n]` (the second copy).
-4. Return `ans`.
-5. No edge cases to guard: `n >= 1` per the constraints, and the loop degenerates cleanly
-   for a single element.
+1. Store `n = len(nums)` and allocate `ans` with `2 * n` positions.
+2. For each index `i` and value `x`, assign `ans[i] = x` and `ans[i + n] = x`.
+3. Return `ans`. A single-element input follows the same two writes without special handling.
 
 ## Code
 
@@ -56,8 +51,12 @@ class Solution:
 
 ## Why it works
 
-For `i < n` the spec wants `nums[i % n] = nums[i]`, and for `n <= i < 2n` it wants
-`nums[i % n] = nums[i - n]` — those are exactly the two slots each `x` is written to, so
-every position of `ans` is filled once and correctly. One pass over `n` elements doing
-constant work gives `O(n)`, and the only allocation is the required output, so auxiliary
-space is `O(1)`.
+After iteration `i`, both output positions corresponding to `nums[i]` contain that value.
+Indices `0` through `n - 1` are filled by the first assignment and indices `n` through
+`2n - 1` by the second. Therefore every output index is filled exactly once with the required
+value.
+
+**Complexity**
+
+- **Time:** `O(n)`.
+- **Space:** `O(1)` auxiliary space and `O(n)` output space.

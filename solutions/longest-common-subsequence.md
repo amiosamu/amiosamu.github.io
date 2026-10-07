@@ -9,9 +9,8 @@ space: "O(m * n)"
 
 ## Description
 
-Given two strings, find the length of their longest common subsequence — a sequence of
-characters that appears in both strings in the same relative order, though not necessarily
-contiguously. Return 0 if the two strings share no characters in common order.
+Given two strings, return the length of their longest common subsequence. A subsequence keeps
+relative character order but need not use contiguous positions.
 
 **Example**
 
@@ -20,37 +19,21 @@ Input: text1 = "abcde", text2 = "ace"
 Output: 3
 ```
 
-Explanation: `"ace"` is a subsequence of both `"abcde"` and `"ace"` itself, and no common
-subsequence longer than 3 exists.
+`"ace"` appears in both strings in order and has length `3`.
 
 ## Intuition
 
-Brute force compares all `2^m` subsequences of `text1` against `text2`. The insight that kills
-it: walk both strings with a pointer each and look only at the current pair of characters. If
-they match, pairing them is never worse than not pairing them, so take the match and advance
-both. If they do not, at least one of the two characters can never be used again, so branch on
-which one to discard. That leaves only `m * n` pointer positions, each with a fixed answer.
+For suffixes beginning at `i` and `j`, equal leading characters can be matched and both pointers
+advanced. If they differ, at least one leading character is absent from an optimal first match, so
+try discarding either one. Only the pair of suffix positions matters, yielding `m * n` states.
 
 ## Approach
 
-1. `dp[i][j]` is the length of the longest common subsequence of the suffixes `text1[i:]` and
-   `text2[j:]`, considering only those suffixes — the characters already consumed are
-   irrelevant.
-2. Recurrence, two cases:
-   - `text1[i] == text2[j]`: pair them and recurse on both suffixes,
-     `dp[i][j] = 1 + dp[i+1][j+1]`.
-   - otherwise: the two characters cannot both be part of the same aligned pair, so one of them
-     is dropped, `dp[i][j] = max(dp[i+1][j], dp[i][j+1])`.
-3. Base cases: the padding row and column. `dp[m][j] = 0` for all `j` and `dp[i][n] = 0` for
-   all `i` — an empty suffix shares nothing. Allocating `dp` as `(m+1) x (n+1)` zeros gives
-   both for free and makes `dp[i+1][j+1]` always in range.
-4. Iterate `i` from `m - 1` down to `0` and `j` from `n - 1` down to `0`. Every read is at a
-   strictly larger `i` or `j`, so **both loops must descend**; ascending would read cells that
-   are still zero.
-5. Return `dp[0][0]`, the LCS of the two full strings.
-6. If space matters, note each row only reads the row below plus one cell to its right, so two
-   arrays of length `n + 1` suffice for `O(n)` space. The full table is kept here because it is
-   what you would reconstruct the actual subsequence from.
+1. Define `dp[i][j]` as the LCS length of `text1[i:]` and `text2[j:]`.
+2. Add a zero row and column for states where either suffix is empty.
+3. For equal characters, set `dp[i][j] = 1 + dp[i + 1][j + 1]`.
+4. Otherwise set `dp[i][j] = max(dp[i + 1][j], dp[i][j + 1])`, discarding one leading character.
+5. Fill both indices backward so dependencies are final, then return `dp[0][0]`.
 
 ## Code
 
@@ -72,10 +55,14 @@ class Solution:
 
 ## Why it works
 
-Matching on equality is safe by an exchange argument: if some optimal LCS of the two suffixes
-does not pair `text1[i]` with `text2[j]` when they are equal, the first character it does use
-from each can be swapped for this pair without shortening it. When the characters differ, no
-common subsequence can use both as its next character, so discarding one of them loses nothing
-and the two branches cover every possibility. The subproblems depend only on the pair of
-suffix start indices — not on which characters were matched earlier — so `m * n` states with
-`O(1)` work each give `O(m * n)` time and `O(m * n)` space.
+Consider the two suffixes at `(i, j)`. If their first characters match, an optimal subsequence can
+start with that character: replacing any later occurrence of the same first match with these
+earlier positions leaves at least as much of both suffixes available. The remaining optimum is
+therefore `dp[i + 1][j + 1]`. If the characters differ, no common subsequence can use both as its
+first matched character, so every candidate omits at least one and is covered by the two recurrence
+branches. Backward evaluation applies these exhaustive cases to every state.
+
+**Complexity**
+
+- **Time:** `O(m * n)` for string lengths `m` and `n`.
+- **Space:** `O(m * n)` for the table.

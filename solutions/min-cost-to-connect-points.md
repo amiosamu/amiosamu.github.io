@@ -9,10 +9,8 @@ space: "O(V)"
 
 ## Description
 
-Given the `(x, y)` coordinates of `n` points, where the cost of connecting two points is
-the Manhattan distance between them, return the minimum total cost to connect all points
-so that there is exactly one path between any pair of points — i.e. the weight of a
-minimum spanning tree over the points.
+Given `n` points, connect every point with minimum total cost, where an edge costs the Manhattan
+distance between its endpoints. Return the weight of the resulting minimum spanning tree.
 
 **Example**
 
@@ -21,34 +19,24 @@ Input: points = [[0,0],[2,2],[3,10],[5,2],[7,0]]
 Output: 20
 ```
 
-Explanation: The minimum spanning tree over these five points, using Manhattan distance as
-the edge weight between every pair, has a total edge weight of 20.
+The minimum spanning tree for these points has total Manhattan edge cost 20.
 
 ## Intuition
 
-Connecting all points at minimum total cost with no redundant edges is the definition
-of a minimum spanning tree. There is no traversal answer here — BFS or DFS would find
-*a* spanning tree, but nothing about the order they visit in makes it the cheapest one.
+The points form an implicit complete graph. Prim's algorithm grows a minimum spanning tree by
+repeatedly choosing the cheapest edge from the current tree to an outside point.
 
-The distinguishing detail is that the graph is implicit and complete: every pair of
-points has an edge, so `E = V^2 / 2`. Kruskal would have to materialize and sort all
-`V^2` of them for `O(V^2 log V)`. Prim's grows one tree outward and only ever needs
-"the cheapest edge from the tree to each outside point", which fits in a single array
-scanned linearly — `O(V^2)` with no heap and no edge list at all.
+For each outside point, store only its cheapest known connection to the tree. Since the graph is
+dense, linear scans for the next point yield `O(n^2)` time without materializing edges or using a
+heap.
 
 ## Approach
 
-1. `dist[v]` = cheapest known Manhattan distance from the growing tree to point `v`.
-   Initialize to infinity, `dist[0] = 0`, and `in_mst = [False] * n`.
-2. Repeat `n` times:
-   - Linear scan for `u`, the not-yet-included point with the smallest `dist[u]`.
-   - Mark `in_mst[u] = True` and add `dist[u]` to `total`. The first iteration adds
-     `dist[0] = 0`, which is why seeding the start with 0 costs nothing.
-   - For every `v` still outside the tree, compute `d = |x_v - x_u| + |y_v - y_u|` and
-     set `dist[v] = d` if it improves — the only new edges are the ones from `u`.
-3. Return `total`.
-4. No connectivity check is needed: the graph is complete, so a spanning tree always
-   exists, and `n == 1` correctly returns 0.
+1. Set every `dist[v]` to infinity except `dist[0] = 0`; initially no point is in the MST.
+2. Repeat `n` times: select the outside point `u` with minimum `dist[u]` by a linear scan.
+3. Add `u` to the tree and add `dist[u]` to `total`; the first point contributes zero.
+4. For every outside point `v`, minimize `dist[v]` with the Manhattan edge from `u`.
+5. Return `total`. Completeness of the graph guarantees every point can be selected.
 
 ## Code
 
@@ -82,9 +70,13 @@ class Solution:
 
 ## Why it works
 
-Prim's rests on the cut property: for the cut separating the tree from the rest, the
-minimum-weight edge crossing it belongs to some MST — so absorbing the cheapest
-`dist[u]` is always safe, and the invariant `dist[v] = min over u in tree of d(u, v)`
-is maintained by only relaxing against the newly added `u`. Each of the `n` rounds does
-two `O(n)` passes — one to select, one to relax — giving `O(V^2)` time and `O(V)` space,
-which beats heap-Prim's `O(E log V)` here because `E` is quadratic in `V`.
+Before each selection, `dist[v]` is the cheapest edge from the current tree to every outside point
+`v`. Relaxing edges from the newly added point preserves this invariant. Therefore the selected
+`dist[u]` is the cheapest edge crossing the cut between the tree and the remaining points. By the
+cut property, that edge belongs to some MST extending the choices already made. Induction over all
+points proves that the accumulated edges form an MST, so `total` is minimum.
+
+**Complexity**
+
+- **Time:** `O(V^2)` from two linear scans in each of `V` rounds.
+- **Space:** `O(V)` for `dist` and `in_mst`.

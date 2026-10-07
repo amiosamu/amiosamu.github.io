@@ -9,9 +9,8 @@ space: "O(1)"
 
 ## Description
 
-Given two integers `n` and `x`, construct a strictly increasing array of `n` positive
-integers whose bitwise AND equals `x`, and return the minimum possible value of the array's
-last element.
+Given positive integers `n` and `x`, construct a strictly increasing array of `n` positive
+integers whose bitwise AND is `x`. Return the smallest possible final array value.
 
 **Example**
 
@@ -20,33 +19,25 @@ Input: n = 3, x = 4
 Output: 6
 ```
 
-Explanation: The cheapest strictly increasing array with AND equal to 4 is [4,5,6];
-4 & 5 & 6 = 4, and 6 is its last element.
+Explanation: `[4, 5, 6]` is strictly increasing and its bitwise AND is `4`. No valid array
+of length three can end below `6`.
 
 ## Intuition
 
-Every element has to AND down to `x`, so every element must be a superset of `x`'s set bits —
-which means each element is `x` with some subset of the *zero* positions of `x` turned on. Those
-free positions are the only degrees of freedom, and the array must be strictly increasing, so the
-cheapest array uses the `n` smallest such supersets. Ordering supersets by value is exactly
-ordering their free-bit patterns as binary numbers `0, 1, 2, ..., n-1`, so the last element is
-`x` with the bits of `n - 1` scattered into `x`'s zero positions, low to high.
+Every array value must contain every set bit of `x`; otherwise the final AND would clear that
+bit. Only positions where `x` has a zero are available for distinguishing the values.
+
+Map an integer to a valid value by placing its bits, from low to high, into the zero positions
+of `x`. This mapping preserves order. Therefore, the `n` smallest valid values correspond to
+free-bit patterns `0` through `n - 1`, and only the last pattern needs to be constructed.
 
 ## Approach
 
-1. Start `res = x` and `k = n - 1` — the index of the last element among the free-bit patterns.
-2. Keep a cursor `bit = 0` walking the positions of `x` from the least significant end.
-3. While `k` is non-zero:
-   - advance `bit` past every position where `x` already has a 1: `while (x >> bit) & 1: bit += 1`.
-     Those positions are locked and cannot carry information.
-   - if `k & 1`, set that free position in the answer: `res |= 1 << bit`.
-   - drop the consumed bit with `k >>= 1` and move the cursor on with `bit += 1`.
-4. Return `res`.
-5. Trace `n = 3, x = 4` (`100`): `k = 2` (`10`). Position 0 is free, `k & 1 = 0`, nothing set;
-   `k = 1`, `bit = 1`. Position 1 is free, `k & 1 = 1`, so `res = 4 | 2 = 6`. Answer 6.
-6. Trace `n = 2, x = 7` (`111`): `k = 1`. The cursor skips positions 0, 1, 2 (all set in `x`) and
-   lands on 3, which gets the bit: `res = 7 | 8 = 15`.
-7. Edge case `n = 1`: `k = 0`, the loop never runs, and the answer is `x` itself.
+1. Set `res = x` and `k = n - 1`, the free-bit pattern for the final value.
+2. Scan bit positions from least to most significant, skipping positions already set in `x`.
+3. At each zero position of `x`, copy the current low bit of `k` into `res`, then shift `k`.
+4. Stop after all bits of `k` are consumed and return `res`. If `n == 1`, `k` is zero and
+   `x` is returned unchanged.
 
 ## Code
 
@@ -68,10 +59,16 @@ class Solution:
 
 ## Why it works
 
-The AND of the whole array equals `x` iff every element contains `x`'s bits and, jointly, the
-elements leave at least one 0 in each free position — using the patterns `0..n-1` satisfies both,
-since pattern `0` is `x` itself and contributes a 0 everywhere free. Mapping free-bit patterns to
-values is order preserving because it places the pattern's bits in increasing significance, so the
-`n` smallest supersets are strictly increasing and their maximum is the image of `n - 1`, which is
-the minimum achievable last element. The loop consumes one bit of `n - 1` per round and the cursor
-scans each position of `x` at most once, giving O(log n + log x) time and O(1) space.
+Let `f(k)` place the bits of `k` into the zero positions of `x` and retain all set bits of `x`.
+Every `f(k)` contains `x`, and `f(0) = x`, so the AND of any sequence containing `f(0)` and only
+such values is exactly `x`. Because corresponding bits are placed in increasing significance,
+`a < b` implies `f(a) < f(b)`. Thus `f(0), ..., f(n - 1)` is a valid increasing array.
+
+Any valid value must be `x` plus a pattern in its zero positions. Since `f` lists those values in
+increasing order, no set of `n` valid values can have a maximum below `f(n - 1)`. The algorithm
+constructs exactly `f(n - 1)`, so its answer is minimal.
+
+**Complexity**
+
+- **Time:** `O(log n + log x)` to consume the bits of `n - 1` and scan positions of `x`.
+- **Space:** `O(1)` auxiliary space.

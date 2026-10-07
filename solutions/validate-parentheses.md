@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given a string `s` containing only the bracket characters `()[]{}`, determine whether every opening bracket is closed by the same type of bracket and brackets are closed in the correct order.
+Given a string containing only `()[]{}`, determine whether every opener has a matching closer of
+the same type and all pairs close in the correct nesting order.
 
 **Example**
 
@@ -18,20 +19,20 @@ Input: s = "()[]{}"
 Output: true
 ```
 
-Explanation: each opening bracket is immediately followed by its matching closer before any other bracket needs closing, so the string is valid.
+Each opening bracket is closed by the matching type in valid nesting order.
 
 ## Intuition
 
-Brackets nest, so a closing bracket must match the *most recently opened* bracket that is still unmatched — nothing else can be its partner without crossing. "Most recent unmatched" is a stack. Push openers, and on a closer check the top: if it is not its mate, the string is dead immediately.
+Nested brackets close in reverse order: each closer must match the most recent unmatched opener.
+A stack represents exactly that order. A closer fails immediately when the stack is empty or its
+top has a different type.
 
 ## Approach
 
-1. Build `pairs = {')': '(', ']': '[', '}': '{'}` mapping each closer to the opener it requires.
-2. Keep `stack` of openers seen but not yet closed.
-3. Scan `s` character by character:
-4. If `c` is a closer (`c in pairs`): if `stack` is empty there is nothing to close, return `False`; otherwise pop and if the popped opener is not `pairs[c]`, the brackets cross, return `False`.
-5. Otherwise `c` is an opener — push it.
-6. After the scan, return `len(stack) == 0`. A non-empty stack means openers were never closed, which is just as invalid as a mismatch.
+1. Map each closing bracket to the opening bracket it requires.
+2. Push every opening bracket onto `stack`.
+3. For a closer, reject if the stack is empty or its popped top does not match.
+4. After scanning all characters, return whether the stack is empty.
 
 ## Code
 
@@ -51,4 +52,12 @@ class Solution:
 
 ## Why it works
 
-The invariant is that `stack` holds, bottom to top, the currently open brackets in nesting order, so the top is always the only one a closer is allowed to match. Rejecting on mismatch handles crossing (`([)]`), rejecting on an empty stack handles a closer with no opener, and the final emptiness check handles openers with no closer — the three ways a bracket string can fail. Each character is pushed and popped at most once, so O(n) time and O(n) stack in the worst case (`"((((("`).
+After every processed prefix, the stack contains exactly its unmatched opening brackets in their
+nesting order. Pushing an opener preserves this invariant. A valid closer must match the top, so a
+missing or different top proves invalidity; popping a match preserves the invariant. At the end,
+the string is fully matched exactly when no opener remains.
+
+**Complexity**
+
+- **Time:** `O(n)` because each character is pushed or popped at most once.
+- **Space:** `O(n)` for a prefix containing only opening brackets.

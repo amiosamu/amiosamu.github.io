@@ -9,7 +9,8 @@ space: "O(k)"
 
 ## Description
 
-Given an integer array `nums` and an integer `k`, return the kth largest element in the array — the kth largest in sorted order, not the kth distinct value.
+Given an integer array `nums` and an integer `k`, return the `k`th largest element in sorted
+order. Duplicate values occupy separate positions.
 
 **Example**
 
@@ -18,20 +19,21 @@ Input: nums = [3,2,1,5,6,4], k = 2
 Output: 5
 ```
 
-Explanation: sorted descending, `nums` is `[6,5,4,3,2,1]`, and the 2nd entry is `5`.
+In descending order the array is `[6,5,4,3,2,1]`, whose second element is `5`.
 
 ## Intuition
 
-Sorting works and is one line, but it pays O(n log n) to order the whole array when the question only concerns the boundary between the top k and everything else. Anything already smaller than k values seen so far is dead — it can never become the kth largest. So I carry only k candidates in a **min-heap**, where the root is the smallest of them, i.e. the current kth largest; a new number is worth keeping precisely when it beats that root.
+The answer depends only on the largest `k` values. Keeping those values in a min-heap places their
+smallest member at the root, which is the current `k`th largest. A later value only matters if it
+is greater than that boundary.
 
 ## Approach
 
-1. Seed `heap = nums[:k]` and `heapq.heapify` it — O(k), and cheaper than k separate pushes.
-2. Walk the rest, `nums[k:]`. Compare each `num` against `heap[0]`, the weakest candidate held.
-3. If `num > heap[0]`, call `heapq.heapreplace(heap, num)`: it pops the root and pushes in one sift, keeping the size pinned at exactly k.
-4. If `num <= heap[0]`, drop it — there are already k values at least as large, so it is out of contention forever.
-5. Return `heap[0]`. With exactly k elements in the heap, the minimum of them is the kth largest overall.
-6. Note the problem ranks duplicates separately (`[3,2,3,1,2,4,5,5,6]`, k=4 gives 4), and this handles that for free since nothing is deduplicated.
+1. Copy the first `k` values into `heap` and heapify them in place.
+2. For each remaining `num`, compare it with `heap[0]`, the smallest retained value.
+3. If `num` is larger, replace the root with it; otherwise discard `num`.
+4. Keep duplicates as separate heap entries because the requested rank is not distinct-value rank.
+5. Return `heap[0]`, the smallest of the largest `k` values.
 
 ## Code
 
@@ -52,4 +54,13 @@ class Solution:
 
 ## Why it works
 
-The invariant after every step is that the heap contains the k largest values of the prefix processed so far, so the loop finishes holding the k largest of the whole array, whose minimum is by definition the kth largest. Replacing only when `num > heap[0]` is safe because a value not among the top k of a prefix cannot be among the top k of a superset that already contains those k. Cost is O(k) to heapify plus at most one O(log k) replace per remaining element, giving O(n log k) time in O(k) space; quickselect averages O(n) but is far more code and degrades in the worst case.
+After initialization, the heap contains the largest `k` values of the processed prefix. For a new
+value, if it does not exceed the root, at least `k` retained values are as large, so discarding it
+preserves the invariant. Otherwise replacing the root removes the only retained value displaced
+from the top `k`. By induction, the final heap contains the array's largest `k` values, and its
+minimum is the requested element.
+
+**Complexity**
+
+- **Time:** `O(n log k)` in the worst case, including `O(k)` heap construction.
+- **Space:** `O(k)` for the heap.

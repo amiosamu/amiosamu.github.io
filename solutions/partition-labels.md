@@ -19,31 +19,23 @@ Input: s = "ababcbacadefegdehijhklij"
 Output: [9,7,8]
 ```
 
-Explanation: The first 9 characters, `"ababcbaca"`, contain every occurrence of `'a'`, `'b'`, and
-`'c'` in the whole string, so the partition can close there; the next 7 and the final 8 characters
-split the same way, giving parts of size `9, 7, 8`.
+Explanation: The first part contains every `a`, `b`, and `c`; the next two parts similarly contain
+all occurrences of their letters, producing lengths `9`, `7`, and `8`.
 
 ## Intuition
 
-A partition can only close at index `i` if no character it contains reappears after `i` — that
-is, every character seen since the partition started must have its last occurrence at or before
-`i`. So precomputing the last index of every character turns "can I cut here" into "has the
-running max of last-occurrences, over characters seen so far in this partition, caught up to my
-current position." Cutting the instant that happens is always safe and never merges two
-partitions that could have stayed separate.
+A part cannot end before the final occurrence of any character it contains. While scanning a
+candidate part, track the farthest last occurrence of all characters seen. The first index that
+reaches this boundary is the earliest legal cut, and taking every earliest cut maximizes the
+number of parts.
 
 ## Approach
 
-1. Build `last`, a dict mapping each character to its last index in `s`
-   (`last = {c: i for i, c in enumerate(s)}` — later indices overwrite earlier ones, so the
-   final value for each key is its true last occurrence).
-2. Initialize `sizes = []`, `start = 0` (start of the current partition), `end = 0` (furthest
-   index the current partition must reach).
-3. Loop `i, c` over `enumerate(s)`: set `end = max(end, last[c])`, extending the boundary to
-   cover `c`'s last occurrence.
-4. If `i == end`: every character seen since `start` has its last occurrence at or before `i`,
-   so it's safe to close here. Append `end - start + 1` to `sizes`, then set `start = i + 1`.
-5. After the loop, return `sizes`.
+1. Build `last`, mapping each character to its final index.
+2. Track `start` and `end` for the current part while scanning `s`.
+3. At each character, extend `end` to `max(end, last[c])`.
+4. When `i == end`, append the part length and move `start` to `i + 1`.
+5. Return the collected lengths. The string is not mutated.
 
 ## Code
 
@@ -66,12 +58,15 @@ class Solution:
 
 ## Why it works
 
-`end` is maintained as the rightmost last-occurrence among characters seen since `start`, so
-`i == end` is exactly the condition that no character in `[start, i]` can reappear later —
-extending the partition even one more index would only ever be forced by a character whose last
-occurrence lies beyond `i`, and `end` already accounts for every such character seen so far.
-Since any valid partitioning must respect these same last-occurrence constraints, cutting the
-moment it becomes possible can never merge two partitions that a different valid split would
-have kept apart, which is what maximizes the count. One pass to build `last` and one pass to
-scan give O(n) time; `last` holds at most one entry per distinct character, O(1) here since the
-alphabet is fixed.
+During a part, `end` is the greatest final occurrence of every character encountered so far. If
+`i < end`, at least one encountered character appears later, so no valid partition can cut at `i`.
+When `i == end`, none of the part's characters appears afterward, making the cut valid. Therefore,
+the algorithm chooses the earliest possible end for each part. Any valid partition must end its
+corresponding part no earlier, so induction over parts proves this greedy choice maximizes their
+number.
+
+**Complexity**
+
+- **Time:** `O(n)` for two passes over `s`.
+- **Space:** `O(1)` auxiliary space for the fixed lowercase alphabet, plus `O(n)` output space in
+  the worst case.

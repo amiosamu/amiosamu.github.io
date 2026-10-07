@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an integer array `nums` and an integer `k`, return the number of contiguous subarrays whose elements sum to exactly `k`. `nums` may contain negative numbers, zero, and duplicates.
+Given integer array `nums` and integer `k`, return the number of contiguous subarrays whose sum
+is exactly `k`. Values may be negative, zero, or duplicated.
 
 **Example**
 
@@ -18,21 +19,23 @@ Input: nums = [1,1,1], k = 2
 Output: 2
 ```
 
-Explanation: The subarray `nums[0:2]` (`[1,1]`) and the subarray `nums[1:3]` (`[1,1]`) each sum to 2, giving two matching subarrays.
+Explanation: `nums[0:2]` and `nums[1:3]` both sum to `2`.
 
 ## Intuition
 
-The sum of `nums[i..j]` is `prefix[j] - prefix[i - 1]`, so asking "which subarrays ending at `j` sum to `k`" is the same as asking "how many earlier prefix sums equal `curSum - k`". That turns an O(n²) double loop into one pass with a frequency map of prefix sums seen so far. Note that a sliding window is *not* available here — `nums` may contain negatives, so the running sum isn't monotonic and shrinking from the left doesn't reliably reduce it.
+If the prefix sum through the current index is `curSum`, a subarray ending there has sum `k`
+exactly when its preceding prefix sum is `curSum - k`. A frequency map counts how many such
+prefixes have already appeared. Counts, rather than a set, are necessary because equal prefix
+sums at different positions define different subarrays. Negative values prevent a monotonic
+sliding-window solution.
 
 ## Approach
 
-1. Keep `curSum = 0`, `res = 0`, and `prefixCount`, a map from a prefix sum to how many times it has occurred.
-2. Seed it with `{0: 1}`. That entry represents the empty prefix and is what lets a subarray starting at index 0 be counted.
-3. For each `n` in `nums`, add it to `curSum` first, so `curSum` is the prefix sum through the current index.
-4. Add `prefixCount.get(curSum - k, 0)` to `res` — every earlier prefix with that sum marks a subarray ending here that totals `k`.
-5. Then record the current prefix: `prefixCount[curSum] = prefixCount.get(curSum, 0) + 1`.
-6. The order of steps 4 and 5 matters when `k == 0`: querying before inserting prevents a zero-length subarray from being counted.
-7. Return `res`.
+1. Initialize `curSum = 0`, `res = 0`, and `prefixCount = {0: 1}` for the empty prefix.
+2. For each value, update `curSum` and add the frequency of `curSum - k` to `res`.
+3. Record the current prefix only after querying, preventing an empty subarray from being counted
+   when `k == 0`.
+4. Return `res`. The initial zero prefix allows subarrays beginning at index zero to count.
 
 ## Code
 
@@ -53,4 +56,13 @@ class Solution:
 
 ## Why it works
 
-Every subarray is uniquely identified by its (start, end) pair, and the map keeps *counts* rather than a set of prefix sums, so repeated prefix values each contribute their own subarray — that is what makes the tally exact rather than a distinct-count. When index `j` is processed, `prefixCount` holds exactly the prefixes ending strictly before `j`'s subarray start, so every counted pair is a genuine subarray and every genuine one is counted at its right endpoint. One pass with O(1) hash operations gives O(n) time; the map can hold up to one entry per index, O(n) space.
+Before processing an index, `prefixCount` contains exactly the frequencies of all prefixes ending
+before it. After adding the current value, every stored prefix equal to `curSum - k` determines a
+unique start position whose subarray ends here and sums to `k`. Conversely, every matching
+subarray ending here has exactly such a preceding prefix, so all and only valid subarrays are
+added. Recording the current prefix then restores the invariant for the next index.
+
+**Complexity**
+
+- **Time:** `O(n)` expected time with constant-time hash-map operations.
+- **Space:** `O(n)` for distinct prefix sums.

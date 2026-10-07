@@ -9,7 +9,8 @@ space: "O(n)"
 
 ## Description
 
-Given an integer `n` representing `n` pairs of parentheses, generate all combinations of well-formed (validly nested) parenthesis strings of length `2n`.
+Given `n` pairs of parentheses, generate every well-formed parenthesis string of length
+`2n`.
 
 **Example**
 
@@ -18,21 +19,25 @@ Input: n = 3
 Output: ["((()))","(()())","(())()","()(())","()()()"]
 ```
 
-Explanation: these are the 5 distinct ways to arrange 3 pairs of parentheses so that every prefix has at least as many `'('` as `')'`.
+Explanation: These are the five strings whose prefixes never contain more closing than
+opening parentheses.
 
 ## Intuition
 
-Generating all `2^(2n)` strings and validating each is wasteful — most die on the very first bad character. Instead I build the string left to right and only ever append a character that keeps the prefix valid, so every leaf of the recursion is a real answer and nothing is ever thrown away. The whole validity check collapses into two counters: I may open while `open_count < n`, and I may close while `close_count < open_count` (closing more than I have opened is what makes a prefix unrecoverable).
+A valid string uses exactly `n` opening and `n` closing parentheses, and no prefix has more
+closing parentheses than opening ones. Backtracking can enforce both conditions while the
+string is built, avoiding invalid branches rather than generating and checking them later.
+
+The counters `open_count` and `close_count` describe the shared working buffer `cur`.
 
 ## Approach
 
-1. Keep `res` for finished strings and `cur`, a list of characters used as the working buffer.
-2. Define `backtrack(open_count, close_count)` where the counts are how many `(` and `)` are already in `cur`.
-3. Base case: when `len(cur) == 2 * n`, both counts must be `n`, so join `cur` into a string, append to `res`, and return.
-4. Branch one — if `open_count < n`, append `"("`, recurse with `open_count + 1`, then pop to undo.
-5. Branch two — if `close_count < open_count`, append `")"`, recurse with `close_count + 1`, then pop to undo.
-6. The pop after each recursive call is what makes `cur` shared and correct; without it the buffer leaks characters into sibling branches.
-7. Call `backtrack(0, 0)` and return `res`.
+1. Maintain `cur` as the current character buffer and `res` as the completed strings.
+2. Append `"("` only while `open_count < n`, recurse, and then pop it to restore `cur`.
+3. Append `")"` only while `close_count < open_count`, recurse, and then restore `cur`.
+4. When `cur` has length `2 * n`, join and append it. The guards ensure both counts are
+   `n`, including the `n == 0` case.
+5. Start with both counts at zero and return `res` after all branches are explored.
 
 ## Code
 
@@ -61,4 +66,14 @@ class Solution:
 
 ## Why it works
 
-A string of `n` pairs is balanced exactly when no prefix has more `)` than `(` and the totals are equal, and the two guards enforce precisely those conditions at every step, so the recursion reaches every valid string and no invalid one. The choices at each node are distinct characters, so no string is generated twice. The number of leaves is the nth Catalan number, ~4^n/(n^(3/2)), and each costs O(n) to emit, giving O(4^n / sqrt(n)) time with O(n) recursion depth and buffer excluding the output.
+Every explored prefix satisfies the prefix condition and uses at most `n` openings. A leaf
+has length `2n`, so it must contain exactly `n` of each character and is valid. Conversely,
+for any valid string, its next character always satisfies the corresponding guard; following
+those choices reproduces the string. Distinct choice sequences produce distinct strings, so
+every valid result appears exactly once.
+
+**Complexity**
+
+- **Time:** `O(n C_n) = O(4^n / sqrt(n))`, where `C_n` is the `n`th Catalan number.
+- **Space:** `O(n)` auxiliary space for the recursion and working buffer.
+- **Output:** `O(n C_n)` characters across all returned strings.
