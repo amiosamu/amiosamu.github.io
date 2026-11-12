@@ -2,15 +2,18 @@
 
 import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
+import rehypeSlug from 'rehype-slug'
 import remarkGfm from 'remark-gfm'
-import { MarkdownComponents } from '@/components/markdown-components'
+import { markdownComponents } from '@/components/markdown-components'
 
 function SolutionContentComponent({ content }: { content: string }) {
-  const components = MarkdownComponents()
-
   return (
     <div className="prose max-w-none">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeSlug]}
+        components={markdownComponents}
+      >
         {content}
       </ReactMarkdown>
     </div>

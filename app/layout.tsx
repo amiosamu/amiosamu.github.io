@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
+import Link from "next/link";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -9,6 +11,14 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
 });
+
+const NAV_LINKS = [
+  { href: "/", label: "home" },
+  { href: "/essays/", label: "essays" },
+  { href: "/tags/", label: "tags" },
+  { href: "/portfolio/", label: "portfolio" },
+  { href: "/dsa/", label: "dsa" },
+];
 
 export const metadata: Metadata = {
   title: "amiosamu - blog about cs stuff",
@@ -32,27 +42,16 @@ export default function RootLayout({
           <div className="min-h-screen flex flex-col">
             <header className="border-b">
               <div className="container mx-auto px-4 py-4 flex justify-between items-center max-w-2xl">
-                <div className="text-sm">
-                  <a href="/" className="hover:underline">
-                    home
-                  </a>
-                  {" / "}
-                  <a href="/essays/" className="hover:underline">
-                    essays
-                  </a>
-                  {" / "}
-                  <a href="/tags/" className="hover:underline">
-                    tags
-                  </a>
-                  {" / "}
-                  <a href="/portfolio/" className="hover:underline">
-                    portfolio
-                  </a>
-                  {" / "}
-                  <a href="/dsa/" className="hover:underline">
-                    dsa
-                  </a>
-                </div>
+                <nav className="text-sm" aria-label="Main">
+                  {NAV_LINKS.map(({ href, label }, index) => (
+                    <Fragment key={href}>
+                      {index > 0 && " / "}
+                      <Link href={href} className="hover:underline">
+                        {label}
+                      </Link>
+                    </Fragment>
+                  ))}
+                </nav>
                 <ThemeToggle />
               </div>
             </header>

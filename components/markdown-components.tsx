@@ -1,9 +1,10 @@
 "use client"
 
+import { useEffect, useState } from 'react'
+import type { Components } from 'react-markdown'
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 
 import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash'
 import cpp from 'react-syntax-highlighter/dist/esm/languages/prism/cpp'
@@ -30,7 +31,7 @@ SyntaxHighlighter.registerLanguage('rust', rust)
 SyntaxHighlighter.registerLanguage('sql', sql)
 SyntaxHighlighter.registerLanguage('typescript', typescript)
 
-export function MarkdownComponents() {
+function CodeBlock({ language, code }: { language: string; code: string }) {
   // resolvedTheme, not theme: with the default "system" setting `theme` is the
   // string "system", so code blocks would stay light until an explicit toggle.
   const { resolvedTheme } = useTheme()
@@ -40,75 +41,65 @@ export function MarkdownComponents() {
     setMounted(true)
   }, [])
 
-  return {
-    h2({ node, children, ...props }: any) {
-      const text = String(children)
-      const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
-      return (
-        <h2 id={id} {...props}>
-          {children}
-        </h2>
-      )
-    },
-    h3({ node, children, ...props }: any) {
-      const text = String(children)
-      const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
-      return (
-        <h3 id={id} {...props}>
-          {children}
-        </h3>
-      )
-    },
-    code({ node, inline, className, children, ...props }: any) {
-      const match = /language-(\w+)/.exec(className || '')
-      const language = match ? match[1] : ''
+  return (
+    <SyntaxHighlighter
+      style={mounted && resolvedTheme === 'dark' ? oneDark : oneLight}
+      language={language}
+      PreTag="div"
+      className="rounded-lg my-4"
+    >
+      {code}
+    </SyntaxHighlighter>
+  )
+}
 
-      if (!inline && language) {
-        return (
-          <SyntaxHighlighter
-            {...props}
-            style={mounted && resolvedTheme === 'dark' ? oneDark : oneLight}
-            language={language}
-            PreTag="div"
-            className="rounded-lg my-4"
-          >
-            {String(children).replace(/\n$/, '')}
-          </SyntaxHighlighter>
-        )
-      }
+// Module-level on purpose. react-markdown uses these functions as element
+// types, so building the object inside a component gives every render new
+// types and React remounts each overridden element. That once detached the
+// essay headings the table of contents had already looked up, pinning its
+// highlight to the last heading. Keep hooks inside child components instead.
+//
+// Heading ids come from rehype-slug in the content components; lib/toc-utils.ts
+// generates the same ids with github-slugger.
+export const markdownComponents: Components = {
+  code({ node, className, children, ...props }) {
+    const language = /language-(\w+)/.exec(className || '')?.[1]
 
-      return (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      )
-    },
-    table({ node, children, ...props }: any) {
-      // Wrapped so a wide table scrolls on its own instead of stretching the page.
-      return (
-        <div className="my-6 max-w-full overflow-x-auto">
-          <table {...props}>{children}</table>
-        </div>
-      )
-    },
-    img({ node, src, alt, ...props }: any) {
-      // Handle images with proper styling
-      return (
-        <span className="block my-6">
-          <img
-            src={src}
-            alt={alt || ''}
-            className="rounded-lg max-w-full h-auto"
-            loading="lazy"
-            {...props}
-          />
-          {alt && (
-            <span className="block text-center text-sm text-muted-foreground mt-2 italic">
-              {alt}
-            </span>
-          )}
-        </span>
-      )
-    },
-  }
+    if (language) {
+      return <CodeBlock language={language} code={String(children).replace(/\n$/, '')} />
+    }
+
+    return (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    )
+  },
+  table({ node, children, ...props }) {
+    // Wrapped so a wide table scrolls on its own instead of stretching the page.
+    return (
+      <div className="my-6 max-w-full overflow-x-auto">
+        <table {...props}>{children}</table>
+      </div>
+    )
+  },
+  img({ node, src, alt, ...props }) {
+    return (
+      <span className="block my-6">
+        {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary markdown images; static export has no image optimizer */}
+        <img
+          src={src}
+          alt={alt || ''}
+          className="rounded-lg max-w-full h-auto"
+          loading="lazy"
+          {...props}
+        />
+        {alt && (
+          <span className="block text-center text-sm text-muted-foreground mt-2 italic">
+            {alt}
+          </span>
+        )}
+      </span>
+    )
+  },
 }

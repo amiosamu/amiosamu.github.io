@@ -79,12 +79,17 @@ function TocLinks({ headings, activeId }: { headings: TocItem[]; activeId: strin
 function ReadingProgress({ progress }: { progress: number }) {
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
-        <span>Reading Progress</span>
-        <span aria-hidden="true">{progress}%</span>
+      <div className="mb-2.5 flex items-baseline justify-between gap-3">
+        <span className="text-xs font-medium text-muted-foreground">Reading progress</span>
+        <span
+          className="text-xs font-semibold tabular-nums text-foreground"
+          aria-hidden="true"
+        >
+          {progress}%
+        </span>
       </div>
       <div
-        className="h-1 overflow-hidden rounded-full bg-border"
+        className="h-1.5 overflow-hidden rounded-full bg-border/80"
         role="progressbar"
         aria-label="Reading progress"
         aria-valuemin={0}
@@ -93,7 +98,7 @@ function ReadingProgress({ progress }: { progress: number }) {
         aria-valuetext={`${progress}% read`}
       >
         <div
-          className="h-full rounded-full bg-primary transition-[width] duration-150"
+          className="h-full rounded-full bg-primary transition-[width] duration-150 motion-reduce:transition-none"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -168,10 +173,14 @@ export function TableOfContents({ headings, contentId }: TableOfContentsProps) {
   return (
     <>
       <aside className="hidden min-w-0 lg:block" aria-label="Essay navigation">
-        <div className="sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain rounded-lg border bg-muted/20 p-4">
-          <ReadingProgress progress={progress} />
-          <div className="my-4 border-t" />
-          <nav aria-label="On this page">
+        <div className="sticky top-8 flex max-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-lg border bg-muted/20 shadow-sm">
+          <div className="shrink-0 border-b bg-background/60 p-4">
+            <ReadingProgress progress={progress} />
+          </div>
+          <nav
+            aria-label="On this page"
+            className="min-h-0 overflow-y-auto overscroll-contain p-4"
+          >
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">
               On This Page
             </p>

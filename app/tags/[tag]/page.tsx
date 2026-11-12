@@ -1,6 +1,7 @@
 import { getAllTags, getEssaysByTag } from '@/lib/essays'
 import Link from 'next/link'
 import { TagBadge } from '@/components/tag-badge'
+import { EssayDate } from '@/components/essay-date'
 import { notFound } from 'next/navigation'
 
 export async function generateStaticParams() {
@@ -56,15 +57,7 @@ export default function TagPage({ params }: { params: { tag: string } }) {
                 {essay.title}
               </h2>
             </Link>
-            {essay.date && (
-              <p className="text-sm text-muted-foreground">
-                {new Date(essay.date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-            )}
+            <EssayDate date={essay.date} />
             {essay.description && (
               <p className="text-muted-foreground">{essay.description}</p>
             )}
@@ -81,7 +74,6 @@ export default function TagPage({ params }: { params: { tag: string } }) {
     </div>
   )
 }
-
 
 
 

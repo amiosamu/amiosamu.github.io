@@ -8,6 +8,7 @@ import { EssayPagination } from '@/components/essay-pagination'
 import { TagBadge } from '@/components/tag-badge'
 import { TableOfContents } from '@/components/table-of-contents'
 import { extractHeadings } from '@/lib/toc-utils'
+import { EssayDate } from '@/components/essay-date'
 
 // Lazy load BackToTop since it's not needed immediately
 const BackToTop = dynamic(() => import('@/components/back-to-top').then(mod => ({ default: mod.BackToTop })), {
@@ -72,15 +73,7 @@ export default function EssayPage({ params }: { params: { slug: string } }) {
             <header className="mb-8">
               <h1 className="text-3xl font-bold mb-2">{essay.title}</h1>
               <div className="flex flex-wrap items-center gap-3">
-                {essay.date && (
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(essay.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                )}
+                <EssayDate date={essay.date} />
                 {essay.tags && essay.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {essay.tags.map((tag) => (

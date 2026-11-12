@@ -7,7 +7,7 @@ const essaysDirectory = path.join(process.cwd(), 'essays')
 export interface Essay {
   slug: string
   title: string
-  date: string
+  date?: string
   description?: string
   tags?: string[]
   content: string
@@ -16,13 +16,65 @@ export interface Essay {
 export interface EssayMetadata {
   slug: string
   title: string
-  date: string
+  date?: string
   description?: string
   tags?: string[]
 }
 
 // Cache for essay metadata to avoid repeated file reads
 let metadataCache: EssayMetadata[] | null = null
+
+function normalizeEssayDate(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value.trim() || undefined
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10)
+  }
+
+  return undefined
+}
+
+function parseEssayDate(value?: string): Date | null {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!match) return null
+
+  const [, yearText, monthText, dayText] = match
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const day = Number(dayText)
+  const date = new Date(Date.UTC(year, month - 1, day))
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null
+  }
+
+  return date
+}
+
+export function formatEssayDate(value?: string): string | null {
+  const date = parseEssayDate(value)
+  if (!date) return null
+
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function sortEssaysByDate(a: EssayMetadata, b: EssayMetadata) {
+  const aTime = parseEssayDate(a.date)?.getTime() ?? -Infinity
+  const bTime = parseEssayDate(b.date)?.getTime() ?? -Infinity
+
+  return bTime - aTime || a.title.localeCompare(b.title)
+}
 
 export function getEssaySlugs() {
   if (!fs.existsSync(essaysDirectory)) {
@@ -49,7 +101,7 @@ export function getEssayMetadata(slug: string): EssayMetadata {
   return {
     slug: realSlug,
     title: data.title || realSlug,
-    date: data.date || '',
+    date: normalizeEssayDate(data.date),
     description: data.description || '',
     tags: data.tags || [],
   }
@@ -72,7 +124,7 @@ export function getEssayBySlug(slug: string): Essay {
   return {
     slug: realSlug,
     title: data.title || realSlug,
-    date: data.date || '',
+    date: normalizeEssayDate(data.date),
     description: data.description || '',
     tags: data.tags || [],
     content,
@@ -89,7 +141,7 @@ export function getAllEssaysMetadata(): EssayMetadata[] {
   const slugs = getEssaySlugs()
   const essays = slugs
     .map((slug) => getEssayMetadata(slug))
-    .sort((a, b) => (a.date > b.date ? -1 : 1))
+    .sort(sortEssaysByDate)
   
   // Cache the result
   metadataCache = essays
@@ -100,7 +152,7 @@ export function getAllEssays(): Essay[] {
   const slugs = getEssaySlugs()
   const essays = slugs
     .map((slug) => getEssayBySlug(slug))
-    .sort((a, b) => (a.date > b.date ? -1 : 1))
+    .sort(sortEssaysByDate)
   return essays
 }
 
@@ -140,4 +192,3 @@ export function getEssaysByTag(tag: string): EssayMetadata[] {
   const essays = getAllEssaysMetadata()
   return essays.filter((essay) => essay.tags?.includes(tag))
 }
-

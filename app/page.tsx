@@ -7,7 +7,7 @@ export default function Home() {
       <div className="space-y-6">
         <div className="prose dark:prose-invert max-w-none">
           <p className="text-lg leading-relaxed">
-            Hi, I'm <strong>amiosamu</strong>.
+            Hi, I&apos;m <strong>amiosamu</strong>.
           </p>
           <p className="text-lg leading-relaxed">
             Topic of interest:

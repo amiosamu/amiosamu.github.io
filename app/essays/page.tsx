@@ -1,6 +1,7 @@
 import { getAllEssaysMetadata } from '@/lib/essays'
 import Link from 'next/link'
 import { TagBadge } from '@/components/tag-badge'
+import { EssayDate } from '@/components/essay-date'
 
 export default function EssaysPage() {
   const essays = getAllEssaysMetadata()
@@ -24,15 +25,7 @@ export default function EssaysPage() {
                   {essay.title}
                 </h2>
               </Link>
-              {essay.date && (
-                <p className="text-sm text-muted-foreground">
-                  {new Date(essay.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              )}
+              <EssayDate date={essay.date} />
               {essay.description && (
                 <p className="text-muted-foreground">{essay.description}</p>
               )}
@@ -50,4 +43,3 @@ export default function EssaysPage() {
     </div>
   )
 }
-
